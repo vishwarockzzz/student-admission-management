@@ -13,11 +13,13 @@ body {
   }
   
   .container {
-    background-color: aqua;
     max-width: 700px;
     margin: 40px auto;
     padding: 20px;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    background-color: aqua;
   }
   
   form {
@@ -45,7 +47,8 @@ body {
     margin-top: 6px;
     width: 100%;
     max-width: 400px;
-    padding: 10px;
+    max-height: 400px;
+    padding: 10px 50px;
     border: 1.5px solid black;
     border-radius: 6px;
     transition: background-color 0.3s ease;
