@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recommendation Dashboard</title>
+  <link rel="stylesheet" href="upcoming request.css">
+</head>
+<body>
+  <header>
+    <h2>Upcoming Request</h2>
+    <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+  </header>
+
+  <div class="container">
+    <div class="side-menu" id="sideMenu">
+      <p onclick="filterSection('requested')">Requested</p>
+      <p onclick="filterSection('completed')">Completed</p>
+    </div>
+
+    <div class="content" id="studentList">
+      <!-- Cards will be injected here -->
+    </div>
+  </div>
+
+  <script>
+    const students = [
+      { id: 1, name: 'Alice', dob: '2001-05-10', school: 'ABC School', city: 'Madurai', status: 'requested' },
+      { id: 2, name: 'Bob', dob: '2002-07-15', school: 'XYZ School', city: 'Chennai', status: 'requested' }
+    ];
+
+    function toggleMenu() {
+      const menu = document.getElementById("sideMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function filterSection(status) {
+      renderStudents(status);
+    }
+
+    function renderStudents(filterStatus = 'requested') {
+      const container = document.getElementById('studentList');
+      container.innerHTML = '';
+      students.filter(s => s.status === filterStatus).forEach((student, index) => {
+        const card = document.createElement('div');
+        card.className = 'student-card ' + (index % 2 === 0 ? '' : 'blue');
+        card.innerHTML = `
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>DOB:</strong> ${student.dob}</p>
+          <p><strong>School:</strong> ${student.school}</p>
+          <p><strong>City:</strong> ${student.city}</p>
+          <div class="buttons">
+            <button class="accept" onclick="showBranchPopup(${student.id}, this)">Accept</button>
+            <button class="decline" onclick="changeStatus(${student.id}, 'declined')">Decline</button>
+            <button class="onhold" onclick="changeStatus(${student.id}, 'onhold')">On Hold</button>
+          </div>
+          <div class="popup" id="popup-${student.id}">
+            <label>Choose Branch:
+              <select onchange="confirmBranch(${student.id}, this.value)">
+                <option value="">Select</option>
+                <option>CSE</option>
+                <option>IT</option>
+                <option>ECE</option>
+              </select>
+            </label>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function showBranchPopup(id, btn) {
+      const popup = document.getElementById(`popup-${id}`);
+      popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function confirmBranch(id, branch) {
+      if (branch) {
+        changeStatus(id, 'accepted');
+        alert(`Student ${id} accepted for branch ${branch}`);
+      }
+    }
+
+    function changeStatus(id, newStatus) {
+      const student = students.find(s => s.id === id);
+      if (student) {
+        student.status = 'completed';
+        renderStudents('requested');
+      }
+    }
+
+    // Initial load
+    renderStudents();
+  </script>
+</body>
+</html>
