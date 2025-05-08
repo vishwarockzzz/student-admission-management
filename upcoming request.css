@@ -1,85 +1,100 @@
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-  }
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+header {
+background-color: maroon;
+color: white;
+padding: 10px 20px;
+display: flex;
+align-items: center;
+position: relative;
+}
 
-  header {
-    background-color: maroon;
-    color: white;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+.header-left,
+.header-right {
+width: 100px; /* reserve space left and right */
+display: flex;
+align-items: center;
+}
 
-  .menu-btn {
-    background-color: white;
-    color: maroon;
-    border: none;
-    padding: 10px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+.header-title {
+flex-grow: 1;
+text-align: center;
+margin: 0;
+font-weight: bold;
+}
 
-  .side-menu {
-    width: 200px;
-    background-color: #f0f0f0;
-    padding: 10px;
-    display: none;
-  }
+.menu-btn {
+background-color: white;
+color: maroon;
+border: none;
+padding: 8px 12px;
+font-size: 18px;
+cursor: pointer;
+border-radius: 4px;
+}
 
-  .container {
-    display: flex;
-  }
 
-  .content {
-    flex: 1;
-    padding: 20px;
-  }
+.side-menu {
+  width: 200px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  display: none;
+}
 
-  .student-card {
-    border: 2px solid orange;
-    padding: 15px;
-    margin-bottom: 20px;
-    position: relative;
-  }
+.container {
+  display: flex;
+}
 
-  .student-card.blue {
-    border-color: steelblue;
-  }
+.content {
+  flex: 1;
+  padding: 20px;
+}
 
-  .buttons {
-    margin-top: 10px;
-  }
+.student-card {
+  border: 2px solid orange;
+  padding: 15px;
+  margin-bottom: 20px;
+  position: relative;
+}
 
-  button {
-    padding: 8px 12px;
-    margin: 5px;
-    border: 1px solid #333;
-    background-color: white;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+.student-card.blue {
+  border-color: steelblue;
+}
 
-  button.accept:hover {
-    background-color: lightgreen;
-  }
+.buttons {
+  margin-top: 10px;
+}
 
-  button.decline:hover {
-    background-color: #ffcccc;
-  }
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  border: 1px solid #333;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 
-  button.onhold:hover {
-    background-color: #fff6b3;
-  }
+button.accept:hover {
+  background-color: lightgreen;
+}
 
-  .popup {
-    position: absolute;
-    top: 60px;
-    left: 150px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    display: none;
-    z-index: 1;
-  }
+button.decline:hover {
+  background-color: #ffcccc;
+}
+
+button.onhold:hover {
+  background-color: #fff6b3;
+}
+
+.popup {
+  position: absolute;
+  top: 60px;
+  left: 150px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: none;
+  z-index: 1;
+}
