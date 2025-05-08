@@ -82,29 +82,31 @@
       <h2>Branches to Choose From</h2>
 
       <label>Preference 1:
-        <select>
+        <select id="pref1" onchange="updateOptions()">
+          <option value="">-- Select --</option>
           <option>CSE</option>
           <option>IT</option>
           <option>MECH</option>
         </select>
       </label>
-
+      
       <label>Preference 2:
-        <select>
+        <select id="pref2" onchange="updateOptions()">
+          <option value="">-- Select --</option>
           <option>CSE</option>
           <option>IT</option>
           <option>MECH</option>
         </select>
       </label>
-
+      
       <label>Preference 3:
-        <select>
+        <select id="pref3" onchange="updateOptions()">
+          <option value="">-- Select --</option>
           <option>CSE</option>
           <option>IT</option>
           <option>MECH</option>
         </select>
       </label>
-
       <h2>Recommender Details</h2>
 
       <label>Name:
@@ -136,5 +138,43 @@
       </label>
     </form>
   </main>
+  <script>
+    const options = ['CSE', 'IT', 'MECH'];
+
+    function updateOptions() {
+      const selectedValues = [
+        document.getElementById('pref1').value,
+        document.getElementById('pref2').value,
+      ];
+  
+      const dropdowns = [
+        document.getElementById('pref2'),
+        document.getElementById('pref3'),
+      ];
+  
+      dropdowns.forEach((dropdown, i) => {
+        // Clear all options
+        const currentValue = dropdown.value;
+        dropdown.innerHTML = '<option value="">-- Select --</option>';
+  
+        const usedValues = selectedValues.slice(0, i + 1).filter(v => v);
+  
+        const remainingOptions = options.filter(opt => !usedValues.includes(opt));
+        remainingOptions.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.text = opt;
+          dropdown.add(option);
+        });
+  
+        // If previous value still valid, restore it
+        if (remainingOptions.includes(currentValue)) {
+          dropdown.value = currentValue;
+        }
+      });
+    }
+  </script>
+  
+
 </body>
 </html>

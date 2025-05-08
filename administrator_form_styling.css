@@ -19,7 +19,6 @@ body {
     text-align: center;
     display: flex;
     justify-content: center;
-    background-color: aqua;
   }
   
   form {
@@ -43,7 +42,7 @@ body {
     font-weight: bold;
   }
   
-  input, select {
+  input {
     margin-top: 6px;
     width: 100%;
     max-width: 400px;
@@ -53,6 +52,18 @@ body {
     border-radius: 6px;
     transition: background-color 0.3s ease;
   }
+
+  select {
+    margin-top: 6px;
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 100px;
+    border: 1.5px solid black;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    
+  }
+  
   
   input:hover, select:hover {
     background-color: #f0f0f0;
