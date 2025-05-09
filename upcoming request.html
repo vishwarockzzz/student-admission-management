@@ -24,76 +24,80 @@
     <div class="content" id="studentList">
       <!-- Cards will be injected here -->
     </div>
-  </div>
 
-  <script>
-    const students = [
-      { id: 1, name: 'Alice', dob: '2001-05-10', school: 'ABC School', city: 'Madurai', status: 'requested' },
-      { id: 2, name: 'Bob', dob: '2002-07-15', school: 'XYZ School', city: 'Chennai', status: 'requested' }
-    ];
-
-    function toggleMenu() {
-      const menu = document.getElementById("sideMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-
-    function filterSection(status) {
-      renderStudents(status);
-    }
-
-    function renderStudents(filterStatus = 'requested') {
-      const container = document.getElementById('studentList');
-      container.innerHTML = '';
-      students.filter(s => s.status === filterStatus).forEach((student, index) => {
-        const card = document.createElement('div');
-        card.className = 'student-card ' + (index % 2 === 0 ? '' : 'blue');
-        card.innerHTML = `
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>DOB:</strong> ${student.dob}</p>
-          <p><strong>School:</strong> ${student.school}</p>
-          <p><strong>City:</strong> ${student.city}</p>
-          <div class="buttons">
-            <button class="accept" onclick="showBranchPopup(${student.id}, this)">Accept</button>
-            <button class="decline" onclick="changeStatus(${student.id}, 'declined')">Decline</button>
-            <button class="onhold" onclick="changeStatus(${student.id}, 'onhold')">On Hold</button>
-          </div>
-          <div class="popup" id="popup-${student.id}">
-            <label>Choose Branch:
-              <select onchange="confirmBranch(${student.id}, this.value)">
-                <option value="">Select</option>
-                <option>CSE</option>
-                <option>IT</option>
-                <option>ECE</option>
-              </select>
-            </label>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function showBranchPopup(id, btn) {
-      const popup = document.getElementById(`popup-${id}`);
-      popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function confirmBranch(id, branch) {
-      if (branch) {
-        changeStatus(id, 'accepted');
-        alert(`Student ${id} accepted for branch ${branch}`);
+    <script>
+      const students = [
+        { id: 1, name: 'Alice', dob: '2001-05-10', school: 'ABC School', city: 'Madurai', status: 'requested' },
+        { id: 2, name: 'Bob', dob: '2002-07-15', school: 'XYZ School', city: 'Chennai', status: 'requested' }
+      ];
+  
+      function toggleMenu() {
+        const menu = document.getElementById("sideMenu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
       }
-    }
-
-    function changeStatus(id, newStatus) {
-      const student = students.find(s => s.id === id);
-      if (student) {
-        student.status = 'completed';
-        renderStudents('requested');
+  
+      function filterSection(status) {
+        renderStudents(status);
       }
-    }
-
-    // Initial load
-    renderStudents();
-  </script>
+  
+      function renderStudents(filterStatus = 'requested') {
+        const container = document.getElementById('studentList');
+        container.innerHTML = '';
+  
+        students.filter(s => s.status === filterStatus).forEach((student, index) => {
+          const row = document.createElement('div');
+          row.className = 'student-row';
+          row.id = `student-${student.id}`;
+  
+          const card = document.createElement('div');
+          card.className = 'student-card';
+          card.innerHTML = `
+            <p><strong>Name:</strong> ${student.name}</p>
+            <p><strong>DOB:</strong> ${student.dob}</p>
+            <p><strong>School:</strong> ${student.school}</p>
+            <p><strong>City:</strong> ${student.city}</p>
+            <button class="view-more">View More</button>
+          `;
+  
+          const actions = document.createElement('div');
+          actions.className = 'action-buttons';
+          actions.innerHTML = `
+            <button class="accept" onclick="acceptStudent(${student.id})">Accept</button>
+            <button class="decline" onclick="declineStudent(${student.id})">Decline</button>
+            <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          `;
+  
+          row.appendChild(card);
+          row.appendChild(actions);
+          container.appendChild(row);
+        });
+      }
+  
+      function acceptStudent(id) {
+        const branch = prompt("Choose a branch (CSE, IT, ECE):");
+        if (branch) {
+          alert(`Student ${id} accepted for ${branch}`);
+          removeCard(id);
+        }
+      }
+  
+      function declineStudent(id) {
+        const card = document.getElementById(`student-${id}`);
+        card.classList.add('decline-shadow');
+        setTimeout(() => removeCard(id), 500);
+      }
+  
+      function onHoldStudent(id) {
+        alert(`Student ${id} is on hold.`);
+        removeCard(id);
+      }
+  
+      function removeCard(id) {
+        const row = document.getElementById(`student-${id}`);
+        if (row) row.remove();
+      }
+  
+      renderStudents();
+    </script>
 </body>
 </html>

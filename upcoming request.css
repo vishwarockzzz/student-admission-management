@@ -50,51 +50,68 @@ border-radius: 4px;
 .content {
   flex: 1;
   padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.student-row {
+  display: flex;
+  justify-content: space-between;
+  width: 48%;
+  background-color: black;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .student-card {
-  border: 2px solid orange;
-  padding: 15px;
-  margin-bottom: 20px;
-  position: relative;
+  width: 70%;
 }
 
-.student-card.blue {
-  border-color: steelblue;
+.student-card p {
+  margin: 6px 0;
 }
 
-.buttons {
-  margin-top: 10px;
+.student-card button.view-more {
+  background: transparent;
+  border: 1px solid orange;
+  color: orange;
+  float: right;
+  cursor: pointer;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
 }
 
 button {
   padding: 8px 12px;
-  margin: 5px;
+  margin: 0;
   border: 1px solid #333;
   background-color: white;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
-button.accept:hover {
-  background-color: lightgreen;
+.accept:hover {
+  box-shadow: 0 0 10px green;
 }
 
-button.decline:hover {
-  background-color: #ffcccc;
+.decline:hover {
+  box-shadow: 0 0 10px red;
 }
 
-button.onhold:hover {
-  background-color: #fff6b3;
+.onhold:hover {
+  box-shadow: 0 0 10px yellow;
 }
 
-.popup {
-  position: absolute;
-  top: 60px;
-  left: 150px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  padding: 10px;
-  display: none;
-  z-index: 1;
+.decline-shadow {
+  box-shadow: 0 0 20px red;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.4s ease;
 }
