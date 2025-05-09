@@ -9,173 +9,340 @@
   <header>
     <h1>Administrator Panel - Student Entry</h1>
   </header>
-
-  <main class="container" >
-    <form>
+  <main class="container">
+    <div>
       <h2>Student Details</h2>
+      <div class="row">
+        <div class="form-section">
+          <div class="form-group">
+            <label>Name:</label>
+            <input type="text" />
+          </div>
 
-      <label>Name:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Email-Id:</label>
+            <input type="email" />
+          </div>
+          
+          <div class="form-group">
+            <label>Address:</label>
+            <input type="text" />
+          </div>
 
-      <label>School:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Parents Annual Income:</label>
+            <input type="text" />
+          </div>
 
-      <label>District:
-        <input type="text" />
-      </label>
+          
+        
 
-      <label>Address:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>School:</label>
+            <input type="text" />
+          </div>
 
-      <label>Community:
-        <select>
-          <option>OC</option>
-          <option>BC</option>
-          <option>MBC</option>
-          <option>SC</option>
-          <option>ST</option>
-        </select>
-      </label>
+          <div class="form-group">
+            <label>District:</label>
+            <input type="text" />
+          </div>
 
-      <label>Phone Number:
-        <input type="tel" />
-      </label>
+          <div class="form-group">
+            <label>12th Mark:</label>
+            <input type="text" />
+          </div>
 
-      <label>Email-Id:
-        <input type="email" />
-      </label>
+        
+        </div>
 
-      <label>Board:
-        <select>
-          <option>State Board</option>
-          <option>CBSE</option>
-          <option>ICSE</option>
-        </select>
-      </label>
+         
+        <div class="form-section">
+            <div class="form-group">
+                <label>Phone Number:</label>
+                <input type="tel" />
+              </div>
 
-      <label>12th Mark:
-        <input type="text" />
-      </label>
-      <label>12th Mark (in percentage):
-        <input type="text" />
-      </label>
+            <div class="form-group">
+                <label>Aadhar Number:</label>
+                <input type="text" />
+            </div>
 
-      <label>Study Break:
-        <select>
-          <option>No</option>
-          <option>Yes</option>
-        </select>
-      </label>
+          <div class="form-group">
+            <label>Community:</label>
+            <select>
+              <option>OC</option>
+              <option>BC</option>
+              <option>MBC</option>
+              <option>SC</option>
+              <option>ST</option>
+            </select>
+          </div>
 
-      <label>Engineering Cutoff:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Application Number:</label>
+            <input type="text" />
+          </div>
+          <div class="form-group">
+            <label>Board:</label>
+            <select id="boardSelect" onchange="toggleSubjects()">
+              <option value="">-- Select Board --</option>
+              <option value="state">State Board</option>
+              <option value="cbse">CBSE</option>
+              <option value="icse">ICSE</option>
+            </select>
+          </div>
+          
 
-      <label>Aadhar Number:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Study Break:</label>
+            <select>
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>12th Mark (in percentage):</label>
+            <input type="text" />
+          </div>
 
-      <label>Parents Annual Income:
-        <input type="text" />
-      </label>
+      </div>
 
-      <h2>Branches to Choose From</h2>
-
-      <label>Preference 1:
-        <select id="pref1" onchange="updateOptions()">
+      <div class="form-group">
+        <label for="degree">Academic Degree Applying for:</label>
+        <select id="degree" onchange="togglePreferences()">
           <option value="">-- Select --</option>
-          <option>CSE</option>
-          <option>IT</option>
-          <option>MECH</option>
+          <option value="btech">B.E./ B.Tech./ B.Des</option>
+          <option value="msc">M.Sc.</option>
+          <option value="barch">B.Arch</option>
         </select>
-      </label>
+      </div>
+  
+      <!-- Subject Marks Input -->
+      <div id="subject-fields" style="display: none;">
+        <div class="form-group">
+          <label>Mathematics (out of 100):</label>
+          <input type="number" name="maths" />
+        </div>
+        <div class="form-group">
+          <label>Physics (out of 100):</label>
+          <input type="number" name="physics" />
+        </div>
+        <div class="form-group">
+          <label>Chemistry (out of 100):</label>
+          <input type="number" name="chemistry" />
+        </div>
+      </div>
+  
+      <!-- NATA and 12th for B.Arch -->
+      <div id="nata-fields" style="display: none;">
+        <div class="form-group">
+          <label>NATA Score (out of 200):</label>
+          <input type="number" name="nata" />
+        </div>
+        <div class="form-group">
+          <label>12th Total Marks:</label>
+          <input type="number" name="twelvemarks" />
+        </div>
+        <div class="form-group">
+          <label>12th Total Out Of:</label>
+          <select name="twelvemax">
+            <option value="600">600</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+      </div>
+  
+      <!-- Cutoff Outputs -->
+      <div id="cutoffs-wrapper" class="mt-4">
+        <div class="form-group" id="engg-cutoff-group" style="display: none;">
+          <label>Engineering Cutoff (out of 200):</label>
+          <input type="text" class="form-control" readonly id="engg-cutoff" />
+        </div>
       
-      <label>Preference 2:
-        <select id="pref2" onchange="updateOptions()">
-          <option value="">-- Select --</option>
-          <option>CSE</option>
-          <option>IT</option>
-          <option>MECH</option>
-        </select>
-      </label>
+        <div class="form-group" id="msc-cutoff-group" style="display: none;">
+          <label>M.Sc. Cutoff (out of 300):</label>
+          <input type="text" class="form-control" readonly id="msc-cutoff" />
+        </div>
       
-      <label>Preference 3:
-        <select id="pref3" onchange="updateOptions()">
-          <option value="">-- Select --</option>
-          <option>CSE</option>
-          <option>IT</option>
-          <option>MECH</option>
-        </select>
-      </label>
+        <div class="form-group" id="barch-cutoff-group" style="display: none;">
+          <label>B.Arch. Cutoff (out of 400):</label>
+          <input type="text" class="form-control" readonly id="barch-cutoff" />
+        </div>
+      </div>
+
+      <!-- Branch Preferences -->
+      <div id="preferences" style="display: none;">
+        <h2>Branches to Choose From</h2>
+      
+        <div class="form-group">
+          <label>Preference 1:</label>
+          <select id="pref1" onchange="updateOptions()">
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+      
+        <div class="form-group">
+          <label>Preference 2:</label>
+          <select id="pref2" onchange="updateOptions()">
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+      
+        <div class="form-group">
+          <label>Preference 3:</label>
+          <select id="pref3" onchange="updateOptions()">
+            <option value="">-- Select --</option>
+          </select>
+        </div>
+      </div>
+      </div></div>
       <h2>Recommender Details</h2>
 
-      <label>Name:
-        <input type="text" />
-      </label>
+      <div class="row">
+        <div class="form-section">
+          <div class="form-group">
+            <label>Name:</label>
+            <input type="text" />
+          </div>
 
-      <label>Designation:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Affiliation:</label>
+            <input type="text" />
+          </div>
 
-      <label>Affiliation:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Office Phone Number:</label>
+            <input type="tel" />
+          </div>
 
-      <label>Office Address:
-        <input type="text" />
-      </label>
+          <div class="form-group">
+            <label>Email Id:</label>
+            <input type="email" />
+          </div>
+        </div>
 
-      <label>Office Phone Number:
-        <input type="tel" />
-      </label>
+        <div class="form-section">
+          <div class="form-group">
+            <label>Designation:</label>
+            <input type="text" />
+          </div>
 
-      <label>Personal Phone Number:
-        <input type="tel" />
-      </label>
+          <div class="form-group">
+            <label>Office Address:</label>
+            <input type="text" />
+          </div>
 
-      <label>Email Id:
-        <input type="email" />
-      </label>
+          <div class="form-group">
+            <label>Personal Phone Number:</label>
+            <input type="tel" />
+          </div>
+        </div>
+      </div>
+
     </form>
   </main>
-  <script>
-    const options = ['CSE', 'IT', 'MECH'];
 
-    function updateOptions() {
-      const selectedValues = [
-        document.getElementById('pref1').value,
-        document.getElementById('pref2').value,
-      ];
+  <script>
+    const branches = [
+      'CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS'
+    ];
   
-      const dropdowns = [
-        document.getElementById('pref2'),
-        document.getElementById('pref3'),
-      ];
-  
-      dropdowns.forEach((dropdown, i) => {
-        // Clear all options
-        const currentValue = dropdown.value;
-        dropdown.innerHTML = '<option value="">-- Select --</option>';
-  
-        const usedValues = selectedValues.slice(0, i + 1).filter(v => v);
-  
-        const remainingOptions = options.filter(opt => !usedValues.includes(opt));
-        remainingOptions.forEach(opt => {
+    function populateDropdown(dropdownId, exclude = []) {
+      const dropdown = document.getElementById(dropdownId);
+      const currentValue = dropdown.value;
+      dropdown.innerHTML = '<option value="">-- Select --</option>';
+      branches
+        .filter(branch => !exclude.includes(branch))
+        .forEach(branch => {
           const option = document.createElement('option');
-          option.value = opt;
-          option.text = opt;
+          option.value = branch;
+          option.text = branch;
           dropdown.add(option);
         });
   
-        // If previous value still valid, restore it
-        if (remainingOptions.includes(currentValue)) {
-          dropdown.value = currentValue;
-        }
-      });
+      if (branches.includes(currentValue) && !exclude.includes(currentValue)) {
+        dropdown.value = currentValue;
+      }
     }
+  
+    function updateOptions() {
+      const pref1 = document.getElementById('pref1').value;
+      const pref2 = document.getElementById('pref2').value;
+  
+      populateDropdown('pref2', [pref1]);
+      populateDropdown('pref3', [pref1, pref2]);
+    }
+  
+    function togglePreferences() {
+        const degree = document.getElementById("degree").value;
+        const subjectFields = document.getElementById("subject-fields");
+        const nataFields = document.getElementById("nata-fields");
+  
+        document.getElementById("engg-cutoff-group").style.display = "none";
+        document.getElementById("msc-cutoff-group").style.display = "none";
+        document.getElementById("barch-cutoff-group").style.display = "none";
+        nataFields.style.display = "none";
+        subjectFields.style.display = "none";
+  
+        if (degree === "btech" || degree === "msc" || degree === "barch") {
+          subjectFields.style.display = "block";
+        }
+  
+        if (degree === "barch") {
+          nataFields.style.display = "block";
+        }
+  
+        calculateCutoff(); // recalculate if user switches option
+      }
+  
+      function calculateCutoff() {
+        const degree = document.getElementById("degree").value;
+      
+        // Hide all cutoff sections first
+        document.getElementById("engg-cutoff-group").style.display = "none";
+        document.getElementById("msc-cutoff-group").style.display = "none";
+        document.getElementById("barch-cutoff-group").style.display = "none";
+      
+        const math = parseFloat(document.querySelector('[name="maths"]').value) || 0;
+        const phy = parseFloat(document.querySelector('[name="physics"]').value) || 0;
+        const chem = parseFloat(document.querySelector('[name="chemistry"]').value) || 0;
+      
+        if (degree === "btech") {
+          const cutoff = math + phy / 2 + chem / 2;
+          document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
+          document.getElementById("engg-cutoff-group").style.display = "block";
+      
+        } else if (degree === "msc") {
+          const cutoff = math + phy + chem;
+          document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
+          document.getElementById("msc-cutoff-group").style.display = "block";
+      
+        } else if (degree === "barch") {
+          const nata = parseFloat(document.querySelector('[name="nata"]').value) || 0;
+          const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
+          const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
+      
+          const converted12th = (twelve / totalOutOf) * 200;
+          const barchCutoff = nata + converted12th;
+      
+          if (nata > 0 && twelve > 0) {
+            document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
+          } else {
+            document.getElementById("barch-cutoff").value = "";
+          }
+      
+          document.getElementById("barch-cutoff-group").style.display = "block";
+        }
+      }
+      
+  
+      // Event listeners for inputs
+      document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
+        inputs.forEach(input => input.addEventListener("input", calculateCutoff));
+        inputs.forEach(input => input.addEventListener("change", calculateCutoff));
+      });
+  
   </script>
   
 
