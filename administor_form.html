@@ -34,9 +34,6 @@
             <input type="text" />
           </div>
 
-          
-        
-
           <div class="form-group">
             <label>School:</label>
             <input type="text" />
@@ -111,8 +108,9 @@
         <label for="degree">Academic Degree Applying for:</label>
         <select id="degree" onchange="togglePreferences()">
           <option value="">-- Select --</option>
-          <option value="btech">B.E./ B.Tech./ B.Des</option>
+          <option value="btech">B.E./ B.Tech.</option>
           <option value="msc">M.Sc.</option>
+          <option value="bdes">B.Des</option>
           <option value="barch">B.Arch</option>
         </select>
       </div>
@@ -167,6 +165,11 @@
         <div class="form-group" id="barch-cutoff-group" style="display: none;">
           <label>B.Arch. Cutoff (out of 400):</label>
           <input type="text" class="form-control" readonly id="barch-cutoff" />
+        </div>
+
+        <div class="form-group" id="bdes-cutoff-group" style="display: none;">
+          <label>B.Des. Cutoff (out of 200):</label>
+          <input type="text" class="form-control" readonly id="bdes-cutoff" />
         </div>
       </div>
 
@@ -240,108 +243,165 @@
       </div>
 
     </form>
+    <div style="text-align: center; margin-top: 20px;">
+      <button type="submit" class="submit-btn" onclick="handleSubmit(event)">Submit Application</button>
+    </div>
   </main>
 
   <script>
-    const branches = [
-      'CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS'
-    ];
-  
-    function populateDropdown(dropdownId, exclude = []) {
-      const dropdown = document.getElementById(dropdownId);
-      const currentValue = dropdown.value;
-      dropdown.innerHTML = '<option value="">-- Select --</option>';
-      branches
-        .filter(branch => !exclude.includes(branch))
-        .forEach(branch => {
-          const option = document.createElement('option');
-          option.value = branch;
-          option.text = branch;
-          dropdown.add(option);
-        });
-  
-      if (branches.includes(currentValue) && !exclude.includes(currentValue)) {
-        dropdown.value = currentValue;
+      const branches = [
+        'CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS'
+      ];
+    
+      function populateDropdown(dropdownId, exclude = []) {
+        const dropdown = document.getElementById(dropdownId);
+        const currentValue = dropdown.value;
+        dropdown.innerHTML = '<option value="">-- Select --</option>';
+        branches
+          .filter(branch => !exclude.includes(branch))
+          .forEach(branch => {
+            const option = document.createElement('option');
+            option.value = branch;
+            option.text = branch;
+            dropdown.add(option);
+          });
+    
+        if (branches.includes(currentValue) && !exclude.includes(currentValue)) {
+          dropdown.value = currentValue;
+        }
       }
-    }
-  
-    function updateOptions() {
-      const pref1 = document.getElementById('pref1').value;
-      const pref2 = document.getElementById('pref2').value;
-  
-      populateDropdown('pref2', [pref1]);
-      populateDropdown('pref3', [pref1, pref2]);
-    }
-  
-    function togglePreferences() {
+    
+      function updateOptions() {
+        const pref1 = document.getElementById('pref1').value;
+        const pref2 = document.getElementById('pref2').value;
+    
+        populateDropdown('pref2', [pref1]);
+        populateDropdown('pref3', [pref1, pref2]);
+      }
+    
+      function togglePreferences() {
         const degree = document.getElementById("degree").value;
         const subjectFields = document.getElementById("subject-fields");
         const nataFields = document.getElementById("nata-fields");
-  
-        document.getElementById("engg-cutoff-group").style.display = "none";
-        document.getElementById("msc-cutoff-group").style.display = "none";
-        document.getElementById("barch-cutoff-group").style.display = "none";
-        nataFields.style.display = "none";
+    
+        const enggCutoff = document.getElementById("engg-cutoff-group");
+        const mscCutoff = document.getElementById("msc-cutoff-group");
+        const barchCutoff = document.getElementById("barch-cutoff-group");
+        const bdesCutoff = document.getElementById("bdes-cutoff-group");
+        const preferences = document.getElementById("preferences");
+    
         subjectFields.style.display = "none";
-  
-        if (degree === "btech" || degree === "msc" || degree === "barch") {
+        nataFields.style.display = "none";
+        enggCutoff.style.display = "none";
+        mscCutoff.style.display = "none";
+        barchCutoff.style.display = "none";
+        bdesCutoff.style.display = "none";
+        preferences.style.display = "none";
+    
+        if (degree === "btech" || degree === "msc" || degree === "barch" || degree === "bdes") {
           subjectFields.style.display = "block";
         }
-  
+    
+        if (degree === "btech") {
+          enggCutoff.style.display = "block";
+          preferences.style.display = "block";
+        }
+    
+        if (degree === "msc") {
+          mscCutoff.style.display = "block";
+        }
+    
         if (degree === "barch") {
           nataFields.style.display = "block";
+          barchCutoff.style.display = "block";
         }
-  
-        calculateCutoff(); // recalculate if user switches option
+    
+        if (degree === "bdes") {
+          bdesCutoff.style.display = "block";
+        }
+    
+        calculateCutoff();
       }
-  
+    
       function calculateCutoff() {
         const degree = document.getElementById("degree").value;
-      
-        // Hide all cutoff sections first
+    
         document.getElementById("engg-cutoff-group").style.display = "none";
         document.getElementById("msc-cutoff-group").style.display = "none";
         document.getElementById("barch-cutoff-group").style.display = "none";
-      
+        document.getElementById("bdes-cutoff-group").style.display = "none";
+    
         const math = parseFloat(document.querySelector('[name="maths"]').value) || 0;
         const phy = parseFloat(document.querySelector('[name="physics"]').value) || 0;
         const chem = parseFloat(document.querySelector('[name="chemistry"]').value) || 0;
-      
+    
         if (degree === "btech") {
           const cutoff = math + phy / 2 + chem / 2;
           document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
           document.getElementById("engg-cutoff-group").style.display = "block";
-      
+    
+        } else if (degree === "bdes") {
+          const cutoff = math + phy / 2 + chem / 2;
+          document.getElementById("bdes-cutoff").value = cutoff.toFixed(2);
+          document.getElementById("bdes-cutoff-group").style.display = "block";
+    
         } else if (degree === "msc") {
           const cutoff = math + phy + chem;
           document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
           document.getElementById("msc-cutoff-group").style.display = "block";
-      
+    
         } else if (degree === "barch") {
           const nata = parseFloat(document.querySelector('[name="nata"]').value) || 0;
           const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
           const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
-      
+    
           const converted12th = (twelve / totalOutOf) * 200;
           const barchCutoff = nata + converted12th;
-      
+    
           if (nata > 0 && twelve > 0) {
             document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
           } else {
             document.getElementById("barch-cutoff").value = "";
           }
-      
+    
           document.getElementById("barch-cutoff-group").style.display = "block";
         }
       }
-      
-  
-      // Event listeners for inputs
+    
+      function handleSubmit(event) {
+        event.preventDefault();
+    
+        const inputs = document.querySelectorAll('input, select');
+        let allFilled = true;
+    
+        inputs.forEach(input => {
+          if (input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
+            allFilled = false;
+          }
+        });
+    
+        if (allFilled) {
+          alert("Application form is submitted successfully");
+        } else {
+          alert("Please fill out all fields before submitting.");
+        }
+      }
+    
       document.addEventListener("DOMContentLoaded", () => {
+        // Initial population of preferences
+        populateDropdown('pref1');
+        populateDropdown('pref2');
+        populateDropdown('pref3');
+    
+        // Add listeners
+        document.getElementById('pref1').addEventListener('change', updateOptions);
+        document.getElementById('pref2').addEventListener('change', updateOptions);
+    
         const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
         inputs.forEach(input => input.addEventListener("input", calculateCutoff));
         inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       });
+    
   
   </script>
   
