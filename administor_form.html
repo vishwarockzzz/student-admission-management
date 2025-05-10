@@ -16,8 +16,11 @@
         <div class="form-section">
           <div class="form-group">
             <label>Name:</label>
-            <input type="text" />
-          </div>
+            <input type="text" id="nameInput" placeholder="e.g., ARUN KUMAR S" />
+            <small id="name-error" style="color: red; display: none;">
+              Name must be in all capital letters.
+            </small>
+          </div>          
 
           <div class="form-group">
             <label>Email-Id:</label>
@@ -31,7 +34,7 @@
 
           <div class="form-group">
             <label>Parents Annual Income:</label>
-            <input type="text" />
+            <input type="text" placeholder="e.g., 100000"/>
           </div>
 
           <div class="form-group">
@@ -46,27 +49,52 @@
 
           <div class="form-group">
             <label>12th Mark:</label>
-            <input type="text" />
+            <input type="text" id="twelthMark" />
+            <small id="twelthMark-error" style="color: red; display: none;">Please enter a valid mark between 0 and 600.</small>
           </div>
 
+          <div class="form-group">
+            <label>Date Of Application:</label>
+            <input type="date" name="applicationDate" />
+          </div>
+
+          <div class="form-group">
+            <label>Application Status:</label>
+            <select>
+              <option>Applied</option>
+              <option>To be given</option>
+              <option>Pending</option>
+              <option>Alloted</option>
+              <option>Declined</option>
+            </select>
+          </div>
         
         </div>
 
          
         <div class="form-section">
-            <div class="form-group">
-                <label>Phone Number:</label>
-                <input type="tel" />
-              </div>
-
-            <div class="form-group">
-                <label>Aadhar Number:</label>
-                <input type="text" />
+          <div class="form-group">
+            <label>Phone Number:</label>
+            <div style="display: flex; gap: 5px;">
+              <select id="country-code" style="width: 80px;">
+                <option value="+91">+91</option>
+                <!-- Add more country codes if needed -->
+              </select>
+              <input type="tel" id="phone" maxlength="10" placeholder="Enter 10-digit number" />
             </div>
+            <small id="phone-error" style="color: red; display: none;">Invalid phone number. Must be 10 digits.</small>
+          </div>
+          
+          <div class="form-group">
+            <label>Aadhar Number:</label>
+            <input type="text" id="aadhar" placeholder="XXXX XXXX XXXX" maxlength="14" />
+            <small id="aadhar-error" style="color: red; display: none;">Invalid Aadhar number. Must be 12 digits.</small>
+          </div>
 
           <div class="form-group">
             <label>Community:</label>
             <select>
+              <option value="">-- Select --</option>
               <option>OC</option>
               <option>BC</option>
               <option>MBC</option>
@@ -76,10 +104,6 @@
           </div>
 
           <div class="form-group">
-            <label>Application Number:</label>
-            <input type="text" />
-          </div>
-          <div class="form-group">
             <label>Board:</label>
             <select id="boardSelect" onchange="toggleSubjects()">
               <option value="">-- Select Board --</option>
@@ -87,6 +111,12 @@
               <option value="cbse">CBSE</option>
               <option value="icse">ICSE</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label>Year Of Passing:</label>
+            <input type="number" id="yearOfPassing" min="2000" max="2025" placeholder="e.g., 2024" />
+            <small id="year-error" style="color: red; display: none;">Enter a valid year between 2000 and 2025.</small>
           </div>
           
 
@@ -99,9 +129,15 @@
           </div>
           <div class="form-group">
             <label>12th Mark (in percentage):</label>
-            <input type="text" />
+            <input type="text" id="twelthMarkInput" />
+            <small id="mark-error" style="color: red; display: none;">Please enter a valid percentage (0–100).</small>
           </div>
 
+          <div class="form-group">
+            <label>Application Number:</label>
+            <input type="text" />
+          </div>
+          
       </div>
 
       <div class="form-group">
@@ -176,238 +212,104 @@
       <!-- Branch Preferences -->
       <div id="preferences" style="display: none;">
         <h2>Branches to Choose From</h2>
+        <div class="preference-row">
+          <div class="form-group">
+            <label>Preference 1:</label>
+            <select id="pref1" onchange="updateOptions()">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
       
-        <div class="form-group">
-          <label>Preference 1:</label>
-          <select id="pref1" onchange="updateOptions()">
-            <option value="">-- Select --</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label>Preference 2:</label>
+            <select id="pref2" onchange="updateOptions()">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
       
-        <div class="form-group">
-          <label>Preference 2:</label>
-          <select id="pref2" onchange="updateOptions()">
-            <option value="">-- Select --</option>
-          </select>
+          <div class="form-group">
+            <label>Preference 3:</label>
+            <select id="pref3" onchange="updateOptions()">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
         </div>
-      
-        <div class="form-group">
-          <label>Preference 3:</label>
-          <select id="pref3" onchange="updateOptions()">
-            <option value="">-- Select --</option>
-          </select>
-        </div>
+      </div>      
       </div>
-      </div></div>
       <h2>Recommender Details</h2>
 
-      <div class="row">
-        <div class="form-section">
-          <div class="form-group">
-            <label>Name:</label>
-            <input type="text" />
-          </div>
+<div class="row">
+  <div class="form-section">
+    <div class="form-group">
+      <label>Name:</label>
+      <input type="text" id="nameInput2" placeholder="e.g., ARUN KUMAR S" />
+      <small id="name-error2" style="color: red; display: none;">
+        Name must be in all capital letters.
+      </small>
+    </div>
 
-          <div class="form-group">
-            <label>Affiliation:</label>
-            <input type="text" />
-          </div>
+    <div class="form-group">
+      <label>Affiliation:</label>
+      <input type="text" />
+    </div>
 
-          <div class="form-group">
-            <label>Office Phone Number:</label>
-            <input type="tel" />
-          </div>
-
-          <div class="form-group">
-            <label>Email Id:</label>
-            <input type="email" />
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-group">
-            <label>Designation:</label>
-            <input type="text" />
-          </div>
-
-          <div class="form-group">
-            <label>Office Address:</label>
-            <input type="text" />
-          </div>
-
-          <div class="form-group">
-            <label>Personal Phone Number:</label>
-            <input type="tel" />
-          </div>
-        </div>
+    <div class="form-group">
+      <label>Office Phone Number:</label>
+      <div style="display: flex; gap: 5px;">
+        <select id="country-code" style="width: 80px;">
+          <option value="+91">+91</option>
+          <option value="+1">+1</option>
+          <option value="+44">+44</option>
+          <!-- Add more country codes if needed -->
+        </select>
+        <input type="tel" id="officePhone" placeholder="Enter 10-digit number" />
       </div>
+      <small id="officePhone-error" style="color: red; display: none;">
+        Enter a valid 10-digit phone number.
+      </small>
+    </div>
 
+    <div class="form-group">
+      <label>Email Id:</label>
+      <input type="email" />
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-group">
+      <label>Designation:</label>
+      <input type="text" />
+    </div>
+
+    <div class="form-group">
+      <label>Office Address:</label>
+      <input type="text" />
+    </div>
+
+    <div class="form-group">
+      <label>Personal Phone Number:</label>
+      <div style="display: flex; gap: 5px;">
+        <select id="country-code" style="width: 80px;">
+          <option value="+91">+91</option>
+          <option value="+1">+1</option>
+          <option value="+44">+44</option>
+          <!-- Add more country codes if needed -->
+        </select>
+        <input type="tel" id="personalPhone" placeholder="Enter 10-digit number" />
+      </div>
+      <small id="personalPhone-error" style="color: red; display: none;">
+        Enter a valid 10-digit phone number.
+      </small>
+    </div>
+  </div>
+</div>
     </form>
     <div style="text-align: center; margin-top: 20px;">
       <button type="submit" class="submit-btn" onclick="handleSubmit(event)">Submit Application</button>
     </div>
   </main>
 
-  <script>
-      const branches = [
-        'CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS'
-      ];
-    
-      function populateDropdown(dropdownId, exclude = []) {
-        const dropdown = document.getElementById(dropdownId);
-        const currentValue = dropdown.value;
-        dropdown.innerHTML = '<option value="">-- Select --</option>';
-        branches
-          .filter(branch => !exclude.includes(branch))
-          .forEach(branch => {
-            const option = document.createElement('option');
-            option.value = branch;
-            option.text = branch;
-            dropdown.add(option);
-          });
-    
-        if (branches.includes(currentValue) && !exclude.includes(currentValue)) {
-          dropdown.value = currentValue;
-        }
-      }
-    
-      function updateOptions() {
-        const pref1 = document.getElementById('pref1').value;
-        const pref2 = document.getElementById('pref2').value;
-    
-        populateDropdown('pref2', [pref1]);
-        populateDropdown('pref3', [pref1, pref2]);
-      }
-    
-      function togglePreferences() {
-        const degree = document.getElementById("degree").value;
-        const subjectFields = document.getElementById("subject-fields");
-        const nataFields = document.getElementById("nata-fields");
-    
-        const enggCutoff = document.getElementById("engg-cutoff-group");
-        const mscCutoff = document.getElementById("msc-cutoff-group");
-        const barchCutoff = document.getElementById("barch-cutoff-group");
-        const bdesCutoff = document.getElementById("bdes-cutoff-group");
-        const preferences = document.getElementById("preferences");
-    
-        subjectFields.style.display = "none";
-        nataFields.style.display = "none";
-        enggCutoff.style.display = "none";
-        mscCutoff.style.display = "none";
-        barchCutoff.style.display = "none";
-        bdesCutoff.style.display = "none";
-        preferences.style.display = "none";
-    
-        if (degree === "btech" || degree === "msc" || degree === "barch" || degree === "bdes") {
-          subjectFields.style.display = "block";
-        }
-    
-        if (degree === "btech") {
-          enggCutoff.style.display = "block";
-          preferences.style.display = "block";
-        }
-    
-        if (degree === "msc") {
-          mscCutoff.style.display = "block";
-        }
-    
-        if (degree === "barch") {
-          nataFields.style.display = "block";
-          barchCutoff.style.display = "block";
-        }
-    
-        if (degree === "bdes") {
-          bdesCutoff.style.display = "block";
-        }
-    
-        calculateCutoff();
-      }
-    
-      function calculateCutoff() {
-        const degree = document.getElementById("degree").value;
-    
-        document.getElementById("engg-cutoff-group").style.display = "none";
-        document.getElementById("msc-cutoff-group").style.display = "none";
-        document.getElementById("barch-cutoff-group").style.display = "none";
-        document.getElementById("bdes-cutoff-group").style.display = "none";
-    
-        const math = parseFloat(document.querySelector('[name="maths"]').value) || 0;
-        const phy = parseFloat(document.querySelector('[name="physics"]').value) || 0;
-        const chem = parseFloat(document.querySelector('[name="chemistry"]').value) || 0;
-    
-        if (degree === "btech") {
-          const cutoff = math + phy / 2 + chem / 2;
-          document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
-          document.getElementById("engg-cutoff-group").style.display = "block";
-    
-        } else if (degree === "bdes") {
-          const cutoff = math + phy / 2 + chem / 2;
-          document.getElementById("bdes-cutoff").value = cutoff.toFixed(2);
-          document.getElementById("bdes-cutoff-group").style.display = "block";
-    
-        } else if (degree === "msc") {
-          const cutoff = math + phy + chem;
-          document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
-          document.getElementById("msc-cutoff-group").style.display = "block";
-    
-        } else if (degree === "barch") {
-          const nata = parseFloat(document.querySelector('[name="nata"]').value) || 0;
-          const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
-          const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
-    
-          const converted12th = (twelve / totalOutOf) * 200;
-          const barchCutoff = nata + converted12th;
-    
-          if (nata > 0 && twelve > 0) {
-            document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
-          } else {
-            document.getElementById("barch-cutoff").value = "";
-          }
-    
-          document.getElementById("barch-cutoff-group").style.display = "block";
-        }
-      }
-    
-      function handleSubmit(event) {
-        event.preventDefault();
-      
-        const inputs = document.querySelectorAll('input, select');
-        let allFilled = true;
-      
-        inputs.forEach(input => {
-          const isHidden = input.offsetParent === null || input.disabled;
-          if (!isHidden && input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
-            allFilled = false;
-          }
-        });
-      
-        if (allFilled) {
-          alert("Application form is submitted successfully");
-          // If using backend:
-          // document.querySelector("form").submit();
-        } else {
-          alert("Please fill out all visible fields before submitting.");
-        }
-      }
-      
-    
-      document.addEventListener("DOMContentLoaded", () => {
-        // Initial population of preferences
-        populateDropdown('pref1');
-        populateDropdown('pref2');
-        populateDropdown('pref3');
-    
-        // Add listeners
-        document.getElementById('pref1').addEventListener('change', updateOptions);
-        document.getElementById('pref2').addEventListener('change', updateOptions);
-    
-        const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
-        inputs.forEach(input => input.addEventListener("input", calculateCutoff));
-        inputs.forEach(input => input.addEventListener("change", calculateCutoff));
-      });
-    
-  
-  </script>
+  <script src="administrator_form_script.js"> </script>
   
 
 </body>
