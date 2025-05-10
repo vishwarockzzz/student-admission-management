@@ -370,22 +370,26 @@
     
       function handleSubmit(event) {
         event.preventDefault();
-    
+      
         const inputs = document.querySelectorAll('input, select');
         let allFilled = true;
-    
+      
         inputs.forEach(input => {
-          if (input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
+          const isHidden = input.offsetParent === null || input.disabled;
+          if (!isHidden && input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
             allFilled = false;
           }
         });
-    
+      
         if (allFilled) {
           alert("Application form is submitted successfully");
+          // If using backend:
+          // document.querySelector("form").submit();
         } else {
-          alert("Please fill out all fields before submitting.");
+          alert("Please fill out all visible fields before submitting.");
         }
       }
+      
     
       document.addEventListener("DOMContentLoaded", () => {
         // Initial population of preferences
