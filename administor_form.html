@@ -24,43 +24,43 @@
 
           <div class="form-group">
             <label>Email-Id:</label>
-            <input type="email" />
+            <input type="email" id = "email" />
           </div>
           
           <div class="form-group">
             <label>Address:</label>
-            <input type="text" />
+            <input type="text" id="address"/>
           </div>
 
           <div class="form-group">
             <label>Parents Annual Income:</label>
-            <input type="text" placeholder="e.g., 100000"/>
+            <input type="text" id="parentsincome "placeholder="e.g., 100000"/>
           </div>
 
           <div class="form-group">
             <label>School:</label>
-            <input type="text" />
+            <input type="text" id="school" />
           </div>
 
           <div class="form-group">
             <label>District:</label>
-            <input type="text" />
+            <input type="text" id="district"/>
           </div>
 
           <div class="form-group">
             <label>12th Mark:</label>
-            <input type="text" id="twelthMark" />
+            <input type="text" id="twelfthMark" />
             <small id="twelthMark-error" style="color: red; display: none;">Please enter a valid mark between 0 and 600.</small>
           </div>
 
           <div class="form-group">
             <label>Date Of Application:</label>
-            <input type="date" name="applicationDate" />
+            <input type="date" id ="applicationDate" name="applicationDate" />
           </div>
 
           <div class="form-group">
             <label>Application Status:</label>
-            <select>
+            <select id="applicationStatus">
               <option>Applied</option>
               <option>To be given</option>
               <option>Pending</option>
@@ -76,9 +76,10 @@
           <div class="form-group">
             <label>Phone Number:</label>
             <div style="display: flex; gap: 5px;">
-              <select id="country-code" style="width: 80px;">
+              <select id="stucode" style="width: 80px;">
                 <option value="+91">+91</option>
-                <!-- Add more country codes if needed -->
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
               </select>
               <input type="tel" id="phone" maxlength="10" placeholder="Enter 10-digit number" />
             </div>
@@ -93,7 +94,7 @@
 
           <div class="form-group">
             <label>Community:</label>
-            <select>
+            <select id="community">
               <option value="">-- Select --</option>
               <option>OC</option>
               <option>BC</option>
@@ -122,20 +123,20 @@
 
           <div class="form-group">
             <label>Study Break:</label>
-            <select>
+            <select id="studyBreak">
               <option>No</option>
               <option>Yes</option>
             </select>
           </div>
           <div class="form-group">
             <label>12th Mark (in percentage):</label>
-            <input type="text" id="twelthMarkInput" />
+            <input type="text" id="twelfthMarkInput" />
             <small id="mark-error" style="color: red; display: none;">Please enter a valid percentage (0–100).</small>
           </div>
 
           <div class="form-group">
             <label>Application Number:</label>
-            <input type="text" />
+            <input type="text" id="applicationNumber" />
           </div>
           
       </div>
@@ -155,15 +156,15 @@
       <div id="subject-fields" style="display: none;">
         <div class="form-group">
           <label>Mathematics (out of 100):</label>
-          <input type="number" name="maths" />
+          <input type="number" id ="maths" name="maths" />
         </div>
         <div class="form-group">
           <label>Physics (out of 100):</label>
-          <input type="number" name="physics" />
+          <input type="number" id="physics" name="physics" />
         </div>
         <div class="form-group">
           <label>Chemistry (out of 100):</label>
-          <input type="number" name="chemistry" />
+          <input type="number" id="chemistry" name="chemistry" />
         </div>
       </div>
   
@@ -171,7 +172,7 @@
       <div id="nata-fields" style="display: none;">
         <div class="form-group">
           <label>NATA Score (out of 200):</label>
-          <input type="number" name="nata" />
+          <input type="number" id="nata" name="nata" />
         </div>
         <div class="form-group">
           <label>12th Total Marks:</label>
@@ -256,7 +257,7 @@
     <div class="form-group">
       <label>Office Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="country-code" style="width: 80px;">
+        <select id="offcode" style="width: 80px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
@@ -271,25 +272,25 @@
 
     <div class="form-group">
       <label>Email Id:</label>
-      <input type="email" />
+      <input type="email" id="recEmail" />
     </div>
   </div>
 
   <div class="form-section">
     <div class="form-group">
       <label>Designation:</label>
-      <input type="text" />
+      <input type="text" id = recDes/>
     </div>
 
     <div class="form-group">
       <label>Office Address:</label>
-      <input type="text" />
+      <input type="text" id="recAddress"/>
     </div>
 
     <div class="form-group">
       <label>Personal Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="country-code" style="width: 80px;">
+        <select id="percode" style="width: 80px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
