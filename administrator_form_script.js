@@ -217,25 +217,85 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       validatePhone('personalPhone', 'personalPhone-error');
     });
   
-    function handleSubmit(event) {
-      event.preventDefault();
-    
-      const inputs = document.querySelectorAll('input, select');
-      let allFilled = true;
-    
-      inputs.forEach(input => {
-        const isHidden = input.offsetParent === null || input.disabled;
-        if (!isHidden && input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
-          allFilled = false;
-        }
-      });
-    
-      if (allFilled) {
-        alert("Application form is submitted successfully");
-        // If using backend:
-        // document.querySelector("form").submit();
-      } else {
-        alert("Please fill out all visible fields before submitting.");
-      }
-    }
+        function handleSubmit(event) {
+            event.preventDefault();
+          
+            const inputs = document.querySelectorAll('input, select');
+            let allFilled = true;
+          
+            inputs.forEach(input => {
+              const isHidden = input.offsetParent === null || input.disabled;
+              if (!isHidden && input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
+                allFilled = false;
+              }
+            });
+          
+            if (!allFilled) {
+              alert("Please fill out all visible fields before submitting.");
+              return;
+            }
+          
+            // If all fields are filled, proceed to collect data
+            const formData = {
+              nameInput: document.getElementById("nameInput")?.value.trim(),
+              email: document.getElementById("email")?.value.trim(),
+              address: document.getElementById("address")?.value.trim(),
+              parentsincome: document.getElementById("parentsincome")?.value.trim(),
+              school: document.getElementById("school")?.value.trim(),
+              district: document.getElementById("district")?.value.trim(),
+              twelfthMark: document.getElementById("twelfthMark")?.value.trim(),
+              applicationDate: document.getElementById("applicationDate")?.value.trim(),
+              applicationStatus: document.getElementById("applicationStatus")?.value.trim(),
+              stucode: document.getElementById("stucode")?.value.trim(),
+              phone: document.getElementById("phone")?.value.trim(),
+              aadhar: document.getElementById("aadhar")?.value.trim(),
+              community: document.getElementById("community")?.value.trim(),
+              boardSelect: document.getElementById("boardSelect")?.value.trim(),
+              yearOfPassing: document.getElementById("yearOfPassing")?.value.trim(),
+              studyBreak: document.getElementById("studyBreak")?.value.trim(),
+              applicationNumber: document.getElementById("applicationNumber")?.value.trim(),
+              degree: document.getElementById("degree")?.value.trim(),
+              maths: document.getElementById("maths")?.value.trim(),
+              physics: document.getElementById("physics")?.value.trim(),
+              chemistry: document.getElementById("chemistry")?.value.trim(),
+              nata: document.getElementById("nata")?.value.trim(),
+              engg_cutoff: document.getElementById("engg-cutoff")?.value.trim(),
+              msc_cutoff: document.getElementById("msc-cutoff")?.value.trim(),
+              barch_cutoff: document.getElementById("barch-cutoff")?.value.trim(),
+              bdes_cutoff: document.getElementById("bdes-cutoff")?.value.trim(),
+              pref1: document.getElementById("pref1")?.value.trim(),
+              pref2: document.getElementById("pref2")?.value.trim(),
+              pref3: document.getElementById("pref3")?.value.trim(),
+              nameInput2: document.getElementById("nameInput2")?.value.trim(),
+              affiliation: document.getElementById("affiliation")?.value.trim(),
+              offcode: document.getElementById("offcode")?.value.trim(),
+              officePhone: document.getElementById("officePhone")?.value.trim(),
+              recEmail: document.getElementById("recEmail")?.value.trim(),
+              recDes: document.getElementById("recDes")?.value.trim(),
+              recAddress: document.getElementById("recAddress")?.value.trim(),
+              percode: document.getElementById("percode")?.value.trim(),
+              personalPhone: document.getElementById("personalPhone")?.value.trim()
+            };
+          
+            // Send the form data to FastAPI backend
+            fetch("http://localhost:5000/api/students/add", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(formData)
+            })
+            .then(response => {
+              if (!response.ok) throw new Error("Server error");
+              return response.json();
+            })
+            .then(data => {
+              alert("Application form is submitted successfully");
+              console.log("Response:", data);
+            })
+            .catch(error => {
+              console.error("Submission error:", error);
+              alert("Failed to submit application. Please try again.");
+            });
+          }
   
