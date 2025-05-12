@@ -1,4 +1,7 @@
 
+function goToUpdateRequestPage() {
+  window.location.href = '/update-request'; // Replace with your actual update request page URL
+}
 document.getElementById('nameInput').addEventListener('input', function () {
     const value = this.value.trim();
     const isAllCaps = value === value.toUpperCase();
