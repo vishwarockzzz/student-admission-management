@@ -158,15 +158,15 @@
       <div id="subject-fields" style="display: none;">
         <div class="form-group">
           <label>Mathematics (out of 100):</label>
-          <input type="number" id ="maths" name="maths" />
+          <input type="number" id ="maths" name="maths" oninput="calculateCutoff()" />
         </div>
         <div class="form-group">
           <label>Physics (out of 100):</label>
-          <input type="number" id="physics" name="physics" />
+          <input type="number" id="physics" name="physics" oninput="calculateCutoff()"/>
         </div>
         <div class="form-group">
           <label>Chemistry (out of 100):</label>
-          <input type="number" id="chemistry" name="chemistry" />
+          <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()"/>
         </div>
       </div>
   
@@ -174,15 +174,15 @@
       <div id="nata-fields" style="display: none;">
         <div class="form-group">
           <label>NATA Score (out of 200):</label>
-          <input type="number" id="nata" name="nata" />
+          <input type="number" id="nata" name="nata" oninput="calculateCutoff()"/>
         </div>
         <div class="form-group">
           <label>12th Total Marks:</label>
-          <input type="number" name="twelvemarks" />
+          <input type="number" name="twelvemarks" oninput="calculateCutoff()" />
         </div>
         <div class="form-group">
           <label>12th Total Out Of:</label>
-          <select name="twelvemax">
+          <select name="twelvemax" oninput="calculateCutoff()">
             <option value="600">600</option>
             <option value="500">500</option>
           </select>

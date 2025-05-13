@@ -154,48 +154,49 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   
     function calculateCutoff() {
       const degree = document.getElementById("degree").value;
-  
+    
       document.getElementById("engg-cutoff-group").style.display = "none";
       document.getElementById("msc-cutoff-group").style.display = "none";
       document.getElementById("barch-cutoff-group").style.display = "none";
       document.getElementById("bdes-cutoff-group").style.display = "none";
-  
-      const math = parseFloat(document.querySelector('[name="maths"]').value) || 0;
-      const phy = parseFloat(document.querySelector('[name="physics"]').value) || 0;
-      const chem = parseFloat(document.querySelector('[name="chemistry"]').value) || 0;
-  
+    
+      const math = parseFloat(document.getElementById("maths").value) || 0;
+      const phy = parseFloat(document.getElementById("physics").value) || 0;
+      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
+    
       if (degree === "btech") {
         const cutoff = math + phy / 2 + chem / 2;
         document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
         document.getElementById("engg-cutoff-group").style.display = "block";
-  
+    
       } else if (degree === "bdes") {
         const cutoff = math + phy / 2 + chem / 2;
         document.getElementById("bdes-cutoff").value = cutoff.toFixed(2);
         document.getElementById("bdes-cutoff-group").style.display = "block";
-  
+    
       } else if (degree === "msc") {
         const cutoff = math + phy + chem;
         document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
         document.getElementById("msc-cutoff-group").style.display = "block";
-  
+    
       } else if (degree === "barch") {
-        const nata = parseFloat(document.querySelector('[name="nata"]').value) || 0;
+        const nata = parseFloat(document.getElementById("nata").value) || 0;
         const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
         const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
-  
+    
         const converted12th = (twelve / totalOutOf) * 200;
         const barchCutoff = nata + converted12th;
-  
+    
         if (nata > 0 && twelve > 0) {
           document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
         } else {
           document.getElementById("barch-cutoff").value = "";
         }
-  
+    
         document.getElementById("barch-cutoff-group").style.display = "block";
       }
     }
+    
 
     document.getElementById('nameInput2').addEventListener('input', function () {
         const value = this.value.trim();
@@ -281,7 +282,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
             };
           
             // Send the form data to FastAPI backend
-            fetch("http://localhost:5000/api/students/add", {
+            fetch("http://localhost:5000/api/students", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
