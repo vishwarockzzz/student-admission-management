@@ -11,6 +11,14 @@
     <button class="check-requests-btn" onclick="goToUpdateRequestPage()">Check Requests</button>
   </header>
   </header>
+  <div class="college-buttons-container">
+    <button class="college-btn" id="tceBtn" onclick="setCollege('TCE')">Thiagarajar College Engineering (TCE)</button>
+    <button class="college-btn" id="tcaBtn" onclick="setCollege('TCA')">Thiagarajar College (TCA)</button>
+  </div>
+
+<!-- Display selected college message -->
+<div id="collegeMessage" style="font-weight: bold; font-size:larger; color: black; text-align: center; margin-top: 10px;"></div>
+
   <main class="container">
     <div>
       <h2>Student Details</h2>

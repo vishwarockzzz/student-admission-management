@@ -2,6 +2,27 @@
 function goToUpdateRequestPage() {
   window.location.href = '/update-request'; // Replace with your actual update request page URL
 }
+   let selectedCollege = ''; // Variable to store selected college
+
+          function setCollege(collegeName) {
+            selectedCollege = collegeName;
+          
+            const tceBtn = document.getElementById("tceBtn");
+            const tcaBtn = document.getElementById("tcaBtn");
+          
+            // Remove the "active" class from both buttons
+            tceBtn.classList.remove("active");
+            tcaBtn.classList.remove("active");
+          
+            // Add the "active" class to the selected button
+            if (collegeName === "TCE") {
+              tceBtn.classList.add("active");
+              document.getElementById("collegeMessage").textContent = "Student Applying for TCE";
+            } else {
+              tcaBtn.classList.add("active");
+              document.getElementById("collegeMessage").textContent = "Student Applying for TCA";
+            }
+          }
 document.getElementById('nameInput').addEventListener('input', function () {
     const value = this.value.trim();
     const isAllCaps = value === value.toUpperCase();
@@ -222,84 +243,103 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     });
   
         function handleSubmit(event) {
-            event.preventDefault();
+          event.preventDefault();
+
+          const inputs = document.querySelectorAll('input, select');
+          let allFilled = true;
           
-            const inputs = document.querySelectorAll('input, select');
-            let allFilled = true;
+          inputs.forEach(input => {
+            const isHidden = input.offsetParent === null || input.disabled || input.readOnly;
+            const isIgnorableType = input.type === "button" || input.type === "submit";
           
-            inputs.forEach(input => {
-              const isHidden = input.offsetParent === null || input.disabled;
-              if (!isHidden && input.type !== "button" && input.type !== "submit" && input.value.trim() === "") {
-                allFilled = false;
-              }
-            });
-          
-            if (!allFilled) {
-              alert("Please fill out all visible fields before submitting.");
-              return;
+            if (!isHidden && !isIgnorableType && input.value.trim() === "") {
+              allFilled = false;
             }
+          });
           
-            // If all fields are filled, proceed to collect data
-            const formData = {
-              nameInput: document.getElementById("nameInput")?.value.trim(),
-              email: document.getElementById("email")?.value.trim(),
-              address: document.getElementById("address")?.value.trim(),
-              parentsincome: document.getElementById("parentsincome")?.value.trim(),
-              school: document.getElementById("school")?.value.trim(),
-              district: document.getElementById("district")?.value.trim(),
-              twelfthMark: document.getElementById("twelfthMark")?.value.trim(),
-              applicationDate: document.getElementById("applicationDate")?.value.trim(),
-              applicationStatus: document.getElementById("applicationStatus")?.value.trim(),
-              stucode: document.getElementById("stucode")?.value.trim(),
-              phone: document.getElementById("phone")?.value.trim(),
-              aadhar: document.getElementById("aadhar")?.value.trim(),
-              community: document.getElementById("community")?.value.trim(),
-              boardSelect: document.getElementById("boardSelect")?.value.trim(),
-              yearOfPassing: document.getElementById("yearOfPassing")?.value.trim(),
-              studyBreak: document.getElementById("studyBreak")?.value.trim(),
-              applicationNumber: document.getElementById("applicationNumber")?.value.trim(),
-              degree: document.getElementById("degree")?.value.trim(),
-              maths: document.getElementById("maths")?.value.trim(),
-              physics: document.getElementById("physics")?.value.trim(),
-              chemistry: document.getElementById("chemistry")?.value.trim(),
-              nata: document.getElementById("nata")?.value.trim(),
-              engg_cutoff: document.getElementById("engg-cutoff")?.value.trim(),
-              msc_cutoff: document.getElementById("msc-cutoff")?.value.trim(),
-              barch_cutoff: document.getElementById("barch-cutoff")?.value.trim(),
-              bdes_cutoff: document.getElementById("bdes-cutoff")?.value.trim(),
-              pref1: document.getElementById("pref1")?.value.trim(),
-              pref2: document.getElementById("pref2")?.value.trim(),
-              pref3: document.getElementById("pref3")?.value.trim(),
-              nameInput2: document.getElementById("nameInput2")?.value.trim(),
-              affiliation: document.getElementById("affiliation")?.value.trim(),
-              offcode: document.getElementById("offcode")?.value.trim(),
-              officePhone: document.getElementById("officePhone")?.value.trim(),
-              recEmail: document.getElementById("recEmail")?.value.trim(),
-              recDes: document.getElementById("recDes")?.value.trim(),
-              recAddress: document.getElementById("recAddress")?.value.trim(),
-              percode: document.getElementById("percode")?.value.trim(),
-              personalPhone: document.getElementById("personalPhone")?.value.trim()
-            };
-          
-            // Send the form data to FastAPI backend
-            fetch("http://localhost:5000/api/students", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(formData)
-            })
-            .then(response => {
-              if (!response.ok) throw new Error("Server error");
-              return response.json();
-            })
-            .then(data => {
-              alert("Application form is submitted successfully");
-              console.log("Response:", data);
-            })
-            .catch(error => {
-              console.error("Submission error:", error);
-              alert("Failed to submit application. Please try again.");
-            });
+          if (!allFilled) {
+            alert("Please fill out all visible fields before submitting.");
+            return;
           }
+// Function to collect form data and submit it
+// Function to collect form data and submit it
+
+  // Check if a college is selected before submitting
+  if (!selectedCollege) {
+    alert("Please select a college.");
+    return;  // Prevent form submission if no college is selected
+  }
+
+  const formData = {
+    application_number: document.getElementById("applicationNumber")?.value.trim(),
+    name: document.getElementById("nameInput")?.value.trim(),
+    email: document.getElementById("email")?.value.trim(),
+    address: document.getElementById("address")?.value.trim(),
+    parent_annual_income: document.getElementById("parentsincome")?.value.trim(),
+    school: document.getElementById("school")?.value.trim(),
+    district: document.getElementById("district")?.value.trim(),
+    twelfth_mark: document.getElementById("twelfthMark")?.value.trim(),
+    date_of_application: document.getElementById("applicationDate")?.value.trim(),
+    applicationstatus: document.getElementById("applicationStatus")?.value.trim(),
+    stdcode: document.getElementById("stucode")?.value.trim(),
+    phone_number: document.getElementById("phone")?.value.trim(),
+    aadhar_number: document.getElementById("aadhar")?.value.trim(),
+    community: document.getElementById("community")?.value.trim(),
+    college: selectedCollege, // Set the college to the selected college
+    board: document.getElementById("boardSelect")?.value.trim(),
+    year_of_passing: document.getElementById("yearOfPassing")?.value.trim(),
+    degree: document.getElementById("degree")?.value.trim(),
+    maths: document.getElementById("maths")?.value.trim(),
+    physics: document.getElementById("physics")?.value.trim(),
+    chemistry: document.getElementById("chemistry")?.value.trim(),
+    nata: document.getElementById("nata")?.value.trim(),
+    engineering_cutoff: document.getElementById("engg-cutoff")?.value.trim(),
+    msc_cutoff: document.getElementById("msc-cutoff")?.value.trim(),
+    barch_cutoff: document.getElementById("barch-cutoff")?.value.trim(),
+    bdes_cutoff: document.getElementById("bdes-cutoff")?.value.trim(),
+    branch_1: document.getElementById("pref1")?.value.trim(),
+    branch_2: document.getElementById("pref2")?.value.trim(),
+    branch_3: document.getElementById("pref3")?.value.trim(),
+    college: document.getElementById("nameInput2")?.value.trim(),
   
+    recommender: {
+      name: document.getElementById("recDes")?.value.trim(),
+      designation: document.getElementById("recDes")?.value.trim(),
+      affiliation: document.getElementById("affiliation")?.value.trim(),
+      office_address: document.getElementById("recAddress")?.value.trim(),
+      office_phone_number: document.getElementById("officePhone")?.value.trim(),
+      personal_phone_number: document.getElementById("personalPhone")?.value.trim(),
+      email: document.getElementById("recEmail")?.value.trim(),
+      offcode: document.getElementById("offcode")?.value.trim(),
+      percode: document.getElementById("percode")?.value.trim(),
+    }
+  };
+
+  console.log("Form Data:", formData); // Optional: Log form data for debugging
+
+  // Send the form data to FastAPI backend
+  fetch("http://127.0.0.1:5000/api/students", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(async response => {
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Backend error:", errorData);
+      throw new Error(errorData.error || "Server error");
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert("Application form is submitted successfully");
+    console.log("Response:", data);
+    window.location.href = "upcoming_requests.html";
+  })
+  .catch(error => {
+    console.error("Submission error:", error.message);
+    alert("Failed to submit application. " + error.message);
+  });
+}

@@ -1,3 +1,45 @@
+.college-buttons-container {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+}
+
+.college-btn {
+  flex: 1;
+  padding: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background-color: #850303;  /* default color */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* No gap between buttons */
+.college-btn:not(:last-child) {
+  margin-right: 0px;
+}
+
+/* Hover effect on the inactive button */
+.college-btn:not(.active):hover {
+  background-color: #a90808;  /* lighter color */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Active state - when the button is selected */
+.college-btn.active {
+  background-color: #aa0c0c;  /* brighter color */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Prevent hover effect on active button */
+.college-btn.active:hover {
+  background-color: #b22121; /* keep it the same color when hovered */
+}
+
+
 
 .check-requests-btn {
   position: absolute;
