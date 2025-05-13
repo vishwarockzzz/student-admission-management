@@ -10,13 +10,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-          const response = await fetch("http://localhost:5000/api/login", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ email, password })
-          });
+        const response = await fetch("http://127.0.0.1:5000/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
 
           const data = await response.json();
 
@@ -26,11 +24,11 @@ document.addEventListener('DOMContentLoaded', function () {
               alert(`Welcome ${username}`);
 
               // Redirect based on email
-              if (email === "abs") {
-                  window.location.href = "upcoming_request.html"; // Redirect to admin-specific page
-              } else {
-                  window.location.href = "administrator_form_script.html"; // Redirect to other users' form page
-              }
+              if (username === "abs") {
+                window.location.href = "upcoming_request.html";
+            } else {
+                window.location.href = "administrator_form.html";
+            }
           } else {
               // Login failed
               alert(data.message || "Login failed. Please try again.");

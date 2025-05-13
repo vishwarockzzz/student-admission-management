@@ -1,6 +1,6 @@
 
 function goToUpdateRequestPage() {
-  window.location.href = '/update-request'; // Replace with your actual update request page URL
+  window.location.href = "upcoming_request.html";// Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
 
@@ -43,7 +43,7 @@ document.getElementById('nameInput').addEventListener('input', function () {
     document.getElementById('phone-error').style.display = isValid ? 'none' : 'block';
   });
 
-  document.getElementById('twelthMark').addEventListener('input', function () {
+  document.getElementById('twelfthMark').addEventListener('input', function () {
     const value = parseInt(this.value);
     const error = document.getElementById('twelthMark-error');
 
@@ -62,7 +62,7 @@ document.getElementById('nameInput').addEventListener('input', function () {
 
     document.getElementById('aadhar-error').style.display = input.length === 12 ? 'none' : 'block';
   });
-  document.getElementById('twelthMarkInput').addEventListener('input', function () {
+  document.getElementById('twelfthMarkInput').addEventListener('input', function () {
     const value = parseFloat(this.value);
     const error = document.getElementById('mark-error');
 
@@ -73,36 +73,36 @@ document.getElementById('nameInput').addEventListener('input', function () {
     }
   });
   
-  const branches = [
-'CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS', 'Civil', 'All'
-];
+  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS', 'Civil', 'All'];
 
 function populateDropdown(dropdownId, exclude = []) {
-const dropdown = document.getElementById(dropdownId);
-const currentValue = dropdown.value;
-dropdown.innerHTML = '<option value="">-- Select --</option>'; // Reset the dropdown
+  const dropdown = document.getElementById(dropdownId);
+  const currentValue = dropdown.value;
 
-// Add "All" option as the first one, if it's not already excluded
-const allOption = document.createElement('option');
-allOption.value = "All";
-allOption.text = "All";
-dropdown.add(allOption);
+  dropdown.innerHTML = '<option value="">-- Select --</option>'; // Reset the dropdown
 
-// Populate the dropdown with the filtered branches, excluding "All" and previously selected branches
-branches
-  .filter(branch => !exclude.includes(branch) && branch !== "All") // Exclude "All" and previously selected branches
-  .forEach(branch => {
-    const option = document.createElement('option');
-    option.value = branch;
-    option.text = branch;
-    dropdown.add(option);
-  });
+  // Always include "All"
+  const allOption = document.createElement('option');
+  allOption.value = "All";
+  allOption.text = "All";
+  dropdown.appendChild(allOption);
 
-// Restore the previously selected value if it is valid
-if (branches.includes(currentValue)) {
-  dropdown.value = currentValue;
+  // Add other branches except those in exclude
+  branches
+    .filter(branch => branch !== "All" && !exclude.includes(branch))
+    .forEach(branch => {
+      const option = document.createElement('option');
+      option.value = branch;
+      option.text = branch;
+      dropdown.appendChild(option);
+    });
+
+  // Restore selected value if still valid
+  if (branches.includes(currentValue) || currentValue === "All") {
+    dropdown.value = currentValue;
+  }
 }
-}
+
 
 function updateOptions() {
 const pref1 = document.getElementById('pref1').value;
@@ -114,10 +114,9 @@ populateDropdown('pref3', [pref1, pref2]);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-// Initial population of preferences
-populateDropdown('pref1');
-populateDropdown('pref2');
-populateDropdown('pref3');
+  populateDropdown('pref1');
+  populateDropdown('pref2');
+  populateDropdown('pref3');
 
 // Add listeners for updates when preferences are changed
 document.getElementById('pref1').addEventListener('change', updateOptions);
@@ -261,8 +260,6 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
             alert("Please fill out all visible fields before submitting.");
             return;
           }
-// Function to collect form data and submit it
-// Function to collect form data and submit it
 
   // Check if a college is selected before submitting
   if (!selectedCollege) {
@@ -336,7 +333,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   .then(data => {
     alert("Application form is submitted successfully");
     console.log("Response:", data);
-    window.location.href = "upcoming_requests.html";
+    window.location.href = "upcoming_request.html";
   })
   .catch(error => {
     console.error("Submission error:", error.message);
