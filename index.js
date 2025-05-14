@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
               // Redirect based on email
               if (username === "abs") {
-                window.location.href = "upcoming_request.html";
+                window.location.href = "upcoming request.html";
             } else {
                 window.location.href = "administrator_form.html";
             }
