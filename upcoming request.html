@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Recommendation Dashboard</title>
+  <link rel="stylesheet" href="upcoming request.css">
+</head>
+
+<body>
+  <header>
+    <div>
+      <div>
+        <button onclick="fetchAndRenderStudents('UNALLOCATED')">Requested</button>
+        <button onclick="window.location.href='completed.html'">Completed</button>
+      </div>
+    </div>
+    <h2 class="header-title">Upcoming Request</h2>
+    <div class="header-right">
+      <input class="input-box" placeholder="Search for details..."/>
+      <button class="submit-input">Submit</button>
+    </div>
+  </header>
+
+  <div class="content" id="studentList">
+    <!-- Cards will be injected here -->
+  </div>
+  </div>
+
+  <div id="popup-overlay" class="popup-overlay" style="display:none">
+    <div class="popup">
+      <label for="branchSelect">Choose Branch:</label>
+      <select id="branchSelect">
+        <option value="CSE">CSE</option>
+        <option value="IT">IT</option>
+        <option value="ECE">ECE</option>
+      </select>
+
+      <label for="modeSelect">Select Mode:</label>
+      <select id="modeSelect">
+        <option value="Aided">Aided</option>
+        <option value="Self Finance">Self Finance</option>
+      </select>
+
+      <button onclick="confirmSelection()">Confirm</button>
+    </div>
+  </div>
+<!-- View More Popup -->
+<div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
+  <div class="popup bordered-popup">
+    <h2 class="popup-title">Student Application Details</h2>
+    <div class="form-two-column" id="viewMoreContent"></div>
+    <button onclick="closeViewMore()" class="close-btn">Close</button>
+  </div>
+</div>
+  <script src="student-fetch.js"></script>
+</body>
+
+</html>

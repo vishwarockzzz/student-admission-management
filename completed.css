@@ -1,0 +1,176 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background:#faf0e6;
+}
+
+header {
+  background-color: maroon;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.status-buttons button {
+  background-color: white;
+  color: maroon;
+  border: 2px solid maroon;
+  border-radius: 6px;
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.status-buttons button:hover {
+  background-color: #b30000;
+  color: white;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px 20px;
+}
+
+/* Student Card Style */
+.card {
+  background-color: white;
+  color:black;
+  font-weight: bold;
+  border-radius: 12px;
+  width: 335px;
+  height: 370px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.card p {
+  margin: 8px 0;
+}
+
+/* View More Button */
+.view-more {
+  background: transparent;
+  color: black;
+  border: 2px solid black;
+  padding: 8px 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-more:hover {
+  background-color: white;
+  color: #108cff;
+}
+
+/* View More Popup */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup.bordered-popup {
+  background-color: #f8eaea;
+  padding: 25px;
+  width: 90%;
+  max-width: 1000px;
+  height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 2px solid #800000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.popup-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.form-two-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  justify-content: center;
+  text-align: left;
+}
+
+.detail-section {
+  width: 90%;
+  max-width: 800px;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  padding: 20px;
+  background-color: #fff6f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.detail-table td {
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.detail-table td:first-child {
+  font-weight: bold;
+  color: #222;
+  width: 45%;
+  text-align: right;
+}
+
+.detail-table td:last-child {
+  text-align: left;
+}
+
+.highlight {
+  color: #a10041;
+  font-weight: bold;
+}
+
+.close-btn {
+  margin: 20px auto 0;
+  padding: 10px 20px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+}
+
