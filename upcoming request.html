@@ -8,19 +8,50 @@
 </head>
 
 <body>
-  <header>
-    <div>
-      <div>
-        <button onclick="fetchAndRenderStudents('UNALLOCATED')">Requested</button>
-        <button onclick="window.location.href='completed.html'">Completed</button>
-      </div>
-    </div>
-    <h2 class="header-title">Upcoming Request</h2>
-    <div class="header-right">
-      <input id="searchInput" class="input-box" placeholder="Search for details..." />
-      <button class="submit-input" onclick="handleSearch()">Submit</button>
-    </div>
-  </header>
+ <header style="display: flex; align-items: center; justify-content: space-between;">
+  <!-- Left-side buttons and Filter by Department -->
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <button onclick="fetchAndRenderStudents('UNALLOCATED')">Requested</button>
+    <button onclick="window.location.href='completed.html'">Completed</button>
+    <select id="combinedFilter" onchange="filterByCombined()" class="filter-dropdown">
+      <option value="all">-- All Departments and Degrees --</option>
+      <option value="CSE">CSE</option>
+      <option value="EEE">EEE</option>
+      <option value="ECE">ECE</option>
+      <option value="Mechanical">Mechanical</option>
+      <option value="Mechatronics">Mechatronics</option>
+      <option value="IT">IT</option>
+      <option value="AI/ML">AI/ML</option>
+      <option value="CSBS">CSBS</option>
+      <option value="Civil">Civil</option>
+      <option value="BE/BTECH">BE/BTECH</option>
+      <option value="M.SC DATA SCIENCE">M.SC DATA SCIENCE</option>
+      <option value="B.DES">B.DES</option>
+      <option value="B.ARCH">B.ARCH</option>
+    <option value="Clear">-- Clear Filter--</option>
+    </select>
+    <select id="appNumberSort" onchange="filterByCombined()" class="filter-dropdown">
+      <option value="">Sort by Application No</option>
+      <option value="asc">Application No: Low to High</option>
+      <option value="desc">Application No: High to Low</option>
+    </select>
+    
+    
+  </div>
+
+  <!-- Title -->
+  <h2 class="header-title" style="margin: 0 20px;">Upcoming Request</h2>
+
+  <!-- Right-side Filter by Recommender and search -->
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <select id="recommenderFilter" onchange="filterByRecommender()" class="filter-dropdown">
+      <option value="">-- Select Recommender --</option>
+      <!-- JS will populate this dynamically -->
+    </select>
+    <input id="searchInput" class="input-box" placeholder="Search for details..." />
+    <button class="submit-input" onclick="handleSearch()">Submit</button>
+  </div>
+</header>
 
   <div class="content" id="studentList">
     <!-- Cards will be injected here -->

@@ -202,6 +202,12 @@ header button:hover {
   flex: 1;
   margin: 0 10px;
 }
+.filter-dropdown {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
 
 /* Add right padding only for student content */
 .student-card {

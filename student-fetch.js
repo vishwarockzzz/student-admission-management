@@ -27,13 +27,168 @@ function handleSearch() {
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
 }
+function populateFilters() {
+  const filterElement = document.getElementById("combinedFilter");
 
-function fetchAndRenderStudents(status) {
+  // Options for departments and degrees
+  const options = [
+    "CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil", "Be/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+  ];
+
+  // Populate the dropdown
+  options.forEach(option => {
+    const optElement = document.createElement("option");
+    optElement.value = option;
+    optElement.text = option;
+    filterElement.appendChild(optElement);
+  });
+}
+
+// Function to filter students based on the selected department or degree
+function filterByCombined() {
+  const selectedFilter = document.getElementById("combinedFilter").value;
+  const sortOrder = document.getElementById("appNumberSort").value;
+  // If "Clear" is selected, reset the filter and show all students
+  
+  if (selectedFilter === "Clear") {
+    document.getElementById("combinedFilter").value = "Clear"; // Keep the dropdown as Clear
+    renderStudents(allStudents); // Render all students again
+    return;
+  }
+  if (selectedFilter === "all") {
+    document.getElementById("combinedFilter").value = "all"; // Keep the dropdown as Clear
+    renderStudents(allStudents); // Render all students again
+    return;
+  }
+
+  // Filter by department or degree
+  const filteredStudents = allStudents.filter(student => {
+    const departments = [student.branch_1, student.branch_2, student.branch_3];
+    const degree = student.degree;
+
+    const degreeMatches = {
+      "BE/BTECH": ["btech"],
+      "M.SC DATA SCIENCE": ["msc"],
+      "B.DES": ["bdes"],
+      "B.ARCH": ["barch"]
+    };
+   
+
+    // Check if filter is a department
+    if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"].includes(selectedFilter)) {
+      return departments.includes(selectedFilter);
+    }
+
+    // Check if filter is a degree
+    if (Object.keys(degreeMatches).includes(selectedFilter)) {
+      return degreeMatches[selectedFilter].includes(degree);
+    }
+
+    return false; // In case of no match
+  });
+  console.log(filteredStudents.map(s => s.application_number));
+
+   // Apply sorting
+   // Apply sorting by last 5 digits of application_number
+// Sort by last 5 digits of application number
+if (sortOrder === "asc") {
+  filteredStudents.sort((a, b) => {
+    const aLast = parseInt(a.application_number.slice(-5));
+    const bLast = parseInt(b.application_number.slice(-5));
+    return aLast - bLast;
+  });
+} else if (sortOrder === "desc") {
+  filteredStudents.sort((a, b) => {
+    const aLast = parseInt(a.application_number.slice(-5));
+    const bLast = parseInt(b.application_number.slice(-5));
+    return bLast - aLast;
+  });
+}
+
+
+
+  // Render the filtered students
+  renderStudents(filteredStudents);
+}
+
+
+function fetchAndRenderStudents(status = "") {
   fetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
+    .then(data => {
+      allStudents = data.students || [];
+      renderStudents(allStudents);
+      populateRecommenderFilter(allStudents);
+    })
     .catch(error => console.error("Error fetching students:", error));
+}// Populate recommender dropdown
+function populateRecommenderFilter(students) {
+  const dropdown = document.getElementById("recommenderFilter");
+  dropdown.innerHTML = "";
+
+  // Add "All" option
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "-- All Recommenders --";
+  dropdown.appendChild(allOption);
+
+  const recommenderSet = new Set();
+
+  students.forEach(student => {
+    const rec = student.recommenders?.[0];
+    if (rec && rec.name) {
+      const designation = rec.designation || "-";
+      const label = `${rec.name} - ${designation}`;
+      recommenderSet.add(label);
+    }
+  });
+
+  Array.from(recommenderSet).forEach(label => {
+    const option = document.createElement("option");
+    option.value = label;
+    option.textContent = label;
+    dropdown.appendChild(option);
+  });
+  // Add "Clear" option
+  const clearOption = document.createElement("option");
+  clearOption.value = "clear";
+  clearOption.textContent = "-- Clear Filter --";
+  dropdown.appendChild(clearOption);
+
+  
 }
+
+
+
+
+function filterByRecommender() {
+  const selected = document.getElementById("recommenderFilter").value;
+
+  if (selected === "clear") {
+    // Clear the filter and show all students
+    renderStudents(allStudents);
+    return;
+  }
+
+  if (selected === "all") {
+    // Show all students (same as the "all" option)
+    renderStudents(allStudents);
+    return;
+  }
+
+  // Filter by selected recommender
+  const filtered = allStudents.filter(student => {
+    const rec = student.recommenders?.[0];
+    const designation = rec?.designation || "-";
+    const label = `${rec?.name} - ${designation}`;
+    return label === selected;
+  });
+
+  renderStudents(filtered);
+}
+
+
+
 
 function renderStudents(students) {
   const container = document.getElementById("studentList");
@@ -60,6 +215,7 @@ function renderStudents(students) {
     recommenderBox.className = "recommender-box";
     recommenderBox.innerHTML = `
       <p><strong>Recommender:</strong> ${recommender.name}</p>
+      <p><strong>Designation:</strong> ${recommender.designation}</p>
       <p><strong>Company:</strong> ${recommender.affiliation}</p>
     `;
 
@@ -77,6 +233,7 @@ function renderStudents(students) {
     container.appendChild(row);
   });
 }
+
 
 function acceptStudent(id, branch) {
   currentStudentId = id;
