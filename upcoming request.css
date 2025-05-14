@@ -208,6 +208,7 @@ header button:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 320px
 }
 
 .student-card p,

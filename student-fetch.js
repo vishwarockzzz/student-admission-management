@@ -14,6 +14,20 @@ window.onload = () => {
   loadStatus('UNALLOCATED'); // default
 };
 
+function handleSearch() {
+  const query = document.getElementById("searchInput").value.trim();
+
+  if (!query) {
+    alert("Please enter a search term");
+    return;
+  }
+
+  fetch(`${API_URL}?search=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => renderStudents(data.students || []))
+    .catch(error => console.error("Error during search:", error));
+}
+
 function fetchAndRenderStudents(status) {
   fetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
@@ -33,7 +47,8 @@ function renderStudents(students) {
     card.className = "student-card";
     card.innerHTML = `
       <p><strong>Name:</strong> ${student.name}</p>
-      <p><strong>DOB:</strong> ${student.date_of_application}</p>
+      <p><strong>Application No:</strong> ${student.application_number}</p>
+      <p><strong>DOA:</strong> ${student.date_of_application}</p>
       <p><strong>School:</strong> ${student.school}</p>
       <p><strong>City:</strong> ${student.district}</p>
       <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
@@ -154,7 +169,7 @@ function showViewMore(student) {
   const studentFields = [
     ["Application Number", student.application_number],
     ["Name", student.name],
-    ["DOB", student.date_of_application],
+    ["DOA", student.date_of_application],
     ["School", student.school],
     ["City", student.district],
     ["Std Code", student.stdcode],

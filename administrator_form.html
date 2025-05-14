@@ -10,14 +10,14 @@
     <h1>Administrator Panel - Student Entry</h1>
     <button class="check-requests-btn" onclick="goToUpdateRequestPage()">Check Requests</button>
   </header>
-  </header>
+
   <div class="college-buttons-container">
     <button class="college-btn" id="tceBtn" onclick="setCollege('TCE')">Thiagarajar College Engineering (TCE)</button>
     <button class="college-btn" id="tcaBtn" onclick="setCollege('TCA')">Thiagarajar College (TCA)</button>
   </div>
 
-<!-- Display selected college message -->
-<div id="collegeMessage" style="font-weight: bold; font-size:larger; color: black; text-align: center; margin-top: 10px;"></div>
+  <!-- Display selected college message -->
+  <div id="collegeMessage" style="font-weight: bold; font-size:larger; color: black; text-align: center; margin-top: 10px;"></div>
 
   <main class="container">
     <div>
@@ -25,18 +25,18 @@
       <div class="row">
         <div class="form-section">
           <div class="form-group">
-            <label>Name:</label>
-            <input type="text" id="nameInput" placeholder="e.g., ARUN KUMAR S" />
+            <label>Name:<span style="color:red">*</span></label>
+            <input type="text" id="nameInput" placeholder="e.g., ARUN KUMAR S" required />
             <small id="name-error" style="color: red; display: none;">
               Name must be in all capital letters.
             </small>
-          </div>          
+          </div>
 
           <div class="form-group">
             <label>Email-Id:</label>
-            <input type="email" id = "email" />
+            <input type="email" id="email" />
           </div>
-          
+
           <div class="form-group">
             <label>Address:</label>
             <input type="text" id="address"/>
@@ -44,7 +44,7 @@
 
           <div class="form-group">
             <label>Parents Annual Income:</label>
-            <input type="text" id="parentsincome"placeholder="e.g., 100000"/>
+            <input type="text" id="parentsincome" placeholder="e.g., 100000"/>
           </div>
 
           <div class="form-group">
@@ -64,8 +64,8 @@
           </div>
 
           <div class="form-group">
-            <label>Date Of Application:</label>
-            <input type="date" id ="applicationDate" name="applicationDate" />
+            <label>Date Of Application:<span style="color:red">*</span></label>
+            <input type="date" id ="applicationDate" name="applicationDate" required />
           </div>
 
           <div class="form-group">
@@ -78,27 +78,27 @@
               <option>Declined</option>
             </select>
           </div>
-        
+
         </div>
 
-         
         <div class="form-section">
           <div class="form-group">
-            <label>Phone Number:</label>
+            <label>Phone Number:<span style="color:red">*</span></label>
             <div style="display: flex; gap: 5px;">
-              <select id="stucode" style="width: 80px;">
+              <select id="stdcode" required style="font-size: 12px; padding: 2px; width: 100px;">
+                <option value="">STD Code</option>
                 <option value="+91">+91</option>
                 <option value="+1">+1</option>
                 <option value="+44">+44</option>
               </select>
-              <input type="tel" id="phone" maxlength="10" placeholder="Enter 10-digit number" />
+              <input type="tel" id="phone" maxlength="10" placeholder="Enter 10-digit number" required />
             </div>
             <small id="phone-error" style="color: red; display: none;">Invalid phone number. Must be 10 digits.</small>
           </div>
-          
+
           <div class="form-group">
-            <label>Aadhar Number:</label>
-            <input type="text" id="aadhar" placeholder="XXXX XXXX XXXX" maxlength="14" />
+            <label>Aadhar Number:<span style="color:red">*</span></label>
+            <input type="text" id="aadhar" placeholder="XXXX XXXX XXXX" maxlength="14" required />
             <small id="aadhar-error" style="color: red; display: none;">Invalid Aadhar number. Must be 12 digits.</small>
           </div>
 
@@ -115,8 +115,8 @@
           </div>
 
           <div class="form-group">
-            <label>Board:</label>
-            <select id="boardSelect" onchange="toggleSubjects()">
+            <label>Board:<span style="color:red">*</span></label>
+            <select id="boardSelect" onchange="toggleSubjects()" required>
               <option value="">-- Select Board --</option>
               <option value="state">State Board</option>
               <option value="cbse">CBSE</option>
@@ -129,7 +129,6 @@
             <input type="number" id="yearOfPassing" min="2000" max="2025" placeholder="e.g., 2024" />
             <small id="year-error" style="color: red; display: none;">Enter a valid year between 2000 and 2025.</small>
           </div>
-          
 
           <div class="form-group">
             <label>Study Break:</label>
@@ -145,52 +144,52 @@
           </div>
 
           <div class="form-group">
-            <label>Application Number:</label>
-            <input type="text" id="applicationNumber" />
+            <label>Application Number:<span style="color:red">*</span></label>
+            <input type="text" id="applicationNumber" required />
           </div>
-          
-      </div>
 
-      <div class="form-group">
-        <label for="degree">Academic Degree Applying for:</label>
-        <select id="degree" onchange="togglePreferences()">
-          <option value="">-- Select --</option>
-          <option value="btech">B.E./ B.Tech.</option>
-          <option value="msc">M.Sc.</option>
-          <option value="bdes">B.Des</option>
-          <option value="barch">B.Arch</option>
-        </select>
-      </div>
+        </div>
+
+        <div class="form-group">
+          <label for="degree">Academic Degree Applying for:<span style="color:red">*</span></label>
+          <select id="degree" onchange="togglePreferences()" required>
+            <option value="">-- Select --</option>
+            <option value="btech">B.E./ B.Tech.</option>
+            <option value="msc">M.Sc.</option>
+            <option value="bdes">B.Des</option>
+            <option value="barch">B.Arch</option>
+          </select>
+        </div>
   
       <!-- Subject Marks Input -->
       <div id="subject-fields" style="display: none;">
         <div class="form-group">
-          <label>Mathematics (out of 100):</label>
-          <input type="number" id ="maths" name="maths" oninput="calculateCutoff()" />
+          <label>Mathematics (out of 100):<span style="color:red">*</span></label>
+          <input type="number" id ="maths" name="maths" oninput="calculateCutoff()" required/>
         </div>
         <div class="form-group">
-          <label>Physics (out of 100):</label>
-          <input type="number" id="physics" name="physics" oninput="calculateCutoff()"/>
+          <label>Physics (out of 100):<span style="color:red">*</span></label>
+          <input type="number" id="physics" name="physics" oninput="calculateCutoff()" required/>
         </div>
         <div class="form-group">
-          <label>Chemistry (out of 100):</label>
-          <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()"/>
+          <label>Chemistry (out of 100):<span style="color:red">*</span></label>
+          <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()" required/>
         </div>
       </div>
   
       <!-- NATA and 12th for B.Arch -->
       <div id="nata-fields" style="display: none;">
         <div class="form-group">
-          <label>NATA Score (out of 200):</label>
-          <input type="number" id="nata" name="nata" oninput="calculateCutoff()"/>
+          <label>NATA Score (out of 200):<span style="color:red">*</span></label>
+          <input type="number" id="nata" name="nata" oninput="calculateCutoff()" required/>
         </div>
         <div class="form-group">
-          <label>12th Total Marks:</label>
-          <input type="number" name="twelvemarks" oninput="calculateCutoff()" />
+          <label>12th Total Marks:<span style="color:red">*</span></label>
+          <input type="number" id="twelvemarks" name="twelvemarks" oninput="calculateCutoff()" required/>
         </div>
         <div class="form-group">
-          <label>12th Total Out Of:</label>
-          <select name="twelvemax" oninput="calculateCutoff()">
+          <label>12th Total Out Of:<span style="color:red">*</span></label>
+          <select name="twelvemax" id ="twelvemax" oninput="calculateCutoff()" required>
             <option value="600">600</option>
             <option value="500">500</option>
           </select>
@@ -200,23 +199,23 @@
       <!-- Cutoff Outputs -->
       <div id="cutoffs-wrapper" class="mt-4">
         <div class="form-group" id="engg-cutoff-group" style="display: none;">
-          <label>Engineering Cutoff (out of 200):</label>
-          <input type="text" class="form-control" readonly id="engg-cutoff" />
+          <label>Engineering Cutoff (out of 200):<span style="color:red">*</span></label>
+          <input type="text" class="form-control" readonly id="engg-cutoff" required/>
         </div>
       
         <div class="form-group" id="msc-cutoff-group" style="display: none;">
-          <label>M.Sc. Cutoff (out of 300):</label>
-          <input type="text" class="form-control" readonly id="msc-cutoff" />
+          <label>M.Sc. Cutoff (out of 300):<span style="color:red">*</span></label>
+          <input type="text" class="form-control" readonly id="msc-cutoff" required/>
         </div>
       
         <div class="form-group" id="barch-cutoff-group" style="display: none;">
-          <label>B.Arch. Cutoff (out of 400):</label>
-          <input type="text" class="form-control" readonly id="barch-cutoff" />
+          <label>B.Arch. Cutoff (out of 400):<span style="color:red">*</span></label>
+          <input type="text" class="form-control" readonly id="barch-cutoff" required/>
         </div>
 
         <div class="form-group" id="bdes-cutoff-group" style="display: none;">
-          <label>B.Des. Cutoff (out of 200):</label>
-          <input type="text" class="form-control" readonly id="bdes-cutoff" />
+          <label>B.Des. Cutoff (out of 200):<span style="color:red">*</span></label>
+          <input type="text" class="form-control" readonly id="bdes-cutoff" required/>
         </div>
       </div>
 
@@ -254,8 +253,8 @@
 <div class="row">
   <div class="form-section">
     <div class="form-group">
-      <label>Name:</label>
-      <input type="text" id="nameInput2" placeholder="e.g., ARUN KUMAR S" />
+      <label>Name:<span style="color:red">*</span></label>
+      <input type="text" id="nameInput2" placeholder="e.g., ARUN KUMAR S" required/>
       <small id="name-error2" style="color: red; display: none;">
         Name must be in all capital letters.
       </small>
@@ -269,11 +268,11 @@
     <div class="form-group">
       <label>Office Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="offcode" style="width: 80px;">
+        <select id="offcode" style="font-size: 12px; padding: 2px; width: 100px;">
+          <option value="">STD Code</option>
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
-          <!-- Add more country codes if needed -->
         </select>
         <input type="tel" id="officePhone" placeholder="Enter 10-digit number" />
       </div>
@@ -302,11 +301,11 @@
     <div class="form-group">
       <label>Personal Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="percode" style="width: 80px;">
+        <select id="percode" style="font-size: 12px; padding: 2px; width: 100px;">
+          <option value="">STD Code</option>
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
-          <!-- Add more country codes if needed -->
         </select>
         <input type="tel" id="personalPhone" placeholder="Enter 10-digit number" />
       </div>

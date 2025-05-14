@@ -180,21 +180,28 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       document.getElementById("barch-cutoff-group").style.display = "none";
       document.getElementById("bdes-cutoff-group").style.display = "none";
     
-      const math = parseFloat(document.getElementById("maths").value) || 0;
-      const phy = parseFloat(document.getElementById("physics").value) || 0;
-      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
+      
     
       if (degree === "btech") {
+        const math = parseFloat(document.getElementById("maths").value) || 0;
+      const phy = parseFloat(document.getElementById("physics").value) || 0;
+      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
         const cutoff = math + phy / 2 + chem / 2;
         document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
         document.getElementById("engg-cutoff-group").style.display = "block";
     
       } else if (degree === "bdes") {
+        const math = parseFloat(document.getElementById("maths").value) || 0;
+      const phy = parseFloat(document.getElementById("physics").value) || 0;
+      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
         const cutoff = math + phy / 2 + chem / 2;
         document.getElementById("bdes-cutoff").value = cutoff.toFixed(2);
         document.getElementById("bdes-cutoff-group").style.display = "block";
     
       } else if (degree === "msc") {
+        const math = parseFloat(document.getElementById("maths").value) || 0;
+      const phy = parseFloat(document.getElementById("physics").value) || 0;
+      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
         const cutoff = math + phy + chem;
         document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
         document.getElementById("msc-cutoff-group").style.display = "block";
@@ -241,102 +248,113 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       validatePhone('personalPhone', 'personalPhone-error');
     });
   
-        function handleSubmit(event) {
-          event.preventDefault();
-
-          const inputs = document.querySelectorAll('input, select');
-          let allFilled = true;
-          
-          inputs.forEach(input => {
-            const isHidden = input.offsetParent === null || input.disabled || input.readOnly;
-            const isIgnorableType = input.type === "button" || input.type === "submit";
-          
-            if (!isHidden && !isIgnorableType && input.value.trim() === "") {
-              allFilled = false;
-            }
-          });
-          
-          if (!allFilled) {
-            alert("Please fill out all visible fields before submitting.");
-            return;
+    function handleSubmit(event) {
+      event.preventDefault();
+    
+      const inputs = document.querySelectorAll('input, select');
+      let allRequiredFilled = true;
+    
+      inputs.forEach(input => {
+        const isHidden = input.offsetParent === null;
+        const isIgnorableType = input.type === "button" || input.type === "submit";
+    
+        if (!isHidden && !isIgnorableType && input.required) {
+          if (input.value.trim() === "") {
+            allRequiredFilled = false;
           }
+        }
+      });
+    
+      if (!allRequiredFilled) {
+        alert("Please fill out all required fields before submitting.");
+        return;
+      }
+    
+      if (!selectedCollege) {
+        alert("Please select a college.");
+        return;
+      }
+    
+      // Utility: clean empty strings and optionally convert to float
+      function clean(value, type = "string") {
+        if (value === undefined || value === null || value.trim() === "") return null;
+        if (type === "float") return parseFloat(value);
+        return value.trim();
+      }
+      const degree = document.getElementById("degree")?.value;  
+    
+      const formData = {
+        application_number: clean(document.getElementById("applicationNumber")?.value),
+        name: clean(document.getElementById("nameInput")?.value),
+        email: clean(document.getElementById("email")?.value),
+        address: clean(document.getElementById("address")?.value),
+        parent_annual_income: clean(document.getElementById("parentsincome")?.value),
+        school: clean(document.getElementById("school")?.value),
+        district: clean(document.getElementById("district")?.value),
+        twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
+        date_of_application: clean(document.getElementById("applicationDate")?.value),
+        applicationstatus: clean(document.getElementById("applicationStatus")?.value),
+        stdcode: clean(document.getElementById("stucode")?.value),
+        phone_number: clean(document.getElementById("phone")?.value),
+        aadhar_number: clean(document.getElementById("aadhar")?.value),
+        community: clean(document.getElementById("community")?.value),
+        college:clean(selectedCollege),
+        board: clean(document.getElementById("boardSelect")?.value),
+        year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
+        degree: clean(degree),
+        maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
+        physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
+        chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
+        nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
+        engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
+        msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
+        barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
+        bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
 
-  // Check if a college is selected before submitting
-  if (!selectedCollege) {
-    alert("Please select a college.");
-    return;  // Prevent form submission if no college is selected
-  }
 
-  const formData = {
-    application_number: document.getElementById("applicationNumber")?.value.trim(),
-    name: document.getElementById("nameInput")?.value.trim(),
-    email: document.getElementById("email")?.value.trim(),
-    address: document.getElementById("address")?.value.trim(),
-    parent_annual_income: document.getElementById("parentsincome")?.value.trim(),
-    school: document.getElementById("school")?.value.trim(),
-    district: document.getElementById("district")?.value.trim(),
-    twelfth_mark: document.getElementById("twelfthMark")?.value.trim(),
-    date_of_application: document.getElementById("applicationDate")?.value.trim(),
-    applicationstatus: document.getElementById("applicationStatus")?.value.trim(),
-    stdcode: document.getElementById("stucode")?.value.trim(),
-    phone_number: document.getElementById("phone")?.value.trim(),
-    aadhar_number: document.getElementById("aadhar")?.value.trim(),
-    community: document.getElementById("community")?.value.trim(),
-    college: selectedCollege, // Set the college to the selected college
-    board: document.getElementById("boardSelect")?.value.trim(),
-    year_of_passing: document.getElementById("yearOfPassing")?.value.trim(),
-    degree: document.getElementById("degree")?.value.trim(),
-    maths: document.getElementById("maths")?.value.trim(),
-    physics: document.getElementById("physics")?.value.trim(),
-    chemistry: document.getElementById("chemistry")?.value.trim(),
-    nata: document.getElementById("nata")?.value.trim(),
-    engineering_cutoff: document.getElementById("engg-cutoff")?.value.trim(),
-    msc_cutoff: document.getElementById("msc-cutoff")?.value.trim(),
-    barch_cutoff: document.getElementById("barch-cutoff")?.value.trim(),
-    bdes_cutoff: document.getElementById("bdes-cutoff")?.value.trim(),
-    branch_1: document.getElementById("pref1")?.value.trim(),
-    branch_2: document.getElementById("pref2")?.value.trim(),
-    branch_3: document.getElementById("pref3")?.value.trim(),
-    college: document.getElementById("nameInput2")?.value.trim(),
-  
-    recommender: {
-      name: document.getElementById("recDes")?.value.trim(),
-      designation: document.getElementById("recDes")?.value.trim(),
-      affiliation: document.getElementById("affiliation")?.value.trim(),
-      office_address: document.getElementById("recAddress")?.value.trim(),
-      office_phone_number: document.getElementById("officePhone")?.value.trim(),
-      personal_phone_number: document.getElementById("personalPhone")?.value.trim(),
-      email: document.getElementById("recEmail")?.value.trim(),
-      offcode: document.getElementById("offcode")?.value.trim(),
-      percode: document.getElementById("percode")?.value.trim(),
+        branch_1: clean(document.getElementById("pref1")?.value),
+        branch_2: clean(document.getElementById("pref2")?.value),
+        branch_3: clean(document.getElementById("pref3")?.value),
+    
+        recommender: {
+          name: clean(document.getElementById("nameInput2")?.value),
+          designation: clean(document.getElementById("recDes")?.value),
+          affiliation: clean(document.getElementById("affiliation")?.value),
+          office_address: clean(document.getElementById("recAddress")?.value),
+          office_phone_number: clean(document.getElementById("officePhone")?.value),
+          personal_phone_number: clean(document.getElementById("personalPhone")?.value),
+          email: clean(document.getElementById("recEmail")?.value),
+          offcode: clean(document.getElementById("offcode")?.value),
+          percode: clean(document.getElementById("percode")?.value),
+        }
+      };
+    
+      console.log("Form Data:", formData);
+
+      fetch("http://127.0.0.1:5000/api/students", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(async response => {
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Backend error:", errorData);
+          throw new Error(errorData.error || "Server error");
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Application form is submitted successfully");
+        console.log("Response:", data);
+        window.location.href = "upcoming request.html";
+      })
+      .catch(error => {
+        console.error("Submission error:", error.message);
+        alert("Failed to submit application. " + error.message);
+        document.getElementById("submitBtn").disabled = false; // Re-enable on error
+      });
     }
-  };
-
-  console.log("Form Data:", formData); // Optional: Log form data for debugging
-
-  // Send the form data to FastAPI backend
-  fetch("http://127.0.0.1:5000/api/students", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(formData)
-  })
-  .then(async response => {
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Backend error:", errorData);
-      throw new Error(errorData.error || "Server error");
-    }
-    return response.json();
-  })
-  .then(data => {
-    alert("Application form is submitted successfully");
-    console.log("Response:", data);
-    window.location.href = "upcoming request.html";
-  })
-  .catch(error => {
-    console.error("Submission error:", error.message);
-    alert("Failed to submit application. " + error.message);
-  });
-}
+    
