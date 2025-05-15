@@ -349,7 +349,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       .then(data => {
         alert("Application form is submitted successfully");
         console.log("Response:", data);
-        window.location.href = "upcoming request.html";
+
       })
       .catch(error => {
         console.error("Submission error:", error.message);
