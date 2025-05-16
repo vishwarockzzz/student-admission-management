@@ -2,11 +2,7 @@ const API_URL = "http://127.0.0.1:5000/api/students";
 const UPDATE_URL = "http://127.0.0.1:5000/api/updatestatus";
 
 
-const seats = {
-  CSE: 20,
-  ECE: 20,
-  IT: 20
-};
+
 
 let currentStudentId = null;
 
@@ -237,40 +233,76 @@ function renderStudents(students) {
 
 function acceptStudent(id, branch) {
   currentStudentId = id;
+  const student = allStudents.find(s => s.id === id);
+  const branchSelect = document.getElementById("branchSelect");
+
+  // Clear old options
+  branchSelect.innerHTML = "";
+
+  // Add student's preferred branches
+  [student.branch_1, student.branch_2, student.branch_3].forEach(branch => {
+    if (branch) {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchSelect.appendChild(option);
+    }
+  });
+
+  // Show popup
   document.getElementById("popup-overlay").style.display = "flex";
-  document.getElementById("branchSelect").value = branch;
 }
 
-function confirmSelection() {
-  const branch = document.getElementById("branchSelect").value;
-  const mode = document.getElementById("modeSelect").value;
 
-  if (seats[branch] > 0) {
-    seats[branch]--;
 
-    fetch(UPDATE_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        student_id: currentStudentId,
-        status: "APPROVED"
+  function confirmSelection() {
+    const branch = document.getElementById("branchSelect")?.value;
+    const mode = document.getElementById("modeSelect")?.value;
+
+    if (!branch || !mode) {
+      alert("Please select a branch and mode.");
+      return;
+    }
+
+    if (!currentStudentId) {
+      alert("No student selected.");
+      return;
+    }
+
+    if (!seats[branch]) seats[branch] = 20;
+
+    if (seats[branch] > 0) {
+      seats[branch]--;
+
+      fetch(UPDATE_URL, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: currentStudentId,
+          status: "APPROVED"
+        })
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(`Student ${currentStudentId} accepted for ${branch} (${mode}).\nRemaining ${branch} seats: ${seats[branch]}`);
-      document.getElementById("popup-overlay").style.display = "none";
-      removeCard(currentStudentId);
-    })
-    .catch(err => {
-      console.error("Error approving student:", err);
-      alert("Failed to approve student");
-    });
+      .then(res => {
+        if (!res.ok) throw new Error("API error");
+        return res.json();
+      })
+      .then(data => {
+        alert(`Student ${currentStudentId} accepted for ${branch} (${mode}).\nRemaining ${branch} seats: ${seats[branch]}`);
+        document.getElementById("popup-overlay").style.display = "none";
+        if (typeof removeCard === "function") removeCard(currentStudentId);
+      })
+      .catch(err => {
+        console.error("Error approving student:", err);
+        alert("Failed to approve student.");
+      });
 
-  } else {
-    alert(`No seats available in ${branch}`);
+    } else {
+      alert(`No seats available in ${branch}`);
+    }
   }
-}
+
+
+
 
 function declineStudent(id) {
   fetch(UPDATE_URL, {
@@ -399,6 +431,7 @@ function closeViewMore() {
   document.getElementById("viewMoreOverlay").style.display = "none";
 }
 
-
-
-window.onload = fetchAndRenderStudents;
+window.onload = () => {
+  fetchAndRenderStudents();
+  populateFilters();
+};
