@@ -19,13 +19,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
           const data = await response.json();
 
-          if (response.ok) {
+          if (data.success) {
               // Success: extract name or use email prefix
               const username = email.split('@')[0];
               alert(`Welcome ${username}`);
 
               // Redirect based on email
-              if (username === "abs") {
+              if (data.is_admin) {
                 window.location.href = "upcoming_request.html";
             } else {
                 window.location.href = "administrator_form.html";
