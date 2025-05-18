@@ -1,3 +1,4 @@
+const LOGIN_URL = `${window.env.BASE_URL}/login`;
 document.addEventListener('DOMContentLoaded', function () {
   const loginButton = document.querySelector("button");
 
@@ -10,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/login", {
+        const response = await fetch(LOGIN_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password })
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
               // Redirect based on email
               if (username === "abs") {
-                window.location.href = "upcoming request.html";
+                window.location.href = "upcoming_request.html";
             } else {
                 window.location.href = "administrator_form.html";
             }

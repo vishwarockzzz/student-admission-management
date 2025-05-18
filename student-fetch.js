@@ -1,16 +1,61 @@
-const API_URL = "http://127.0.0.1:5000/api/students";
-const UPDATE_URL = "http://127.0.0.1:5000/api/updatestatus";
 
+const API_URL = `${window.env.BASE_URL}/students`;
+console.log(API_URL);
+const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
+console.log(UPDATE_URL);
+const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+console.log(SEATS_URL);
+
+let result = [];
+let seats = {};
+
+fetch(SEATS_URL)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    data.forEach(entry => {
+      const student_id = entry.student_id;
+      const student_name = entry.student_name;
+      const course_name = entry.course;
+      const course_type = entry.course_type;
+      const status = entry.status;
+      const remaining_seats = entry.remaining_seats ?? 0;
+
+      // Build result array
+      result.push({
+        student_id: student_id,
+        student_name: student_name,
+        course: course_name,
+        course_type: course_type,
+        status: status,
+        remaining_seats: remaining_seats
+      });
+
+      // Build SEATS object (course name → remaining seats)
+      seats[course_name] = remaining_seats;
+    });
+
+    console.log("Result array:", result);
+    console.log("SEATS object:", seats);
+  })
+  .catch(error => {
+    console.error("Failed to fetch data:", error);
+  });
 
 
 
 let currentStudentId = null;
 
 window.onload = () => {
-  loadStatus('UNALLOCATED'); // default
+  loadStatus('UNALLOCATED');
+  populateFilters(); // default
 };
 
-function handleSearch() {
+function handleSearch(status) {
   const query = document.getElementById("searchInput").value.trim();
 
   if (!query) {
@@ -18,7 +63,7 @@ function handleSearch() {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}`)
+  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
@@ -108,7 +153,7 @@ if (sortOrder === "asc") {
 }
 
 
-function fetchAndRenderStudents(status = "") {
+function fetchAndRenderStudents(status) {
   fetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
     .then(data => {
@@ -205,7 +250,7 @@ function renderStudents(students) {
       <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
     `;
 
-    const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-" };
+    const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation };
 
     const recommenderBox = document.createElement("div");
     recommenderBox.className = "recommender-box";
@@ -230,24 +275,112 @@ function renderStudents(students) {
   });
 }
 
-
+const courseMap = {
+  "CSE": "B.E. Computer Science and Engineering",
+  "ECE": "B.E. Electronics and Communication Engineering",
+  "EEE": "B.E. Electrical and Electronics Engineering",
+  "Mechanical": "B.E. Mechanical Engineering",
+  "Mechatronics": "B.E. Mechatronics",
+  "IT": "B.Tech. Information Technology",
+  "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
+  "CSBS": "B.Tech. Computer Science and Business Systems",
+  "Civil": "B.E. Civil Engineering",
+  "MSC DATA SCIENCE": "Msc. Data Science",
+  "B.DES": "B.Des. Interior Design",
+  "B.ARCH": "B.Arch. Architecture"
+};
 function acceptStudent(id, branch) {
   currentStudentId = id;
   const student = allStudents.find(s => s.id === id);
   const branchSelect = document.getElementById("branchSelect");
+  const modeSelect = document.getElementById("modeSelect");
 
-  // Clear old options
   branchSelect.innerHTML = "";
+  modeSelect.innerHTML = "";
+  branchSelect.disabled = false;
+  modeSelect.disabled = false;
 
-  // Add student's preferred branches
-  [student.branch_1, student.branch_2, student.branch_3].forEach(branch => {
-    if (branch) {
+  const degree = (student.degree || "").toUpperCase();
+  const branch1 = (student.branch_1 || "").toLowerCase();
+
+  const beCourses = [
+    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"
+  ];
+
+  // Populate branch and mode
+  if (degree === "MSC") {
+    const option = document.createElement("option");
+    option.value = "MSC DATA SCIENCE";
+    option.textContent = "MSC DATA SCIENCE";
+    branchSelect.appendChild(option);
+    branchSelect.value = "MSC DATA SCIENCE";
+    branchSelect.disabled = true;
+
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  } else if (degree === "BARCH") {
+    const option = document.createElement("option");
+    option.value = "B.ARCH";
+    option.textContent = "B.ARCH";
+    branchSelect.appendChild(option);
+    branchSelect.value = "B.ARCH";
+    branchSelect.disabled = true;
+
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="aided">Aided</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else if (degree === "BDES") {
+    const option = document.createElement("option");
+    option.value = "B.DES";
+    option.textContent = "B.DES";
+    branchSelect.appendChild(option);
+    branchSelect.value = "B.DES";
+    branchSelect.disabled = true;
+
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="aided">Aided</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else {
+    const isGeneral = ["all", "general"].includes(branch1);
+    const preferences = [student.branch_1, student.branch_2, student.branch_3].filter(Boolean);
+
+    const branchesToShow = isGeneral
+      ? beCourses
+      : preferences.filter(course => beCourses.includes(course));
+
+    branchesToShow.forEach(course => {
       const option = document.createElement("option");
-      option.value = branch;
-      option.textContent = branch;
+      option.value = course;
+      option.textContent = course;
       branchSelect.appendChild(option);
-    }
-  });
+    });
+
+    branchSelect.onchange = () => {
+      const selected = branchSelect.value.toLowerCase();
+
+      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
+        modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+        modeSelect.value = "self-finance";
+        modeSelect.disabled = false;
+      } else {
+        modeSelect.innerHTML = `
+          <option value="">-- Select Mode --</option>
+          <option value="aided">Aided</option>
+          <option value="self-finance">Self-Finance</option>
+        `;
+        modeSelect.disabled = false;
+      }
+    };
+
+    branchSelect.dispatchEvent(new Event("change"));
+  }
 
   // Show popup
   document.getElementById("popup-overlay").style.display = "flex";
@@ -255,52 +388,53 @@ function acceptStudent(id, branch) {
 
 
 
-  function confirmSelection() {
-    const branch = document.getElementById("branchSelect")?.value;
-    const mode = document.getElementById("modeSelect")?.value;
 
-    if (!branch || !mode) {
-      alert("Please select a branch and mode.");
-      return;
-    }
 
-    if (!currentStudentId) {
-      alert("No student selected.");
-      return;
-    }
+function confirmSelection() {
+  const branch = document.getElementById("branchSelect").value;
+  const selectedMode = document.getElementById("modeSelect").value;
 
-    if (!seats[branch]) seats[branch] = 20;
+  if (!branch || !selectedMode) {
+    alert("Please select both branch and mode.");
+    return;
+  }
+  const fullCourseName = courseMap[branch.toUpperCase()];
+  const modeFormatted = !selectedMode ? "" :
+  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
 
-    if (seats[branch] > 0) {
-      seats[branch]--;
 
-      fetch(UPDATE_URL, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          student_id: currentStudentId,
-          status: "APPROVED"
-        })
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("API error");
-        return res.json();
-      })
-      .then(data => {
-        alert(`Student ${currentStudentId} accepted for ${branch} (${mode}).\nRemaining ${branch} seats: ${seats[branch]}`);
-        document.getElementById("popup-overlay").style.display = "none";
-        if (typeof removeCard === "function") removeCard(currentStudentId);
-      })
-      .catch(err => {
-        console.error("Error approving student:", err);
-        alert("Failed to approve student.");
-      });
-
-    } else {
-      alert(`No seats available in ${branch}`);
-    }
+  if (!fullCourseName) {
+    alert("Course name not recognized.");
+    return;
   }
 
+  fetch(UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: currentStudentId,
+      status: "APPROVED",
+      course: fullCourseName,
+      course_type: modeFormatted
+    })
+  })
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(err => { throw new Error(err.error); });
+    }
+    return res.json();
+  })
+  .then(data => {
+    alert(data.message);
+    document.getElementById("popup-overlay").style.display = "none";
+    removeCard(currentStudentId);
+    location.reload();
+  })
+  .catch(err => {
+    console.error("Error approving student:", err);
+    alert(`Failed to approve student: ${err.message}`);
+  });
+}
 
 
 
@@ -432,6 +566,47 @@ function closeViewMore() {
 }
 
 window.onload = () => {
-  fetchAndRenderStudents();
+  fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
 };
+
+function showSeatPopup() {
+  fetch(SEATS_URL)
+    .then(response => response.json())
+    .then(result => {
+      const tableBody = document.getElementById("seatTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      const totalSeats = 20; // If total seats per course fixed
+
+      result.forEach((entry, index) => {
+        const remainingSeats = entry.remaining_seats || 0;
+        const allocatedSeats = totalSeats - remainingSeats;
+
+        const courseWithType = `${entry.course} (${entry.course_type})`;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${courseWithType}</td>
+          <td>${totalSeats}</td>
+          <td>${allocatedSeats}</td>
+          <td>${remainingSeats}</td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+
+      document.getElementById("seatPopup").style.display = "block";
+    })
+    .catch(err => {
+      console.error("Error fetching seat data:", err);
+      alert("Failed to load seat status.");
+    });
+}
+
+
+
+function closeSeatPopup() {
+  document.getElementById("seatPopup").style.display = "none";
+}

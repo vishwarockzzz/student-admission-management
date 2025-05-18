@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:5000/api/students";
+const API_URL = `${window.env.BASE_URL}/students`;
 
 window.onload = () => {
   loadStatus('APPROVED'); // default

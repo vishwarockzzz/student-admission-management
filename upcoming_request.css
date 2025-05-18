@@ -355,3 +355,23 @@ button {
   box-sizing: border-box;
   flex-wrap: nowrap;
 }
+
+  #seatPopup table {
+    border-collapse: collapse;
+  }
+
+  #seatPopup th, #seatPopup td {
+    padding: 8px;
+    text-align: center;
+  }
+
+  #seatPopup th {
+    background-color: #8d0303;
+  }
+#seatTable thead th {
+  position: sticky;
+  top: 0;
+  background: #433939; /* match popup bg */
+  color: white;
+  z-index: 10;
+}

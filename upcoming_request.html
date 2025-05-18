@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Recommendation Dashboard</title>
-  <link rel="stylesheet" href="upcoming request.css">
+  <link rel="stylesheet" href="upcoming_request.css">
 </head>
 
 <body>
@@ -15,6 +15,20 @@
     <button onclick="window.location.href='completed.html'">Completed</button>
     <select id="combinedFilter" onchange="filterByCombined()" class="filter-dropdown">
       <option value="all">-- All Departments and Degrees --</option>
+      <option value="CSE">CSE</option>
+      <option value="EEE">EEE</option>
+      <option value="ECE">ECE</option>
+      <option value="Mechanical">Mechanical</option>
+      <option value="Mechatronics">Mechatronics</option>
+      <option value="IT">IT</option>
+      <option value="AI/ML">AI/ML</option>
+      <option value="CSBS">CSBS</option>
+      <option value="Civil">Civil</option>
+      <option value="BE/BTECH">BE/BTECH</option>
+      <option value="M.SC DATA SCIENCE">M.SC DATA SCIENCE</option>
+      <option value="B.DES">B.DES</option>
+      <option value="B.ARCH">B.ARCH</option>
+    <option value="Clear">-- Clear Filter--</option>
     </select>
     <select id="appNumberSort" onchange="filterByCombined()" class="filter-dropdown">
       <option value="">Sort by Application No</option>
@@ -27,6 +41,38 @@
 
   <!-- Title -->
   <h2 class="header-title" style="margin: 0 20px;">Upcoming Request</h2>
+<button onclick="showSeatPopup()">Remaining Seats</button>
+
+<div id="seatPopup"  style="
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  max-height: 80vh;          /* Limit height to 80% of viewport height */
+  background: rgb(67, 57, 57);
+  border: 1px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+  overflow-y: auto;          /* Enable vertical scroll */
+">
+  <h3>Seat Status</h3>
+  <table border="1" width="100%" id="seatTable">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Course Name</th>
+        <th>Total Seats</th>
+        <th>Allocated Seats</th>
+        <th>Remaining Seats</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <button onclick="closeSeatPopup()">Close</button>
+</div>
 
   <!-- Right-side Filter by Recommender and search -->
   <div style="display: flex; align-items: center; gap: 10px;">
@@ -35,7 +81,7 @@
       <!-- JS will populate this dynamically -->
     </select>
     <input id="searchInput" class="input-box" placeholder="Search for details..." />
-    <button class="submit-input" onclick="handleSearch()">Submit</button>
+    <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Submit</button>
   </div>
 </header>
 
@@ -70,6 +116,7 @@
     <button onclick="closeViewMore()" class="close-btn">Close</button>
   </div>
 </div>
+<script src="env.js"></script>
   <script src="student-fetch.js"></script>
 </body>
 

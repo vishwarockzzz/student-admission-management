@@ -1,6 +1,6 @@
-
+const API_URL = `${window.env.BASE_URL}/students`;
 function goToUpdateRequestPage() {
-  window.location.href = "upcoming request.html";// Replace with your actual update request page URL
+  window.location.href = "upcoming_request.html";// Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
 
@@ -331,7 +331,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     
       console.log("Form Data:", formData);
 
-      fetch("http://127.0.0.1:5000/api/students", {
+      fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -348,6 +348,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       })
       .then(data => {
         alert("Application form is submitted successfully");
+        location.reload();
         console.log("Response:", data);
 
       })
@@ -357,4 +358,9 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
         document.getElementById("submitBtn").disabled = false; // Re-enable on error
       });
     }
-    
+    function submitAndReload() {
+  // Do your form handling or API call first if needed
+
+  // Then refresh
+  location.reload();
+}
