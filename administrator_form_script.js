@@ -1,35 +1,43 @@
 const API_URL = `${window.env.BASE_URL}/students`;
+
+  function goHome() {
+    window.location.href = 'index.html';  // Change to your actual login route
+  }
+
+  function goBack() {
+    window.history.back();  // Goes to the previous page
+  }
 function goToUpdateRequestPage() {
   window.location.href = "upcoming_request.html";// Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
 
-          function setCollege(collegeName) {
-            selectedCollege = collegeName;
-          
-            const tceBtn = document.getElementById("tceBtn");
-            const tcaBtn = document.getElementById("tcaBtn");
-          
-            // Remove the "active" class from both buttons
-            tceBtn.classList.remove("active");
-            tcaBtn.classList.remove("active");
-          
-            // Add the "active" class to the selected button
-            if (collegeName === "TCE") {
-              tceBtn.classList.add("active");
-              document.getElementById("collegeMessage").textContent = "Student Applying for TCE";
-            } else {
-              tcaBtn.classList.add("active");
-              document.getElementById("collegeMessage").textContent = "Student Applying for TCA";
-            }
-          }
-document.getElementById('nameInput').addEventListener('input', function () {
-    const value = this.value.trim();
-    const isAllCaps = value === value.toUpperCase();
-    const isValid = isAllCaps;
+function setCollege(college) {
+  const tceForm = document.getElementById('tceForm');
+  const tcaForm = document.getElementById('tcaForm');
+  const instruction = document.getElementById('instruction'); // reference to instruction div
+  const msg = document.getElementById('collegeMessage');
 
-    document.getElementById('name-error').style.display = isValid ? 'none' : 'block';
-  });
+  // Hide instruction when a college is selected
+  instruction.style.display = 'none';
+
+  if (college === 'TCE') {
+    tceForm.style.display = 'block';
+    tcaForm.style.display = 'none';
+    msg.textContent = "You have selected: Thiagarajar College of Engineering (TCE)";
+  } else if (college === 'TCA') {
+    tcaForm.style.display = 'block';
+    tceForm.style.display = 'none';
+    msg.textContent = "You have selected: Thiagarajar College (TCA)";
+  } else {
+    tceForm.style.display = 'none';
+    tcaForm.style.display = 'none';
+    msg.textContent = "";
+  }
+}
+
+
+
 
   document.getElementById('yearOfPassing').addEventListener('input', function () {
     const year = parseInt(this.value, 10);
@@ -174,39 +182,9 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   
     function calculateCutoff() {
       const degree = document.getElementById("degree").value;
-    
-      document.getElementById("engg-cutoff-group").style.display = "none";
-      document.getElementById("msc-cutoff-group").style.display = "none";
       document.getElementById("barch-cutoff-group").style.display = "none";
-      document.getElementById("bdes-cutoff-group").style.display = "none";
     
-      
-    
-      if (degree === "btech") {
-        const math = parseFloat(document.getElementById("maths").value) || 0;
-      const phy = parseFloat(document.getElementById("physics").value) || 0;
-      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
-        const cutoff = math + phy / 2 + chem / 2;
-        document.getElementById("engg-cutoff").value = cutoff.toFixed(2);
-        document.getElementById("engg-cutoff-group").style.display = "block";
-    
-      } else if (degree === "bdes") {
-        const math = parseFloat(document.getElementById("maths").value) || 0;
-      const phy = parseFloat(document.getElementById("physics").value) || 0;
-      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
-        const cutoff = math + phy / 2 + chem / 2;
-        document.getElementById("bdes-cutoff").value = cutoff.toFixed(2);
-        document.getElementById("bdes-cutoff-group").style.display = "block";
-    
-      } else if (degree === "msc") {
-        const math = parseFloat(document.getElementById("maths").value) || 0;
-      const phy = parseFloat(document.getElementById("physics").value) || 0;
-      const chem = parseFloat(document.getElementById("chemistry").value) || 0;
-        const cutoff = math + phy + chem;
-        document.getElementById("msc-cutoff").value = cutoff.toFixed(2);
-        document.getElementById("msc-cutoff-group").style.display = "block";
-    
-      } else if (degree === "barch") {
+      if (degree === "barch") {
         const nata = parseFloat(document.getElementById("nata").value) || 0;
         const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
         const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
@@ -216,9 +194,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     
         if (nata > 0 && twelve > 0) {
           document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
-        } else {
-          document.getElementById("barch-cutoff").value = "";
-        }
+        } 
     
         document.getElementById("barch-cutoff-group").style.display = "block";
       }
@@ -247,6 +223,39 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     document.getElementById('personalPhone').addEventListener('input', () => {
       validatePhone('personalPhone', 'personalPhone-error');
     });
+
+    function showCourseOptions() {
+    const degree = document.getElementById("degree").value;
+    const courseGroup = document.getElementById("courseGroup");
+    const courseSelect = document.getElementById("course");
+
+    const courses = {
+      ba: ["English", "Tamil", "History"],
+      bsc: [
+        "Computer Science", "Mathematics", "Physics", "Chemistry",
+        "Zoology", "Biotechnology", "Electronics", "Psychology",
+        "Information Technology", "Fashion Technology", "Visual Communication", "Data Science"
+      ],
+      bcom: ["General", "Computer Applications", "Professional Accounting"],
+      bca: ["Computer Applications"],
+      bba: ["Business Administration"]
+    };
+
+    // Reset and clear
+    courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+
+    if (courses[degree]) {
+      courses[degree].forEach(course => {
+        const option = document.createElement("option");
+        option.value = course;
+        option.textContent = course;
+        courseSelect.appendChild(option);
+      });
+      courseGroup.style.display = "block";
+    } else {
+      courseGroup.style.display = "none";
+    }
+  }
   
     function handleSubmit(event) {
       event.preventDefault();

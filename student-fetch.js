@@ -2,9 +2,8 @@
 const API_URL = `${window.env.BASE_URL}/students`;
 console.log(API_URL);
 const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
-console.log(UPDATE_URL);
+
 const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
-console.log(SEATS_URL);
 
 let result = [];
 let seats = {};
@@ -46,6 +45,27 @@ fetch(SEATS_URL)
     console.error("Failed to fetch data:", error);
   });
 
+   function goHome() {
+    window.location.href = 'index.html';  // Change to your actual login route
+  }
+
+  function goBack() {
+    window.history.back();  // Goes to the previous page
+  }
+function toggleFilterSort() {
+  const panel = document.getElementById("filterSortPanel");
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+
+// Optional: hide on outside click
+document.addEventListener("click", function (event) {
+  const panel = document.getElementById("filterSortPanel");
+  const button = document.querySelector(".filter-sort-toggle");
+
+  if (!panel.contains(event.target) && !button.contains(event.target)) {
+    panel.style.display = "none";
+  }
+});
 
 
 let currentStudentId = null;
@@ -347,40 +367,45 @@ function acceptStudent(id, branch) {
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  } else {
-    const isGeneral = ["all", "general"].includes(branch1);
-    const preferences = [student.branch_1, student.branch_2, student.branch_3].filter(Boolean);
+  }else {
+  const preferences = [
+    (student.branch_1 || "").toLowerCase(),
+    (student.branch_2 || "").toLowerCase(),
+    (student.branch_3 || "").toLowerCase()
+  ];
 
-    const branchesToShow = isGeneral
-      ? beCourses
-      : preferences.filter(course => beCourses.includes(course));
+  const isGeneral = preferences.includes("all");
 
-    branchesToShow.forEach(course => {
-      const option = document.createElement("option");
-      option.value = course;
-      option.textContent = course;
-      branchSelect.appendChild(option);
-    });
+  const branchesToShow = isGeneral
+    ? beCourses
+    : preferences.filter(course => beCourses.includes(course));
 
-    branchSelect.onchange = () => {
-      const selected = branchSelect.value.toLowerCase();
+  branchesToShow.forEach(course => {
+    const option = document.createElement("option");
+    option.value = course;
+    option.textContent = course;
+    branchSelect.appendChild(option);
+  });
 
-      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
-        modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-        modeSelect.value = "self-finance";
-        modeSelect.disabled = false;
-      } else {
-        modeSelect.innerHTML = `
-          <option value="">-- Select Mode --</option>
-          <option value="aided">Aided</option>
-          <option value="self-finance">Self-Finance</option>
-        `;
-        modeSelect.disabled = false;
-      }
-    };
+  branchSelect.onchange = () => {
+    const selected = branchSelect.value.toLowerCase();
 
-    branchSelect.dispatchEvent(new Event("change"));
-  }
+    if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
+      modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+      modeSelect.value = "self-finance";
+      modeSelect.disabled = false;
+    } else {
+      modeSelect.innerHTML = `
+        <option value="">-- Select Mode --</option>
+        <option value="aided">Aided</option>
+        <option value="self-finance">Self-Finance</option>
+      `;
+      modeSelect.disabled = false;
+    }
+  };
+
+  branchSelect.dispatchEvent(new Event("change"));
+}
 
   // Show popup
   document.getElementById("popup-overlay").style.display = "flex";
