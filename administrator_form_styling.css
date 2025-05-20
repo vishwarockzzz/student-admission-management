@@ -47,20 +47,21 @@
 
 /* Hover effect on the inactive button */
 .college-btn:not(.active):hover {
-  background-color: #720907;  /* lighter color */
+  background-color: #720907;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Active state - when the button is selected */
+/* Active button stays red */
 .college-btn.active {
-  background-color: #901111;  /* brighter color */
+  background-color: #920505;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Prevent hover effect on active button */
+/* Prevent hover from changing active button */
 .college-btn.active:hover {
-  background-color: #920505; /* keep it the same color when hovered */
+  background-color: #920505;
 }
+
 header {
   background-color: #800000; /* dark maroon */
   color: white;
@@ -93,20 +94,22 @@ header {
 
 /* Unified button style */
 .nav-btn {
-  background-color: #a52a2a; /* brownish-maroon to match header */
-  color: #fff;
-  border: none;
-  padding: 10px 14px;
+  background-color: white;
+  color: maroon;
+  border: 2px solid maroon;
   border-radius: 6px;
-  font-size: 14px;
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .nav-btn:hover {
-  background-color: #b33a3a;
+  background-color: #b30000;
+  color: white;
 }
+
 
 
    /* Global Styles */

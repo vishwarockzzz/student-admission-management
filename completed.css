@@ -13,6 +13,25 @@ header {
   align-items: center;
 }
 
+
+/* Unified button style */
+.nav-btn {
+  background-color: white;
+  color: maroon;
+  border: 2px solid maroon;
+  border-radius: 6px;
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: #b30000;
+  color: white;
+}
+
 .header-title {
   font-weight: bold;
   font-size: 20px;

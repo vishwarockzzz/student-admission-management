@@ -30,17 +30,18 @@
       <option value="Clear">-- Clear Filter --</option>
     </select>
 
-    <select id="appNumberSort" onchange="filterByCombined()" class="filter-dropdown">
-      <option value="">Sort by Application No</option>
-      <option value="asc">Application No: Low to High</option>
-      <option value="desc">Application No: High to Low</option>
-    </select>
+    <select id="appNumberSort" onchange="sortByApplication()" class="filter-dropdown">
+  <option value="">Sort by Application No</option>
+  <option value="asc">Application No: Low to High</option>
+  <option value="desc">Application No: High to Low</option>
+</select>
+
   </div>
 </div>
       </div>
       <div class="right-buttons">
-        <button class="nav-btn" onclick="goHome()">🏠 Home</button>
-        <button class="nav-btn" onclick="goBack()">🔙 Back</button>
+        <button class="nav-btn" onclick="goHome()">Logout</button>
+        <button class="nav-btn" onclick="goBack()">Back</button>
         
       </div>
       

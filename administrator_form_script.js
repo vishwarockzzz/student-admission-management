@@ -1,14 +1,31 @@
 const API_URL = `${window.env.BASE_URL}/students`;
 
   function goHome() {
-    window.location.href = 'index.html';  // Change to your actual login route
+    window.location.href = 'index.html'; 
+   // Change to your actual login route
   }
 
   function goBack() {
-    window.history.back();  // Goes to the previous page
+
+    window.history.back(); 
+    
+// Goes to the previous page
   }
+
+  const buttons = document.querySelectorAll('.college-btn');
+
+buttons.forEach(button => {
+  button.addEventListener('click', () => {
+    // Remove active class from all buttons
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Add active class to clicked button
+    button.classList.add('active');
+  });
+});
 function goToUpdateRequestPage() {
-  window.location.href = "upcoming_request.html";// Replace with your actual update request page URL
+  window.location.href = "upcoming_request.html";
+  // Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
 
@@ -372,3 +389,8 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   // Then refresh
   location.reload();
 }
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    window.location.reload(); // Reload if user returns via back/forward
+  }
+});
