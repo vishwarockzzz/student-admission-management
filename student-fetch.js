@@ -110,7 +110,20 @@ function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
   const sortOrder = document.getElementById("appNumberSort").value;
   // If "Clear" is selected, reset the filter and show all students
-  
+  if (sortOrder === "asc") {
+  filteredStudents.sort((a, b) => {
+    const aLast = parseInt(a.application_number.slice(-5));
+    const bLast = parseInt(b.application_number.slice(-5));
+    return aLast - bLast;
+  });
+} else if (sortOrder === "desc") {
+  filteredStudents.sort((a, b) => {
+    const aLast = parseInt(a.application_number.slice(-5));
+    const bLast = parseInt(b.application_number.slice(-5));
+    return bLast - aLast;
+  });
+}
+
   if (selectedFilter === "Clear") {
     document.getElementById("combinedFilter").value = "Clear"; // Keep the dropdown as Clear
     renderStudents(allStudents); // Render all students again
@@ -152,21 +165,6 @@ function filterByCombined() {
    // Apply sorting
    // Apply sorting by last 5 digits of application_number
 // Sort by last 5 digits of application number
-if (sortOrder === "asc") {
-  filteredStudents.sort((a, b) => {
-    const aLast = parseInt(a.application_number.slice(-5));
-    const bLast = parseInt(b.application_number.slice(-5));
-    return aLast - bLast;
-  });
-} else if (sortOrder === "desc") {
-  filteredStudents.sort((a, b) => {
-    const aLast = parseInt(a.application_number.slice(-5));
-    const bLast = parseInt(b.application_number.slice(-5));
-    return bLast - aLast;
-  });
-}
-
-
 
   // Render the filtered students
   renderStudents(filteredStudents);

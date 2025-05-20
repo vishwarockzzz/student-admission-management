@@ -17,7 +17,7 @@ function setCollege(college) {
   const tcaForm = document.getElementById('tcaForm');
   const instruction = document.getElementById('instruction'); // reference to instruction div
   const msg = document.getElementById('collegeMessage');
-
+  selectedCollege = college
   // Hide instruction when a college is selected
   instruction.style.display = 'none';
 
@@ -223,39 +223,38 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     document.getElementById('personalPhone').addEventListener('input', () => {
       validatePhone('personalPhone', 'personalPhone-error');
     });
-
     function showCourseOptions() {
-    const degree = document.getElementById("degree").value;
-    const courseGroup = document.getElementById("courseGroup");
-    const courseSelect = document.getElementById("course");
+      const degree = document.getElementById("degree").value;
+      const courseGroup = document.getElementById("courseGroup");
+      const courseSelect = document.getElementById("course");
 
-    const courses = {
-      ba: ["English", "Tamil", "History"],
-      bsc: [
-        "Computer Science", "Mathematics", "Physics", "Chemistry",
-        "Zoology", "Biotechnology", "Electronics", "Psychology",
-        "Information Technology", "Fashion Technology", "Visual Communication", "Data Science"
-      ],
-      bcom: ["General", "Computer Applications", "Professional Accounting"],
-      bca: ["Computer Applications"],
-      bba: ["Business Administration"]
-    };
+      const courses = {
+        ba: ["English", "Tamil", "History"],
+        bsc: [
+          "Computer Science", "Mathematics", "Physics", "Chemistry",
+          "Zoology", "Biotechnology", "Electronics", "Psychology",
+          "Information Technology", "Fashion Technology", "Visual Communication", "Data Science"
+        ],
+        bcom: ["General", "Computer Applications", "Professional Accounting"],
+        bca: ["Computer Applications"],
+        bba: ["Business Administration"]
+      };
 
-    // Reset and clear
-    courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+      // Clear existing options
+      courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
 
-    if (courses[degree]) {
-      courses[degree].forEach(course => {
-        const option = document.createElement("option");
-        option.value = course;
-        option.textContent = course;
-        courseSelect.appendChild(option);
-      });
-      courseGroup.style.display = "block";
-    } else {
-      courseGroup.style.display = "none";
+      if (courses[degree]) {
+        courses[degree].forEach(course => {
+          const option = document.createElement("option");
+          option.value = course;
+          option.textContent = course;
+          courseSelect.appendChild(option);
+        });
+        courseGroup.style.display = "block";
+      } else {
+        courseGroup.style.display = "none";
+      }
     }
-  }
   
     function handleSubmit(event) {
       event.preventDefault();

@@ -182,15 +182,15 @@
       <div id="subject-fields" style="display: none;">
         <div class="form-group">
           <label>Mathematics (out of 100):</label>
-          <input type="number" id ="maths" name="maths" oninput="calculateCutoff()" required/>
+          <input type="number" id ="maths" name="maths" oninput="calculateCutoff()" />
         </div>
         <div class="form-group">
           <label>Physics (out of 100):</label>
-          <input type="number" id="physics" name="physics" oninput="calculateCutoff()" required/>
+          <input type="number" id="physics" name="physics" oninput="calculateCutoff()" />
         </div>
         <div class="form-group">
           <label>Chemistry (out of 100):</label>
-          <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()" required/>
+          <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()" />
         </div>
       </div>
   
@@ -439,24 +439,26 @@
   </div>
 
       </div>
-  <div class="form-group">
-  <label for="degree">Academic Degree Applying for:<span style="color:red">*</span></label>
-  <select id="degree" onchange="showCourseOptions()" required>
-    <option value="">-- Select Degree --</option>
-    <option value="ba">B.A.</option>
-    <option value="bsc">B.Sc.</option>
-    <option value="bcom">B.Com.</option>
-    <option value="bca">B.C.A.</option>
-    <option value="bba">B.B.A.</option>
-  </select>
-</div>
+ <label for="degree">Select Degree:<span style="color:red">*</span></label>
+<select id="degree" onchange="showCourseOptions()">
+  <option value="">-- Select Degree --</option>
+  <option value="ba">BA</option>
+  <option value="bsc">BSc</option>
+  <option value="bcom">BCom</option>
+  <option value="bca">BCA</option>
+  <option value="bba">BBA</option>
+</select>
 
-<div class="form-group" id="courseGroup" style="display: none;">
+<div id="courseGroup" style="display: none; margin-top: 10px;">
   <label for="course">Select Course:<span style="color:red">*</span></label>
-  <select id="course" required>
+  <select id="course">
     <option value="">-- Select Course --</option>
   </select>
 </div>
+<div style="text-align: center; margin-top: 20px;">
+      <button type="submit" class="submit-btn" onclick="handleSubmit(event)">Submit Application</button>
+    </div>
+
     <!-- Add more TCA-specific fields if needed -->
       <h2>Recommender Details</h2>
 
@@ -522,11 +524,10 @@
     </div>
   </div>
 </div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button type="submit" class="submit-btn" onclick="handleSubmit(event)">Submit Application</button>
-    </div>
+    
   </main>
 </div>
+
   <script src="env.js"></script>
   <script src="administrator_form_script.js"> </script>
   
