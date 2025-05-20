@@ -4,19 +4,42 @@
   margin: 0;
   width: 100%;
 }
-
-.college-btn {
-  flex: 1;
-  padding: 25px;
-  font-size: 18px;
+.instruction {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 15vh; /* full screen height */
+  text-align: center;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: white;
-  background-color: #850303;  /* default color */
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #f0f0f0; /* light background */
+  color: #333;
 }
 
+
+.college-btn {
+  display: flex;
+  align-items: center;         /* Vertically center logo and text */
+  justify-content: center;  
+  gap: 10px; /* spacing between logo and text */
+  flex: 1;
+  padding: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: rgb(44, 41, 41);
+  background-color: #d4af7f; /* warm tan/gold */
+/* soft reddish-maroon */
+  /* default color */
+
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}                  /* Space between logo and text */
+  
+.college-logo {
+  width: 50px; /* adjust size as needed */
+  height: 50px;
+  object-fit: contain;
+}
 /* No gap between buttons */
 .college-btn:not(:last-child) {
   margin-right: 0px;
@@ -24,47 +47,68 @@
 
 /* Hover effect on the inactive button */
 .college-btn:not(.active):hover {
-  background-color: #a90808;  /* lighter color */
+  background-color: #720907;  /* lighter color */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Active state - when the button is selected */
 .college-btn.active {
-  background-color: #aa0c0c;  /* brighter color */
+  background-color: #901111;  /* brighter color */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Prevent hover effect on active button */
 .college-btn.active:hover {
-  background-color: #b22121; /* keep it the same color when hovered */
+  background-color: #920505; /* keep it the same color when hovered */
+}
+header {
+  background-color: #800000; /* dark maroon */
+  color: white;
+  padding: 30px;
+  position: relative;
 }
 
+.header-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
 
+.header-content h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 24px;
+}
 
-.check-requests-btn {
+.nav-buttons {
   position: absolute;
-  top: 40px;
   right: 20px;
-  background-color: #a90808;
-  color: white;
-  padding: 10px 15px;
-  font-size: 16px;
+  display: flex;
+  gap: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Unified button style */
+.nav-btn {
+  background-color: #a52a2a; /* brownish-maroon to match header */
+  color: #fff;
   border: none;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.check-requests-btn:hover {
-  background-color: #910b04;
-}  
-header {
-    background-color: #800000; /* dark maroon */
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-  }
+.nav-btn:hover {
+  background-color: #b33a3a;
+}
+
+
    /* Global Styles */
 body {
   margin: 0;
@@ -73,13 +117,6 @@ body {
   color: black;
 }
 
-/* Header Styles */
-header {
-  background-color: #800000; /* Dark Maroon */
-  color: white;
-  padding: 20px 0;
-  text-align: center;
-}
 .preference-row {
   display: flex;
   gap: 10px;
@@ -132,6 +169,7 @@ h2 {
   max-width: 400px; /* Control width for both label and input/select */
   margin-bottom: 15px;
 }
+
 
 /* Flex for layout */
 #degree {

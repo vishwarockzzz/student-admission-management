@@ -1,65 +1,81 @@
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-  }
-  
-  /* Top Maroon Bar */
-  .header-maroon {
-    background-color: #830000;
-    height: 20px;
-  }
-  
-  /* Logo Section with Cream Background */
-  .logo-section {
-    background-color: #fff9ec; /* Cream color */
-    padding: 15px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .logo-section img {
-    max-height: 80px;
-  }
-  
-  /* Login Section */
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60vh;
-  }
-  
-  .login-box {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    width: 300px;
-  }
-  
-  .login-box input {
-    width: 100%;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .login-box button {
-    width: 100%;
-    padding: 10px;
-    background-color: #830000;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .login-box button:hover {
-    background-color: #a10000;
-  }
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+    }
 
+    .header-maroon {
+      height: 8px;
+      background-color: #830000;
+    }
+
+    .title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 20px;
+  border-bottom: 2px solid #830000;
+}
+
+.title-text {
+  flex: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #830000;
+  padding: 0 20px;
+  line-height: 1.4;
+}
+
+.side-image {
+  width: 500px;
+  height: auto;
+  object-fit: contain;
+}
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 120px);
+    }
+
+    .login-box {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 350px;
+      width: 100%;
+    }
+
+    .login-box h3 {
+      text-align: center;
+      color: #830000;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .login-box button {
+      width: 100%;
+      background-color: #830000;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .login-box button:hover {
+      background-color: #a00000;
+    }
+  /* Top Maroon Bar */
   
