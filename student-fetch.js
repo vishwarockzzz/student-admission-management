@@ -50,7 +50,9 @@ fetch(SEATS_URL)
   }
 
   function goBack() {
-    window.history.back();  // Goes to the previous page
+    location.reload();
+    window.history.back(); 
+     // Goes to the previous page
   }
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
@@ -93,7 +95,7 @@ function populateFilters() {
 
   // Options for departments and degrees
   const options = [
-    "CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil", "Be/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+    "CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
   ];
 
   // Populate the dropdown
@@ -105,37 +107,14 @@ function populateFilters() {
   });
 }
 
-// Function to filter students based on the selected department or degree
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
-  const sortOrder = document.getElementById("appNumberSort").value;
-  // If "Clear" is selected, reset the filter and show all students
-  if (sortOrder === "asc") {
-  filteredStudents.sort((a, b) => {
-    const aLast = parseInt(a.application_number.slice(-5));
-    const bLast = parseInt(b.application_number.slice(-5));
-    return aLast - bLast;
-  });
-} else if (sortOrder === "desc") {
-  filteredStudents.sort((a, b) => {
-    const aLast = parseInt(a.application_number.slice(-5));
-    const bLast = parseInt(b.application_number.slice(-5));
-    return bLast - aLast;
-  });
-}
 
-  if (selectedFilter === "Clear") {
-    document.getElementById("combinedFilter").value = "Clear"; // Keep the dropdown as Clear
-    renderStudents(allStudents); // Render all students again
-    return;
-  }
-  if (selectedFilter === "all") {
-    document.getElementById("combinedFilter").value = "all"; // Keep the dropdown as Clear
-    renderStudents(allStudents); // Render all students again
+  if (selectedFilter === "Clear" || selectedFilter === "all") {
+    renderStudents(allStudents);
     return;
   }
 
-  // Filter by department or degree
   const filteredStudents = allStudents.filter(student => {
     const departments = [student.branch_1, student.branch_2, student.branch_3];
     const degree = student.degree;
@@ -146,29 +125,40 @@ function filterByCombined() {
       "B.DES": ["bdes"],
       "B.ARCH": ["barch"]
     };
-   
 
-    // Check if filter is a department
     if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"].includes(selectedFilter)) {
       return departments.includes(selectedFilter);
     }
 
-    // Check if filter is a degree
     if (Object.keys(degreeMatches).includes(selectedFilter)) {
       return degreeMatches[selectedFilter].includes(degree);
     }
 
-    return false; // In case of no match
+    return false;
   });
-  console.log(filteredStudents.map(s => s.application_number));
 
-   // Apply sorting
-   // Apply sorting by last 5 digits of application_number
-// Sort by last 5 digits of application number
-
-  // Render the filtered students
-  renderStudents(filteredStudents);
+  // Pass filtered list to sorter
+  sortByApplication(filteredStudents);
 }
+
+function sortByApplication(inputList = allStudents) {
+  const sortOrder = document.getElementById("appNumberSort").value;
+
+  const sortedList = [...inputList]; // clone to avoid mutating original
+
+  if (sortOrder === "asc") {
+    sortedList.sort((a, b) => {
+      return parseInt(a.application_number.slice(-5)) - parseInt(b.application_number.slice(-5));
+    });
+  } else if (sortOrder === "desc") {
+    sortedList.sort((a, b) => {
+      return parseInt(b.application_number.slice(-5)) - parseInt(a.application_number.slice(-5));
+    });
+  }
+
+  renderStudents(sortedList);
+}
+
 
 
 function fetchAndRenderStudents(status) {
@@ -197,7 +187,8 @@ function populateRecommenderFilter(students) {
     const rec = student.recommenders?.[0];
     if (rec && rec.name) {
       const designation = rec.designation || "-";
-      const label = `${rec.name} - ${designation}`;
+      const affiliation = rec.affiliation || "-";
+      const label = `${rec.name} - ${designation} - ${affiliation}`;
       recommenderSet.add(label);
     }
   });
@@ -239,7 +230,8 @@ function filterByRecommender() {
   const filtered = allStudents.filter(student => {
     const rec = student.recommenders?.[0];
     const designation = rec?.designation || "-";
-    const label = `${rec?.name} - ${designation}`;
+     const affiliation = rec?.affiliation || "-";
+    const label = `${rec?.name} - ${designation} - ${affiliation}`;
     return label === selected;
   });
 
@@ -252,19 +244,37 @@ function filterByRecommender() {
 function renderStudents(students) {
   const container = document.getElementById("studentList");
   container.innerHTML = "";
-
   students.forEach(student => {
     const row = document.createElement("div");
     row.className = "student-row";
     row.id = `student-${student.id}`;
     const card = document.createElement("div");
     card.className = "student-card";
+    let cutoff = "";
+    switch (student.degree.toLowerCase()) {
+      case "b.e":
+      case "btech":
+      case "engineering":
+        cutoff = student.engineering_cutoff;
+        break;
+      case "msc":
+        cutoff = student.msc_cutoff;
+        break;
+      case "bdes":
+        cutoff = student.bdes_cutoff;
+        break;
+      case "barch":
+        cutoff = student.barch_cutoff;
+        break;
+      default:
+        cutoff = "N/A";
+    }
     card.innerHTML = `
       <p><strong>Name:</strong> ${student.name}</p>
       <p><strong>Application No:</strong> ${student.application_number}</p>
       <p><strong>DOA:</strong> ${student.date_of_application}</p>
-      <p><strong>School:</strong> ${student.school}</p>
-      <p><strong>City:</strong> ${student.district}</p>
+      <p><strong>Degree:</strong> ${student.degree}</p>
+      <p><strong>Cut-Off:</strong> ${cutoff}</p>
       <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
     `;
 
@@ -633,3 +643,8 @@ function showSeatPopup() {
 function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    window.location.reload(); // Reload if user returns via back/forward
+  }
+});
