@@ -201,6 +201,8 @@ function renderCards(students, status, showStatus = false) {
     studentsList.forEach(student => {
       const card = document.createElement("div");
       card.className = "card";
+      card.id = `student-${student.id}`;
+
 
       let cutoff = "";
       switch (student.degree.toLowerCase()) {
@@ -514,10 +516,10 @@ function submitDecline() {
     .then(res => res.json())
     .then(data => {
       const card = document.getElementById(`student-${currentDeclineId}`);
-      if (card) {
-        card.classList.add("decline-shadow");
-        setTimeout(() => card.remove(), 500);
-      }
+if (card) {
+  card.classList.add("decline-shadow");
+  setTimeout(() => card.remove(), 500);
+}
       closeDeclineModal();
     })
     .catch(err => {
@@ -528,7 +530,8 @@ function submitDecline() {
 
 
 function withdrawStudent(withdraw_id) {
-   document.getElementById('statusTitle').textContent = "Withdrawn Applications";
+  document.getElementById('statusTitle').textContent = "Withdrawn Applications";
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -541,13 +544,9 @@ function withdrawStudent(withdraw_id) {
   .then(data => {
     const card = document.getElementById(`student-${withdraw_id}`);
     if (card) {
-        card.classList.add("decline-shadow");
-        setTimeout(() => {
-      removeCard(withdraw_id);
-      location.reload(); // 👈 Refresh the page after removal
-    }, 500);
-      }
-    setTimeout(() => removeCard(withdraw_id), 500);
+      card.classList.add("decline-shadow");
+      setTimeout(() => card.remove(), 500); // 👈 remove after animation
+    }
   })
   .catch(err => {
     console.error("Error Withdrawing student:", err);
