@@ -26,10 +26,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
               // Redirect based on email
               if (data.is_admin) {
-                window.location.href = "upcoming_request.html";
-            } else {
-                window.location.href = "administrator_form.html";
-            }
+                  localStorage.setItem("is_admin", "true");
+                  window.location.href = "upcoming_request.html";
+              } else {
+                  localStorage.setItem("is_admin", "false");
+                  window.location.href = "administrator_form.html";
+              }
           } else {
               // Login failed
               alert(data.message || "Login failed. Please try again.");

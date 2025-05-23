@@ -1,40 +1,101 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background:#faf0e6;
+  background:#f3d0a3;
 }
 
 header {
-  background-color: maroon;
+background-color: maroon;
   color: white;
   padding: 10px 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  position: relative;
+  height: 65px;
 }
 
+/* Center the title absolutely */
+header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+}
+
+/* Other elements stay on the edges */
+header .left{
+  flex: 1;
+}
+.header-title {
+  font-weight: bold;
+  font-size: 26px;
+}
 
 /* Unified button style */
 .nav-btn {
   background-color: white;
   color: maroon;
   border: 2px solid maroon;
+  border: none;
   border-radius: 6px;
-  margin-left: 10px;
-  padding: 6px 12px;
-  font-weight: bold;
+  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;    /* prevents text wrap, button width grows with content */      /* you can adjust font size as needed */
+}
+.nav-btn:nth-child(2){
+   min-width: 150px;   /* minimum width for first two buttons */
+  padding: 5px 5px; /* bigger padding for first two buttons */
+  font-weight: bold;  /* optionally make it bolder */
+}
+
+.nav-btn2 {
+  background-color: white;
+  color: maroon;
+  border: 2px solid maroon;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;    /* prevents text wrap, button width grows with content */      /* you can adjust font size as needed */
+}
+.nav-btn2:nth-child(1),
+.nav-btn2:nth-child(2) {
+  min-width: 200px;   /* minimum width for first two buttons */
+  padding: 10px 20px; /* bigger padding for first two buttons */
+  font-weight: bold;  /* optionally make it bolder */
 }
 
 .nav-btn:hover {
   background-color: #b30000;
   color: white;
 }
+.nav-btn2:hover {
+  background-color: #b30000;
+  color: white;
+}
+.nav-btn2.active {
+  background-color: #b61515;
+  color: #fff;
+  border: 1px solid #222;
+}
 
-.header-title {
-  font-weight: bold;
-  font-size: 20px;
+.search-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 20px; /* reduced padding */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.status-buttons {
+  justify-content: center;
+  flex: 1;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .status-buttons button {
@@ -42,7 +103,6 @@ header {
   color: maroon;
   border: 2px solid maroon;
   border-radius: 6px;
-  margin-left: 10px;
   padding: 6px 12px;
   font-weight: bold;
   cursor: pointer;
@@ -53,52 +113,134 @@ header {
   background-color: #b30000;
   color: white;
 }
+.status-buttons button.active {
+  background-color: maroon;
+  color: white;
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto; /* pushes the search to the right */
+}
+
+.input-box {
+  padding: 5px 10px;
+}
+
+.submit-input {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
 
 .content {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 40px;
+  
   padding: 40px 20px;
 }
 
 /* Student Card Style */
+
+#studentCards {
+  text-align: left; /* ensure left alignment */
+}
+
+.degree-title-container {
+  width: 100%;       /* full width */
+  font-size: 15px;
+  text-align: center; /* center the degree title */
+  margin-bottom: 15px;
+  color:#800000;
+}
+
+
+
+.card-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 40px;
+  justify-content: flex-start; /* always start cards from left */
+}
+/* Optional: keep consistent spacing inside */
+.student-box p,
+.recommender-box p {
+  margin: 4px 0;
+}
+
+.card-bottom {
+  margin-top: auto;
+}
+
+hr {
+  border: 1px solid #ccc;
+  margin: 40px 0 20px;
+  width: 100%;
+  clear: both;
+}
+
+
 .card {
-  background-color: white;
-  color:black;
-  font-weight: bold;
-  border-radius: 12px;
-  width: 335px;
-  height: 370px;
-  padding: 20px;
-  text-align: center;
+  width: 650px;      /* fixed card width */
+  height: 400px; 
+  flex: 0 1 400px;      /* width: about 400px fixed, but can shrink */
+  min-height: 100px;          /* fixed card height */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+  background-color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+.card-row {
+  display: flex;
+  gap: 20px;
 }
 
-.card p {
-  margin: 8px 0;
+.student-box,
+.recommender-box {
+  width: 220px;      /* fixed width */
+  min-height: 150px; /* fixed height or adjust as needed */
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fafafa;
+  border-radius: 4px;
 }
 
-/* View More Button */
+
+
 .view-more {
   background: transparent;
   color: black;
   border: 2px solid black;
-  padding: 8px 16px;
+  padding: 6px 14px;
   font-weight: bold;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
 .view-more:hover {
   background-color: white;
   color: #108cff;
 }
 
+
+.decline-comment-box {
+  background-color: #fff9f9;
+  border: 1px dashed #b89696;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+}
 /* View More Popup */
 .popup-overlay {
   position: fixed;
@@ -113,8 +255,53 @@ header {
   z-index: 1000;
 }
 
+.popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.popup label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.popup select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.popup button {
+  padding: 8px 16px;
+  background-color: maroon;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.popup button:hover {
+  background-color: darkred;
+}
+
+
+.popup-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
 .popup.bordered-popup {
-  background-color: #f8eaea;
+  background-color: #faf7f7;
   padding: 25px;
   width: 90%;
   max-width: 1000px;
@@ -123,13 +310,6 @@ header {
   border-radius: 12px;
   border: 2px solid #800000;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-}
-
-.popup-title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: 600;
 }
 
 .form-two-column {
@@ -193,3 +373,189 @@ header {
   text-align: center;
 }
 
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+button {
+  padding: 8px 12px;
+  border: 1px solid #333;
+  background-color: white;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  font-weight: bold;
+  width: 100px;
+}
+.accept:hover {
+  box-shadow: 0 0 10px green;
+}
+.decline:hover {
+  box-shadow: 0 0 10px red;
+}
+.onhold:hover {
+  box-shadow: 0 0 10px yellow;
+}
+.withdraw:hover {
+  box-shadow: 0 0 10px brown;
+}
+.accept:hover {
+  background-color: green;
+  color: white;
+  border-color: green;
+}
+
+.decline:hover {
+  background-color: red;
+  color: white;
+  border-color: red;
+}
+
+.onhold:hover {
+  background-color: gold;
+  color: black;
+  border-color: gold;
+}
+
+.withdraw:hover {
+  background-color: brown;
+  color: black;
+  border-color: brown;
+}
+  .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 999;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      width: 300px;
+      margin: 100px auto;
+      border-radius: 8px;
+    }
+
+  .decline-shadow {
+  transition: opacity 0.5s ease;
+  opacity: 0;
+  box-shadow: 0 0 10px red;
+}
+/* Right-side nav buttons (Home, Back) */
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+   background-color: #FFFDD0; /* or same as your page background */
+}
+
+.input-box {
+  width: 300px;          /* Increased width */
+       /* Increased height */
+  padding: 10px 14px;    /* Inner spacing */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;       /* Slightly larger text */
+  margin-right: 10px;
+}
+
+.submit-input {
+  padding: 8px 14px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submit-input:hover {
+  background-color: #a52a2a;
+}
+
+ 
+
+  #seatPopup th {
+    background-color: #8d0303;
+  }
+
+#seatTable thead th {
+  position: sticky;
+  top: 0;
+  background: #433939; /* match popup bg */
+  color: white;
+  z-index: 10;
+}
+
+#seatPopup {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  max-height: 80vh;
+  background: rgb(45, 42, 42);
+  border: 1px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 0px 10px rgba(137, 126, 126, 0.3);
+  z-index: 1000;
+  overflow-y: auto;
+  color: white;
+  border-radius: 8px;
+}
+
+#seatPopup h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 20px;
+  color: #edc59f;
+}
+
+#seatPopup table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  color: black;
+}
+#seatPopup th {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+
+#seatPopup td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+#seatPopup button {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 20px;
+  background-color: #a52a2a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#seatPopup button:hover {
+  background-color: #b33a3a;
+}
+.card .student-box p.status-line {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #15386b; /* A slightly darker shade for visibility */
+  background-color: #f2f2f2;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
