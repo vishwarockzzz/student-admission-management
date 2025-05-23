@@ -16,9 +16,9 @@
 
         <button class="nav-btn" onclick="showSeatPopup()">Remaining Seats</button>
         <!-- <button onclick="fetchAndRenderStudents('UNALLOCATED')">Requested</button> -->
-        <button onclick="window.location.href='completed.html'">Alloted</button>
+        <button onclick="window.location.href='completed.html'">Application Status</button>
         <div class="filter-sort-wrapper">
-  <button class="filter-sort-toggle" onclick="toggleFilterSort()">🔍 Filter & Sort</button>
+  <button class="filter-sort-toggle" onclick="toggleFilterSort()">Search Specific</button>
   <div id="filterSortPanel" class="filter-sort-panel">
     <select id="recommenderFilter" onchange="filterByRecommender()" class="filter-dropdown">
       <option value="">-- Select Recommender --</option>
@@ -31,7 +31,7 @@
     </select>
 
     <select id="appNumberSort" onchange="sortByApplication()" class="filter-dropdown">
-  <option value="">Sort by Application No</option>
+  <option value="">-- Sort by Application No --</option>
   <option value="asc">Application No: Low to High</option>
   <option value="desc">Application No: High to Low</option>
 </select>
@@ -50,7 +50,7 @@
 </header>
 <div class="search-container">
   <input id="searchInput" class="input-box" placeholder="Search for details..." />
-  <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Submit</button>
+  <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Search</button>
 </div>
 
 <div id="seatPopup">
@@ -75,6 +75,14 @@
   <div class="content" id="studentList">
     <!-- Cards will be injected here -->
   </div>
+   <div id="declineModal" class="modal">
+    <div class="modal-content">
+      <h3>Decline Reason</h3>
+      <textarea id="declineComment" placeholder="Enter reason..." rows="4" style="width:100%;"></textarea>
+      <br/>
+      <button onclick="submitDecline()">Submit</button>
+      <button onclick="closeDeclineModal()">Cancel</button>
+    </div>
   </div>
 
   <div id="popup-overlay" class="popup-overlay" style="display:none">
@@ -97,12 +105,12 @@
   </div>
 <!-- View More Popup -->
 <div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
-  <div class="popup bordered-popup">
-    <h2 class="popup-title">Student Application Details</h2>
-    <div class="form-two-column" id="viewMoreContent"></div>
-    <button onclick="closeViewMore()" class="close-btn">Close</button>
+    <div class="popup bordered-popup">
+      <h2 class="popup-title">Student Application Details</h2>
+      <div class="form-two-column" id="viewMoreContent"></div>
+      <button onclick="closeViewMore()" class="close-btn">Close</button>
+    </div>
   </div>
-</div>
 <script src="env.js"></script>
   <script src="student-fetch.js"></script>
 </body>

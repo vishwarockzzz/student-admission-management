@@ -8,6 +8,8 @@ const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
 let result = [];
 let seats = {};
 
+const isAdmin = localStorage.getItem("is_admin") === "true";
+
 fetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
@@ -50,7 +52,6 @@ fetch(SEATS_URL)
   }
 
   function goBack() {
-    location.reload();
     window.history.back(); 
      // Goes to the previous page
   }
@@ -242,73 +243,86 @@ function filterByRecommender() {
 
 
 function renderStudents(students) {
-  const container = document.getElementById("studentList");
-  container.innerHTML = "";
-  students.forEach(student => {
-    const row = document.createElement("div");
-    row.className = "student-row";
-    row.id = `student-${student.id}`;
-    const card = document.createElement("div");
-    card.className = "student-card";
-    let cutoff = "";
-    switch (student.degree.toLowerCase()) {
-      case "b.e":
-      case "btech":
-      case "engineering":
-        cutoff = student.engineering_cutoff;
-        break;
-      case "msc":
-        cutoff = student.msc_cutoff;
-        break;
-      case "bdes":
-        cutoff = student.bdes_cutoff;
-        break;
-      case "barch":
-        cutoff = student.barch_cutoff;
-        break;
-      default:
-        cutoff = "N/A";
+      const container = document.getElementById("studentList");
+      container.innerHTML = "";
+
+      students.forEach(student => {
+        const row = document.createElement("div");
+        row.className = "student-row";
+        row.id = `student-${student.id}`;
+
+        const card = document.createElement("div");
+        card.className = "student-card";
+
+        let cutoff = "";
+        switch (student.degree.toLowerCase()) {
+          case "b.e":
+          case "btech":
+          case "engineering":
+            cutoff = student.engineering_cutoff;
+            break;
+          case "msc":
+            cutoff = student.msc_cutoff;
+            break;
+          case "bdes":
+            cutoff = student.bdes_cutoff;
+            break;
+          case "barch":
+            cutoff = student.barch_cutoff;
+            break;
+          default:
+            cutoff = "N/A";
+        }
+
+        card.innerHTML = `
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Application No:</strong> ${student.application_number}</p>
+          <p><strong>DOA:</strong> ${student.date_of_application}</p>
+          <p><strong>Degree:</strong> ${student.degree}</p>
+          <p><strong>Cut-Off:</strong> ${cutoff}</p>
+         <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        `;
+
+        const recommender = student.recommenders?.[0] || {
+          name: "-",
+          affiliation: "-",
+          designation: "-"
+        };
+
+        const recommenderBox = document.createElement("div");
+        recommenderBox.className = "recommender-box";
+        recommenderBox.innerHTML = `
+          <p><strong>Recommender:</strong> ${recommender.name}</p>
+          <p><strong>Designation:</strong> ${recommender.designation}</p>
+          <p><strong>Company:</strong> ${recommender.affiliation}</p>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "action-buttons";
+        let withdrawOrDeleteBtn = "";
+        if (!isAdmin) {
+          withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
+        }
+        actions.innerHTML = `
+          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          ${withdrawOrDeleteBtn}
+        `;
+
+        row.appendChild(card);
+        row.appendChild(recommenderBox);
+        row.appendChild(actions);
+        container.appendChild(row);
+      });
     }
-    card.innerHTML = `
-      <p><strong>Name:</strong> ${student.name}</p>
-      <p><strong>Application No:</strong> ${student.application_number}</p>
-      <p><strong>DOA:</strong> ${student.date_of_application}</p>
-      <p><strong>Degree:</strong> ${student.degree}</p>
-      <p><strong>Cut-Off:</strong> ${cutoff}</p>
-      <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-    `;
-
-    const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation };
-
-    const recommenderBox = document.createElement("div");
-    recommenderBox.className = "recommender-box";
-    recommenderBox.innerHTML = `
-      <p><strong>Recommender:</strong> ${recommender.name}</p>
-      <p><strong>Designation:</strong> ${recommender.designation}</p>
-      <p><strong>Company:</strong> ${recommender.affiliation}</p>
-    `;
-
-    const actions = document.createElement("div");
-    actions.className = "action-buttons";
-    actions.innerHTML = `
-      <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Accept</button>
-      <button class="decline" onclick="declineStudent(${student.id})">Decline</button>
-      <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-    `;
-
-    row.appendChild(card);
-    row.appendChild(recommenderBox);
-    row.appendChild(actions);
-    container.appendChild(row);
-  });
-}
 
 const courseMap = {
   "CSE": "B.E. Computer Science and Engineering",
   "ECE": "B.E. Electronics and Communication Engineering",
   "EEE": "B.E. Electrical and Electronics Engineering",
-  "Mechanical": "B.E. Mechanical Engineering",
-  "Mechatronics": "B.E. Mechatronics",
+  "MECHANICAL": "B.E. Mechanical Engineering",
+  "MECHATRONICS": "B.E. Mechatronics",
   "IT": "B.Tech. Information Technology",
   "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
@@ -323,19 +337,21 @@ function acceptStudent(id, branch) {
   const branchSelect = document.getElementById("branchSelect");
   const modeSelect = document.getElementById("modeSelect");
 
+  // Reset and enable dropdowns
   branchSelect.innerHTML = "";
   modeSelect.innerHTML = "";
   branchSelect.disabled = false;
   modeSelect.disabled = false;
 
   const degree = (student.degree || "").toUpperCase();
-  const branch1 = (student.branch_1 || "").toLowerCase();
+  const branch1 = (student.branch || "").toLowerCase();
 
   const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"
+    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
+    "IT", "AI/ML", "CSBS", "Civil"
   ];
 
-  // Populate branch and mode
+  // MSC degree
   if (degree === "MSC") {
     const option = document.createElement("option");
     option.value = "MSC DATA SCIENCE";
@@ -347,7 +363,10 @@ function acceptStudent(id, branch) {
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  } else if (degree === "BARCH") {
+  }
+
+  // B.ARCH degree
+  else if (degree === "BARCH") {
     const option = document.createElement("option");
     option.value = "B.ARCH";
     option.textContent = "B.ARCH";
@@ -361,7 +380,10 @@ function acceptStudent(id, branch) {
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  } else if (degree === "BDES") {
+  }
+
+  // B.DES degree
+  else if (degree === "BDES") {
     const option = document.createElement("option");
     option.value = "B.DES";
     option.textContent = "B.DES";
@@ -375,50 +397,64 @@ function acceptStudent(id, branch) {
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  }else {
-  const preferences = [
-    (student.branch_1 || "").toLowerCase(),
-    (student.branch_2 || "").toLowerCase(),
-    (student.branch_3 || "").toLowerCase()
-  ];
+  }
 
-  const isGeneral = preferences.includes("all");
+  // General case: BE courses
+  else {
+    const preferences = [
+      (student.branch_1 || "").toLowerCase(),
+      (student.branch_2 || "").toLowerCase(),
+      (student.branch_3 || "").toLowerCase()
+    ];
 
-  const branchesToShow = isGeneral
-    ? beCourses
-    : preferences.filter(course => beCourses.includes(course));
+    const isGeneral = preferences.includes("all");
+    const branchesToShow = isGeneral
+      ? beCourses
+      : preferences.filter(course =>
+          beCourses.map(c => c.toLowerCase()).includes(course)
+        ).map(course =>
+          // Normalize capitalization
+          beCourses.find(c => c.toLowerCase() === course)
+        );
 
-  branchesToShow.forEach(course => {
-    const option = document.createElement("option");
-    option.value = course;
-    option.textContent = course;
-    branchSelect.appendChild(option);
-  });
+    // Add a default option
+    const defaultOption = document.createElement("option");
+    defaultOption.textContent = "Select Branch";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    branchSelect.appendChild(defaultOption);
 
-  branchSelect.onchange = () => {
-    const selected = branchSelect.value.toLowerCase();
+    branchesToShow.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchSelect.appendChild(option);
+    });
 
-    if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
-      modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-      modeSelect.value = "self-finance";
-      modeSelect.disabled = false;
-    } else {
-      modeSelect.innerHTML = `
-        <option value="">-- Select Mode --</option>
-        <option value="aided">Aided</option>
-        <option value="self-finance">Self-Finance</option>
-      `;
-      modeSelect.disabled = false;
-    }
-  };
+    // Handle mode change on branch selection
+    branchSelect.onchange = () => {
+      const selected = branchSelect.value.toLowerCase();
+      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
+        modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+        modeSelect.value = "self-finance";
+        modeSelect.disabled = false;
+      } else {
+        modeSelect.innerHTML = `
+          <option value="">-- Select Mode --</option>
+          <option value="aided">Aided</option>
+          <option value="self-finance">Self-Finance</option>
+        `;
+        modeSelect.disabled = false;
+      }
+    };
 
-  branchSelect.dispatchEvent(new Event("change"));
-}
+    // Trigger mode dropdown update initially
+    branchSelect.dispatchEvent(new Event("change"));
+  }
 
-  // Show popup
+  // Show the popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
-
 
 
 
@@ -465,32 +501,55 @@ function confirmSelection() {
   })
   .catch(err => {
     console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
+    alert(`Failed to allot student: ${err.message}`);
   });
 }
 
 
 
-function declineStudent(id) {
+let currentDeclineId = null;
+
+function openDeclineModal(id) {
+  currentDeclineId = id;
+  document.getElementById("declineComment").value = "";
+  document.getElementById("declineModal").style.display = "block";
+}
+
+function closeDeclineModal() {
+  document.getElementById("declineModal").style.display = "none";
+}
+
+function submitDecline() {
+  const comment = document.getElementById("declineComment").value.trim();
+  if (!comment) {
+    alert("Please provide a reason for declining.");
+    return;
+  }
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      student_id: id,
-      status: "DECLINED"
+      student_id: currentDeclineId,
+      status: "DECLINED",
+      course: comment // use the comment here
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
-  })
-  .catch(err => {
-    console.error("Error declining student:", err);
-    alert("Failed to decline student");
-  });
+    .then(res => res.json())
+    .then(data => {
+      const card = document.getElementById(`student-${currentDeclineId}`);
+      if (card) {
+        card.classList.add("decline-shadow");
+        setTimeout(() => card.remove(), 500);
+      }
+      closeDeclineModal();
+    })
+    .catch(err => {
+      console.error("Error declining student:", err);
+      alert("Failed to decline student");
+    });
 }
+
 
 function onHoldStudent(id) {
   fetch(UPDATE_URL, {
@@ -498,7 +557,7 @@ function onHoldStudent(id) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       student_id: id,
-      status: "ONHOLD"
+      status: "ONHOLD",
     })
   })
   .then(res => res.json())
@@ -511,93 +570,134 @@ function onHoldStudent(id) {
     alert("Failed to put student on hold");
   });
 }
-
+function withdrawStudent(id) {
+  fetch(UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: id,
+      status: "WITHDRAWN"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const card = document.getElementById(`student-${id}`);
+    card.classList.add("decline-shadow");
+    setTimeout(() => removeCard(id), 500);
+  })
+  .catch(err => {
+    console.error("Error Withdrawing student:", err);
+    alert("Failed to withdraw student");
+  });
+}
+function deleteStudent(id) {
+  fetch(UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: id,
+      status: "DELETE"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const card = document.getElementById(`student-${id}`);
+    card.classList.add("decline-shadow");
+    setTimeout(() => removeCard(id), 500);
+  })
+  .catch(err => {
+    console.error("Error Deleting student:", err);
+    alert("Failed to delete student");
+  });
+}
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
 }
 function showViewMore(student) {
-  const container = document.getElementById("viewMoreContent");
-  container.innerHTML = "";
+      const container = document.getElementById("viewMoreContent");
+      container.innerHTML = "";
 
-  const r = student.recommender || student.recommenders?.[0] || {};
+      const r = student.recommender || student.recommenders?.[0] || {};
 
-  const studentFields = [
-    ["Application Number", student.application_number],
-    ["Name", student.name],
-    ["DOA", student.date_of_application],
-    ["School", student.school],
-    ["City", student.district],
-    ["Std Code", student.stdcode],
-    ["Phone", student.phone_number],
-    ["Email", student.email],
-    ["Aadhar Number", student.aadhar_number],
-    ["Parent Annual Income", student.parent_annual_income],
-    ["Community", student.community],
-    ["Board", student.board],
-    ["Year of Passing", student.year_of_passing],
-    ["College", student.college],
-    ["Degree", student.degree],
-    ["Branch 1", student.branch_1],
-    ["Branch 2", student.branch_2],
-    ["Branch 3", student.branch_3],
-    ["Maths", student.maths],
-    ["Physics", student.physics],
-    ["Chemistry", student.chemistry],
-    ["Total Marks", student.twelfth_mark],
-    ["Mark %", student.markpercentage],
-    ["Engineering Cutoff", student.engineering_cutoff, true],
-    ["MSC Cutoff", student.msc_cutoff, true],
-    ["BArch Cutoff", student.barch_cutoff, true],
-    ["BDes Cutoff", student.bdes_cutoff, true]
-  ];
+      const studentFields = [
+        ["Application Number", student.application_number],
+        ["Name", student.name],
+        ["DOA", student.date_of_application],
+        ["School", student.school],
+        ["City", student.district],
+        ["Std Code", student.stdcode],
+        ["Phone", student.phone_number],
+        ["Email", student.email],
+        ["Aadhar Number", student.aadhar_number],
+        ["Parent Annual Income", student.parent_annual_income],
+        ["Community", student.community],
+        ["Board", student.board],
+        ["Year of Passing", student.year_of_passing],
+        ["College", student.college],
+        ["Degree", student.degree],
+        ["Branch 1", student.branch_1],
+        ["Branch 2", student.branch_2],
+        ["Branch 3", student.branch_3],
+        ["Maths", student.maths],
+        ["Physics", student.physics],
+        ["Chemistry", student.chemistry],
+        ["Total Marks", student.twelfth_mark],
+        ["Mark %", student.markpercentage],
+        ["Engineering Cutoff", student.engineering_cutoff, true],
+        ["MSC Cutoff", student.msc_cutoff, true],
+        ["BArch Cutoff", student.barch_cutoff, true],
+        ["BDes Cutoff", student.bdes_cutoff, true]
+      ];
 
-  const recommenderFields = [
-    ["Name", r.name],
-    ["Designation", r.designation],
-    ["Affiliation", r.affiliation],
-    ["Office Address", r.office_address],
-    ["Offcode", r.offcode],
-    ["Office Phone", r.office_phone_number],
-    ["Personal Phone", r.personal_phone_number],
-    ["Email", r.email]
-  ];
+      const recommenderFields = [
+        ["Name", r.name],
+        ["Designation", r.designation],
+        ["Affiliation", r.affiliation],
+        ["Office Address", r.office_address],
+        ["Offcode", r.offcode],
+        ["Office Phone", r.office_phone_number],
+        ["Personal Phone", r.personal_phone_number],
+        ["Email", r.email]
+      ];
 
-  const makeSection = (title, fields) => {
-    const section = document.createElement("div");
-    section.className = "detail-section";
-    section.innerHTML = `<h3>${title}</h3><table class="detail-table"></table>`;
-    const table = section.querySelector("table");
+      const makeSection = (title, fields) => {
+        const section = document.createElement("div");
+        section.className = "detail-section";
+        section.innerHTML = `<h3>${title}</h3><table class="detail-table"></table>`;
+        const table = section.querySelector("table");
 
-    let hasData = false;
-    fields.forEach(([label, value, highlight]) => {
-      if (value !== null && value !== undefined && value !== "") {
-        hasData = true;
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${label}:</td>
-          <td class="${highlight ? "highlight" : ""}">${value}</td>
-        `;
-        table.appendChild(row);
-      }
-    });
+        let hasData = false;
+        fields.forEach(([label, value, highlight]) => {
+          if (value !== null && value !== undefined && value !== "") {
+            hasData = true;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${label}:</td>
+              <td class="${highlight ? "highlight" : ""}">${value}</td>
+            `;
+            table.appendChild(row);
+          }
+        });
 
-    return hasData ? section : null;
-  };
+        return hasData ? section : null;
+      };
 
-  const studentSection = makeSection("STUDENT DETAILS", studentFields);
-  const recommenderSection = makeSection("RECOMMENDER DETAILS", recommenderFields);
+      const studentSection = makeSection("STUDENT DETAILS", studentFields);
+      const recommenderSection = makeSection("RECOMMENDER DETAILS", recommenderFields);
 
-  if (studentSection) container.appendChild(studentSection);
-  if (recommenderSection) container.appendChild(recommenderSection);
+      if (studentSection) container.appendChild(studentSection);
+      if (recommenderSection) container.appendChild(recommenderSection);
 
-  document.getElementById("viewMoreOverlay").style.display = "flex";
-}
+      document.getElementById("viewMoreOverlay").style.display = "flex";
 
-function closeViewMore() {
-  document.getElementById("viewMoreOverlay").style.display = "none";
-}
+    }
 
+    function closeViewMore() {
+      document.getElementById("viewMoreOverlay").style.display = "none";
+    }
+    
+    
 window.onload = () => {
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();

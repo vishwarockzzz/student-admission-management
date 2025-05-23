@@ -274,31 +274,61 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     }
   
     function handleSubmit(event) {
-      event.preventDefault();
-    
-      const inputs = document.querySelectorAll('input, select');
-      let allRequiredFilled = true;
-    
-      inputs.forEach(input => {
-        const isHidden = input.offsetParent === null;
-        const isIgnorableType = input.type === "button" || input.type === "submit";
-    
-        if (!isHidden && !isIgnorableType && input.required) {
-          if (input.value.trim() === "") {
-            allRequiredFilled = false;
+  event.preventDefault();
+
+  const inputs = document.querySelectorAll('input, select, textarea');
+  let missingFields = [];
+
+  inputs.forEach(input => {
+    const isHidden = input.offsetParent === null;
+    const isIgnorableType = input.type === "button" || input.type === "submit";
+
+    if (!isHidden && !isIgnorableType && input.required) {
+      if (input.value.trim() === "") {
+        allRequiredFilled = false;
+
+        // Try to find label text
+        let labelText = "";
+
+        // 1. Try to find <label> with 'for' attribute matching input id
+        if (input.id) {
+          const label = document.querySelector(`label[for="${input.id}"]`);
+          if (label) labelText = label.textContent.trim();
+        }
+
+        // 2. If no label found by 'for', try to find previous sibling label (in same form-group)
+        if (!labelText) {
+          // Look at parent element for a label
+          const parent = input.parentElement;
+          if (parent) {
+            const labelInParent = parent.querySelector('label');
+            if (labelInParent) labelText = labelInParent.textContent.trim();
           }
         }
-      });
-    
-      if (!allRequiredFilled) {
-        alert("Please fill out all required fields before submitting.");
-        return;
+
+        // 3. If still no label, fallback to name, placeholder or id
+        if (!labelText) {
+          labelText = input.name ||input.id || "Unnamed field";
+        }
+
+        // Remove any * or red color marks
+        labelText = labelText.replace(/\*/g, '').trim();
+
+        missingFields.push(labelText);
       }
-    
-      if (!selectedCollege) {
-        alert("Please select a college.");
-        return;
-      }
+    }
+  });
+  // Handle specific required variable (e.g., selectedCollege)
+  if (!selectedCollege) {
+    missingFields.push("College");
+  }
+
+  if (missingFields.length > 0) {
+    alert("Please fill out the following required fields:\n\n- " + missingFields.join("\n- "));
+    return;
+  }
+
+  // If all fields are filled
     
       // Utility: clean empty strings and optionally convert to float
       function clean(value, type = "string") {
