@@ -222,8 +222,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
         const value = this.value.trim();
         const isAllCaps = value === value.toUpperCase();
         const isValid = isAllCaps;
-        // Show or hide error message based on validation for Name 2
-        document.getElementById('name-error2').style.display = isValid ? 'none' : 'block';
+
       });
   
     // Phone number validation
