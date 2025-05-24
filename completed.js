@@ -25,10 +25,10 @@ let currentStatus = 'APPROVED'; // Default status on initial load
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title>Print Table</title>');
+    printWindow.document.write('<html><head><title></title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
-    printWindow.document.write('<h2>Remaining Seats</h2>');
+    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
     printWindow.document.write(tableHtml);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
@@ -80,6 +80,8 @@ let allStudentsData = []; // global variable
 
 function loadStatus(status, buttonElement) {
   currentStatus = status;
+    // Update print button visibility based on selected status
+  updateButtonVisibility(status);
 
   const titleMap = {
     "ONHOLD": "OnHold Applications",
@@ -305,9 +307,111 @@ function renderCards(students, status, showStatus = false) {
     isFirstGroup = false;
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  updateButtonVisibility("APPROVED"); // Show "Allotted" Print button initially
+});
+
+function generateTableView(status) {
+    const students = allStudentsData.filter(stu => stu.application_status === status || currentStatus === status);
 
 
+  if (!students.length) {
+    alert(`No ${status === "APPROVED" ? "Allotted" : "Declined"} applications found.`);
+    return;
+  } // Toggle button visibility
+  updateButtonVisibility(status);
+  // Show popup
+  document.getElementById("studentPopup").style.display = "block";
+  document.getElementById("popupTitle").textContent =
+    status === "APPROVED" ? "Allotted Students" : "Declined Students";
 
+  const tableHead = document.getElementById("studentTableHead");
+  const tableBody = document.getElementById("studentTableBody");
+  tableHead.innerHTML = "";
+  tableBody.innerHTML = "";
+
+  const headers = [
+    "S.No",
+    "Student Name",
+    "Application No",
+    "Aadhar",
+    "Cut-Off",
+    "Phone",
+    ...(status === "APPROVED" ? ["Degree", "Allotted Course"] : ["Decline Reason"]),
+    "Recommender Name",
+    "Designation"
+  ];
+
+  headers.forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    tableHead.appendChild(th);
+  });
+
+  students.forEach((student, index) => {
+
+    const outcome = student.outcomes[0] || {};
+    const r = student.recommender || student.recommenders?.[0] || {};
+    const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
+
+    const rowData = [
+      index + 1,
+      student.name || "-",
+      student.application_number || "-",
+      student.aadhar_number || "-",
+      cutoff,
+      student.phone_number || "-",
+      ...(status === "APPROVED"
+        ? [student.degree || "-", outcome.course_name || "-"]
+        : [outcome.course_name || "-"]),
+      r.name || "-",
+      r.designation || "-"
+    ];
+
+    const tr = document.createElement("tr");
+    rowData.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
+}
+
+function closeStudentPopup() {
+  document.getElementById("studentPopup").style.display = "none";
+}
+
+
+function printStudentTable() {
+  const popupContent = document.getElementById("studentTableContainer").innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title></title>');
+    printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
+    printWindow.document.write(popupContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+
+function updateButtonVisibility(status) {
+  const allottedBtn = document.getElementById("allottedBtn");
+  const declinedBtn = document.getElementById("declinedBtn");
+
+  // Default: hide all buttons
+  allottedBtn.style.display = "none";
+  declinedBtn.style.display = "none";
+
+  if (status === "APPROVED") {
+    allottedBtn.style.display = "inline-block";
+  } else if (status === "DECLINED") {
+    declinedBtn.style.display = "inline-block";
+  }
+}
 
 const courseMap = {
   "CSE": "B.E. Computer Science and Engineering",
