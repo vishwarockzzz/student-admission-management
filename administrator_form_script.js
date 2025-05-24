@@ -284,20 +284,15 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
 
     if (!isHidden && !isIgnorableType && input.required) {
       if (input.value.trim() === "") {
-        allRequiredFilled = false;
-
         // Try to find label text
         let labelText = "";
 
-        // 1. Try to find <label> with 'for' attribute matching input id
         if (input.id) {
           const label = document.querySelector(`label[for="${input.id}"]`);
           if (label) labelText = label.textContent.trim();
         }
 
-        // 2. If no label found by 'for', try to find previous sibling label (in same form-group)
         if (!labelText) {
-          // Look at parent element for a label
           const parent = input.parentElement;
           if (parent) {
             const labelInParent = parent.querySelector('label');
@@ -305,19 +300,16 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
           }
         }
 
-        // 3. If still no label, fallback to name, placeholder or id
         if (!labelText) {
-          labelText = input.name ||input.id || "Unnamed field";
+          labelText = input.name || input.id || "Unnamed field";
         }
 
-        // Remove any * or red color marks
         labelText = labelText.replace(/\*/g, '').trim();
-
         missingFields.push(labelText);
       }
     }
   });
-  // Handle specific required variable (e.g., selectedCollege)
+
   if (!selectedCollege) {
     missingFields.push("College");
   }
@@ -327,97 +319,93 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     return;
   }
 
-  // If all fields are filled
-    
-      // Utility: clean empty strings and optionally convert to float
-      function clean(value, type = "string") {
-        if (value === undefined || value === null || value.trim() === "") return null;
-        if (type === "float") return parseFloat(value);
-        return value.trim();
-      }
-      const degree = document.getElementById("degree")?.value;  
-    
-      const formData = {
-        application_number: clean(document.getElementById("applicationNumber")?.value),
-        name: clean(document.getElementById("nameInput")?.value),
-        email: clean(document.getElementById("email")?.value),
-        address: clean(document.getElementById("address")?.value),
-        parent_annual_income: clean(document.getElementById("parentsincome")?.value),
-        school: clean(document.getElementById("school")?.value),
-        district: clean(document.getElementById("district")?.value),
-        twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
-        date_of_application: clean(document.getElementById("applicationDate")?.value),
-        applicationstatus: clean(document.getElementById("applicationStatus")?.value),
-        stdcode: clean(document.getElementById("stucode")?.value),
-        phone_number: clean(document.getElementById("phone")?.value),
-        aadhar_number: clean(document.getElementById("aadhar")?.value),
-        community: clean(document.getElementById("community")?.value),
-        college:clean(selectedCollege),
-        board: clean(document.getElementById("boardSelect")?.value),
-        year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
-        degree: clean(degree),
-        maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
-        physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
-        chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
-        nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
-        engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
-        msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
-        barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
-        bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+  const button = document.getElementById("submitBtn");
+  const originalHTML = button.innerHTML;
 
+  // Show loading spinner
+  button.innerHTML = `<span class="spinner"></span>Loading...`;
+  button.disabled = true;
 
-        branch_1: clean(document.getElementById("pref1")?.value),
-        branch_2: clean(document.getElementById("pref2")?.value),
-        branch_3: clean(document.getElementById("pref3")?.value),
-    
-        recommender: {
-          name: clean(document.getElementById("nameInput2")?.value),
-          designation: clean(document.getElementById("recDes")?.value),
-          affiliation: clean(document.getElementById("affiliation")?.value),
-          office_address: clean(document.getElementById("recAddress")?.value),
-          office_phone_number: clean(document.getElementById("officePhone")?.value),
-          personal_phone_number: clean(document.getElementById("personalPhone")?.value),
-          email: clean(document.getElementById("recEmail")?.value),
-          offcode: clean(document.getElementById("offcode")?.value),
-          percode: clean(document.getElementById("percode")?.value),
-        }
-      };
-    
-      console.log("Form Data:", formData);
+  // Utility function to clean values
+  function clean(value, type = "string") {
+    if (value === undefined || value === null || value.trim() === "") return null;
+    if (type === "float") return parseFloat(value);
+    return value.trim();
+  }
 
-      fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      })
-      .then(async response => {
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Backend error:", errorData);
-          throw new Error(errorData.error || "Server error");
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert("Application form is submitted successfully");
-        location.reload();
-        console.log("Response:", data);
+  const degree = document.getElementById("degree")?.value;
 
-      })
-      .catch(error => {
-        console.error("Submission error:", error.message);
-        alert("Failed to submit application. " + error.message);
-        document.getElementById("submitBtn").disabled = false; // Re-enable on error
-      });
+  const formData = {
+    application_number: clean(document.getElementById("applicationNumber")?.value),
+    name: clean(document.getElementById("nameInput")?.value),
+    email: clean(document.getElementById("email")?.value),
+    address: clean(document.getElementById("address")?.value),
+    parent_annual_income: clean(document.getElementById("parentsincome")?.value),
+    school: clean(document.getElementById("school")?.value),
+    district: clean(document.getElementById("district")?.value),
+    twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
+    date_of_application: clean(document.getElementById("applicationDate")?.value),
+    applicationstatus: clean(document.getElementById("applicationStatus")?.value),
+    stdcode: clean(document.getElementById("stucode")?.value),
+    phone_number: clean(document.getElementById("phone")?.value),
+    aadhar_number: clean(document.getElementById("aadhar")?.value),
+    community: clean(document.getElementById("community")?.value),
+    college: clean(selectedCollege),
+    board: clean(document.getElementById("boardSelect")?.value),
+    year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
+    degree: clean(degree),
+    maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
+    physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
+    chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
+    nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
+    engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
+    msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
+    barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
+    bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+    branch_1: clean(document.getElementById("pref1")?.value),
+    branch_2: clean(document.getElementById("pref2")?.value),
+    branch_3: clean(document.getElementById("pref3")?.value),
+    recommender: {
+      name: clean(document.getElementById("nameInput2")?.value),
+      designation: clean(document.getElementById("recDes")?.value),
+      affiliation: clean(document.getElementById("affiliation")?.value),
+      office_address: clean(document.getElementById("recAddress")?.value),
+      office_phone_number: clean(document.getElementById("officePhone")?.value),
+      personal_phone_number: clean(document.getElementById("personalPhone")?.value),
+      email: clean(document.getElementById("recEmail")?.value),
+      offcode: clean(document.getElementById("offcode")?.value),
+      percode: clean(document.getElementById("percode")?.value),
     }
-    function submitAndReload() {
-  // Do your form handling or API call first if needed
+  };
 
-  // Then refresh
-  location.reload();
+  fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(formData)
+  })
+    .then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.error || "Server error");
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Application form is submitted successfully");
+      location.reload();
+    })
+    .catch(error => {
+      console.error("Submission error:", error.message);
+      alert("Failed to submit application. " + error.message);
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    });
 }
+
+   
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
     window.location.reload(); // Reload if user returns via back/forward
