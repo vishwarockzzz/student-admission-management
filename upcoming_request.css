@@ -508,7 +508,7 @@ button {
 .onhold:hover {
   box-shadow: 0 0 10px yellow;
 }
-.withdraw:hover {
+.delete:hover {
   box-shadow: 0 0 10px brown;
 }
 .accept:hover {
@@ -529,7 +529,7 @@ button {
   border-color: gold;
 }
 
-.withdraw:hover {
+.delete:hover {
   background-color: brown;
   color: black;
   border-color: brown;

@@ -17,6 +17,7 @@
       <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
     </div>
     <div class="right">
+      
       <button class="nav-btn" onclick="goHome()">Logout</button>
       <button class="nav-btn" onclick="goBack()">Back to Application process</button>
     </div>
@@ -31,6 +32,28 @@
   <button onclick="loadStatus('DECLINED', this)">Declined Application</button>
   <button onclick="loadStatus('WITHDRAWN', this)">Withdrawn Application</button>
 </div>
+<div class="export-buttons">
+  <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted Students</button>
+  <button id="declinedBtn" onclick="generateTableView('DECLINED')" >Print Declined Students</button>
+</div>
+
+<!-- Popup Modal -->
+<div id="studentPopup">
+  <div id="studentTableContainer">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="popupTitle">Student Status</h3>
+      <button onclick="printStudentTable()">🖨️ Print</button>
+    </div>
+    
+    <table id="studentTable">
+      <thead><tr id="studentTableHead"></tr></thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+
+    <button onclick="closeStudentPopup()">Close</button>
+  </div>
+</div>
+
 
 
 
@@ -41,6 +64,7 @@
   </div>
 </div>
 <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
+<div id="tableViewContainer"></div>
 
   <div class="content" id="studentCards">
     <!-- Student cards will be inserted here -->
@@ -101,6 +125,7 @@
   </table>
   </div>
   <button onclick="printSeatsTable()">🖨️ Print Table</button>
+<div id="tableViewContainer"></div>
 
   <br>
   <button onclick="closeSeatPopup()">Close</button>
