@@ -48,7 +48,7 @@ header {
   background-color: #800000; /* dark maroon */
   color: white;
   width: 100%;
-  padding: 10px 15px;
+  padding: 20px 15px;
   box-sizing: border-box;
 }
 .header-title {
@@ -75,7 +75,7 @@ header {
   min-width: 100%;   /* prevent it from shrinking too small */
   text-align: center;
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   word-break: break-word; /* break long titles if needed */
 }
 
@@ -172,6 +172,21 @@ header {
   align-items: center;
   padding: 10px 20px;
    background-color: #FFFDD0; /* or same as your page background */
+    gap: 5px;
+}
+.clear-input {
+  padding: 8px 14px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+
+}
+
+.clear-input:hover {
+ background-color: #a52a2a;
 }
 
 .input-box {

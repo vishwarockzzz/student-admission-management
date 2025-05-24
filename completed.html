@@ -37,6 +37,7 @@
   <div class="search-group">
     <input id="searchInput" class="input-box" placeholder="Search for details..." />
     <button class="submit-input" onclick="handleSearch()">Search</button>
+     <button class="clear-input" onclick="clearSearch()">Clear</button>
   </div>
 </div>
 <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
@@ -83,7 +84,9 @@
     </div>
   </div>
     <div id="seatPopup">
+  <div id="seatsTableContainer">
   <h3>Seat Status</h3>
+  
   <table border="1" width="100%" id="seatTable">
     <thead>
       <tr>
@@ -96,6 +99,9 @@
     </thead>
     <tbody></tbody>
   </table>
+  </div>
+  <button onclick="printSeatsTable()">🖨️ Print Table</button>
+
   <br>
   <button onclick="closeSeatPopup()">Close</button>
 </div>

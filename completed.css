@@ -113,8 +113,22 @@ header {
   padding: 10px 20px; /* reduced padding */
   box-sizing: border-box;
   width: 100%;
+    gap: 5px;
+}
+.clear-input {
+  padding: 8px 14px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+
 }
 
+.clear-input:hover {
+ background-color: #a52a2a;
+}
 .status-buttons {
   justify-content: center;
   flex: 1;
