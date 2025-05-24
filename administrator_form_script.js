@@ -98,7 +98,7 @@ function setCollege(college) {
     }
   });
   
-  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS', 'Civil', 'All'];
+  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS', 'Civil', 'Any Branch'];
 
 function populateDropdown(dropdownId, exclude = []) {
   const dropdown = document.getElementById(dropdownId);
@@ -108,13 +108,13 @@ function populateDropdown(dropdownId, exclude = []) {
 
   // Always include "All"
   const allOption = document.createElement('option');
-  allOption.value = "All";
-  allOption.text = "All";
+  allOption.value = "Any Branch";
+  allOption.text = "Any Branch";
   dropdown.appendChild(allOption);
 
   // Add other branches except those in exclude
   branches
-    .filter(branch => branch !== "All" && !exclude.includes(branch))
+    .filter(branch => branch !== "Any Branch" && !exclude.includes(branch))
     .forEach(branch => {
       const option = document.createElement('option');
       option.value = branch;
@@ -123,7 +123,7 @@ function populateDropdown(dropdownId, exclude = []) {
     });
 
   // Restore selected value if still valid
-  if (branches.includes(currentValue) || currentValue === "All") {
+  if (branches.includes(currentValue) || currentValue === "Any Branch") {
     dropdown.value = currentValue;
   }
 }

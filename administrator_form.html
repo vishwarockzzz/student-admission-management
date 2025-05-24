@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administrator Student Entry</title>
   <link rel="stylesheet" href="administrator_form_styling.css" />
 </head>
@@ -87,11 +88,11 @@
 
           <div class="form-group">
             <label>Remarks on Application:</label>
-            <select id="applicationStatus">
-              <option>Applied</option>
-              <option>To be given</option>
-              <option>Pending</option>
-            </select>
+            <select id="applicationStatus" disabled>
+            <option>Applied</option>
+            <option>To be given</option>
+            <option>Pending</option>
+          </select>
           </div>
 
         </div>
@@ -100,8 +101,7 @@
           <div class="form-group">
             <label>Phone Number:<span style="color:red">*</span></label>
             <div style="display: flex; gap: 5px;">
-              <select id="stdcode" required style="font-size: 12px; padding: 2px; width: 100px;">
-                <option value="">STD Code</option>
+              <select id="stdcode" required style="font-size: 15px; padding: 2px; width: 100px;">
                 <option value="+91">+91</option>
                 <option value="+1">+1</option>
                 <option value="+44">+44</option>
@@ -278,8 +278,7 @@
     <div class="form-group">
       <label>Office Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="offcode" style="font-size: 12px; padding: 2px; width: 100px;">
-          <option value="">STD Code</option>
+        <select id="offcode" style="font-size: 15px; padding: 2px; width: 100px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
@@ -300,7 +299,7 @@
   <div class="form-section">
     <div class="form-group">
       <label>Designation:</label>
-      <input type="text" id = recDes/>
+      <input type="text" id = "recDes"/>
     </div>
 
     <div class="form-group">
@@ -311,8 +310,7 @@
     <div class="form-group">
       <label>Personal Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="percode" style="font-size: 12px; padding: 2px; width: 100px;">
-          <option value="">STD Code</option>
+        <select id="percode" style="font-size: 15px; padding: 2px; width: 100px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>

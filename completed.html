@@ -3,25 +3,22 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Completed Requests</title>
+  <title>Thiagarajar Group of Institutions - MQ Status Dashboard</title>
   <link rel="stylesheet" href="completed.css" />
 </head>
 
 <body>
-  <header>
-  <div class="left">
-    <!-- Left content (e.g., logo, menu) -->
-     <button class="nav-btn2"  onclick="showSeatPopup()">Remaining Seats</button>
-     <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
-  </div>
-  
+<header>
   <h1 class="header-title">Application Status</h1>
   
-  <div class="right">
-    <!-- Right content (e.g., user profile, buttons) -->
-      <div class="nav-buttons">
+  <div class="header-buttons">
+    <div class="left">
+      <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
+      <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
+    </div>
+    <div class="right">
       <button class="nav-btn" onclick="goHome()">Logout</button>
-      <button class="nav-btn" onclick="goBack()"> Back to Application process</button>
+      <button class="nav-btn" onclick="goBack()">Back to Application process</button>
     </div>
   </div>
 </header>
