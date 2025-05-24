@@ -272,7 +272,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       }
     }
   
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
   event.preventDefault();
 
   const inputs = document.querySelectorAll('input, select, textarea');
@@ -320,11 +320,32 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   }
 
   const button = document.getElementById("submitBtn");
+  if (button.disabled) return; // prevent multiple clicks
+
   const originalHTML = button.innerHTML;
 
-  // Show loading spinner
+  // Show loading spinner and disable button
   button.innerHTML = `<span class="spinner"></span>Loading...`;
   button.disabled = true;
+
+  try {
+    // Replace this with your actual async submission code, e.g.:
+    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
+
+    await submitFormData();  // Dummy async function simulating a 2-second submission delay
+
+    // Optional: clear form or show success message here
+
+  } catch (error) {
+    alert("Submission failed: " + error.message);
+  } finally {
+    // Re-enable the button and restore original content
+    button.innerHTML = originalHTML;
+    button.disabled = false;
+  }
+
+
+// Dummy async function to simulate form submission delay — replace with your real submission logic
 
   // Utility function to clean values
   function clean(value, type = "string") {
@@ -405,6 +426,9 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     });
 }
 
+function submitFormData() {
+  return new Promise(resolve => setTimeout(resolve, 2000));
+}
    
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
