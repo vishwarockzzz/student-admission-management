@@ -9,7 +9,9 @@ let result = [];
 let seats = {};
 
 const isAdmin = localStorage.getItem("is_admin") === "true";
-
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+}
 fetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
@@ -449,7 +451,11 @@ function confirmSelection() {
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
   selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
-
+ const confirmButton = document.querySelector("#popup-overlay button.accept");
+  if (confirmButton) {
+    confirmButton.disabled = true;
+    confirmButton.innerText = "Loading...";
+  }
 
   if (!fullCourseName) {
     alert("Course name not recognized.");
@@ -482,6 +488,10 @@ function confirmSelection() {
     console.error("Error approving student:", err);
     alert(`Failed to allot student: ${err.message}`);
   });
+    if (confirmButton) {
+      confirmButton.disabled = false;
+      confirmButton.innerText = "Allot";
+    }
 }
 
 
@@ -503,6 +513,11 @@ function submitDecline() {
   if (!comment) {
     alert("Please provide a reason for declining.");
     return;
+  }
+  const submitBtn = document.querySelector("#declineModal button:nth-child(4)");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Loading...";
   }
 
   fetch(UPDATE_URL, {
@@ -527,10 +542,19 @@ function submitDecline() {
       console.error("Error declining student:", err);
       alert("Failed to decline student");
     });
+     if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+      }
 }
 
 
 function onHoldStudent(id) {
+  const btn = document.querySelector(`#student-${id} .onhold`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Loading...";
+  }
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -547,9 +571,18 @@ function onHoldStudent(id) {
   .catch(err => {
     console.error("Error putting student on hold:", err);
     alert("Failed to put student on hold");
+      if (btn) {
+      btn.disabled = false;
+      btn.innerText = "Put On Hold";
+    }
   });
 }
 function withdrawStudent(id) {
+  const btn = document.querySelector(`#student-${id} .withdraw`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Loading...";
+  }
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -568,6 +601,10 @@ function withdrawStudent(id) {
     console.error("Error Withdrawing student:", err);
     alert("Failed to withdraw student");
   });
+  if (btn) {
+      btn.disabled = false;
+      btn.innerText = "Withdraw";
+    }
 }
 function deleteStudent(id) {
   fetch(UPDATE_URL, {

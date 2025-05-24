@@ -13,13 +13,29 @@ function goHome() {
     
 // Goes to the previous page
   }
+  function clearSearch() {
+  document.getElementById("searchInput").value = "";
+}
     window.onload = () => {
     loadStatus('APPROVED'); 
     };
 
 let outcomeCache = [];
 let currentStatus = 'APPROVED'; // Default status on initial load
-
+  function printSeatsTable() {
+    const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title>Print Table</title>');
+    printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2>Remaining Seats</h2>');
+    printWindow.document.write(tableHtml);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }
 let result = [];
 let seats = {};
 
@@ -448,7 +464,11 @@ function confirmSelection() {
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
   selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
-
+ const confirmButton = document.querySelector("#popup-overlay button.accept");
+  if (confirmButton) {
+    confirmButton.disabled = true;
+    confirmButton.innerText = "Loading...";
+  }
 
   if (!fullCourseName) {
     alert("Course name not recognized.");
@@ -481,6 +501,10 @@ function confirmSelection() {
     console.error("Error approving student:", err);
     alert(`Failed to approve student: ${err.message}`);
   });
+    if (confirmButton) {
+      confirmButton.disabled = false;
+      confirmButton.innerText = "Allot";
+    }
 }
 
 
@@ -502,6 +526,11 @@ function submitDecline() {
   if (!comment) {
     alert("Please provide a reason for declining.");
     return;
+  }
+  const submitBtn = document.querySelector("#declineModal button:nth-child(4)");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Loading...";
   }
 
   fetch(UPDATE_URL, {
@@ -526,11 +555,19 @@ if (card) {
       console.error("Error declining student:", err);
       alert("Failed to decline student");
     });
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+      }
 }
 
 
 function withdrawStudent(withdraw_id) {
-
+const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Loading...";
+  }
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -551,6 +588,10 @@ function withdrawStudent(withdraw_id) {
     console.error("Error Withdrawing student:", err);
     alert("Failed to withdraw student");
   });
+  if (btn) {
+      btn.disabled = false;
+      btn.innerText = "Withdraw";
+    }
 }
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
