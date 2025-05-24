@@ -8,6 +8,9 @@ const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
 let result = [];
 let seats = {};
 
+function closeSelectionModal() {
+  document.getElementById("popup-overlay").style.display = "none";
+}
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
