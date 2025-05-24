@@ -307,6 +307,11 @@ const courseMap = {
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
 };
+
+
+function closeSelectionModal() {
+  document.getElementById("popup-overlay").style.display = "none";
+}
 function acceptStudent(id, branch) {
   currentStudentId = id;
   const student = allStudentsData.find(s => s.id === id);
@@ -380,7 +385,7 @@ function acceptStudent(id, branch) {
       (student.branch_3 || "").toLowerCase()
     ];
 
-    const isGeneral = preferences.includes("Any Branch");
+    const isGeneral = preferences.includes("any branch");
     const branchesToShow = isGeneral
       ? beCourses
       : preferences.filter(course =>

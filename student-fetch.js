@@ -386,7 +386,7 @@ function acceptStudent(id, branch) {
       (student.branch_3 || "").toLowerCase()
     ];
 
-    const isGeneral = preferences.includes("Any Branch");
+    const isGeneral = preferences.includes("any branch");
     const branchesToShow = isGeneral
       ? beCourses
       : preferences.filter(course =>

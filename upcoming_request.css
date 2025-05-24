@@ -622,6 +622,7 @@ button {
   background-color: darkred;
 }
 
+
 .student-row {
   width: 48%;
   min-height: 250px;
@@ -656,4 +657,16 @@ button {
   transition: opacity 0.5s ease;
   opacity: 0;
   box-shadow: 0 0 10px red;
+}
+.modal-content button {
+  padding: 8px 16px;
+  background-color: maroon;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-content button:hover {
+  background-color: darkred;
 }
