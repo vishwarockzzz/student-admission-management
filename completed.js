@@ -307,10 +307,14 @@ const courseMap = {
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
 };
+
+
+function closeSelectionModal() {
+  document.getElementById("popup-overlay").style.display = "none";
+}
 function acceptStudent(id, branch) {
-  document.getElementById('statusTitle').textContent = "Alloted Applications";
   currentStudentId = id;
-  const student = students.find(s => s.id === id);
+  const student = allStudentsData.find(s => s.id === id);
   const branchSelect = document.getElementById("branchSelect");
   const modeSelect = document.getElementById("modeSelect");
 
@@ -368,11 +372,8 @@ function acceptStudent(id, branch) {
     branchSelect.value = "B.DES";
     branchSelect.disabled = true;
 
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
     modeSelect.disabled = false;
   }
 
@@ -384,7 +385,7 @@ function acceptStudent(id, branch) {
       (student.branch_3 || "").toLowerCase()
     ];
 
-    const isGeneral = preferences.includes("all");
+    const isGeneral = preferences.includes("any branch");
     const branchesToShow = isGeneral
       ? beCourses
       : preferences.filter(course =>
@@ -487,7 +488,6 @@ function confirmSelection() {
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
-  document.getElementById('statusTitle').textContent = "Declined Applications";
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
   document.getElementById("declineModal").style.display = "block";
@@ -530,7 +530,6 @@ if (card) {
 
 
 function withdrawStudent(withdraw_id) {
-  document.getElementById('statusTitle').textContent = "Withdrawn Applications";
 
   fetch(UPDATE_URL, {
     method: "PUT",

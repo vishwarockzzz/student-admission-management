@@ -134,31 +134,13 @@ function filterByCombined() {
     if (Object.keys(degreeMatches).includes(selectedFilter)) {
       return degreeMatches[selectedFilter].includes(degree);
     }
-
+    
     return false;
   });
-
-  // Pass filtered list to sorter
-  sortByApplication(filteredStudents);
+renderStudents(filteredStudents);
 }
 
-function sortByApplication(inputList = allStudents) {
-  const sortOrder = document.getElementById("appNumberSort").value;
 
-  const sortedList = [...inputList]; // clone to avoid mutating original
-
-  if (sortOrder === "asc") {
-    sortedList.sort((a, b) => {
-      return parseInt(a.application_number.slice(-5)) - parseInt(b.application_number.slice(-5));
-    });
-  } else if (sortOrder === "desc") {
-    sortedList.sort((a, b) => {
-      return parseInt(b.application_number.slice(-5)) - parseInt(a.application_number.slice(-5));
-    });
-  }
-
-  renderStudents(sortedList);
-}
 
 
 
@@ -391,11 +373,8 @@ function acceptStudent(id, branch) {
     branchSelect.value = "B.DES";
     branchSelect.disabled = true;
 
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
     modeSelect.disabled = false;
   }
 
@@ -407,7 +386,7 @@ function acceptStudent(id, branch) {
       (student.branch_3 || "").toLowerCase()
     ];
 
-    const isGeneral = preferences.includes("all");
+    const isGeneral = preferences.includes("any branch");
     const branchesToShow = isGeneral
       ? beCourses
       : preferences.filter(course =>

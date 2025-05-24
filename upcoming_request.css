@@ -47,9 +47,17 @@ body {
 header {
   background-color: #800000; /* dark maroon */
   color: white;
-  padding: 30px;
-  position: relative;
+  width: 100%;
+  padding: 10px 15px;
+  box-sizing: border-box;
 }
+.header-title {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
+  font-weight: bold;
+}
+
 
 /* Container for header content */
 .header-content {
@@ -57,27 +65,38 @@ header {
   align-items: center;
   justify-content: center;
   position: relative;
+  flex-direction: column;
+  flex-wrap: wrap;  /* allow wrapping on small widths or zoom */
+  gap: 10px;        /* add some spacing between elements */
 }
 
-/* Title centered */
 .header-content h1 {
-  flex: 1;
+  flex: 1 1 auto;     /* allow flex-grow and shrink */
+  min-width: 100%;   /* prevent it from shrinking too small */
   text-align: center;
   margin: 0;
   font-size: 24px;
+  word-break: break-word; /* break long titles if needed */
 }
 
-/* Left & Right nav bar */
+.left-buttons button,
+.right-buttons button {
+  min-width: 120px;   /* reduce min-width */
+  flex-shrink: 1;     /* allow buttons to shrink a bit */
+  white-space: nowrap;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Optional: if buttons wrap on smaller screens */
 .nav-bar {
-  position: absolute;
-  top: 50%;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  transform: translateY(-50%);
-  padding: 0 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0 0 0;
 }
-
 /* Left buttons (Remaining Seats, Requested, Completed) */
 .left-buttons button {
   background-color: white; /* blend with maroon */
@@ -87,7 +106,7 @@ header {
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  min-width: 180px; /* Adjust width as needed */
+  min-width: 200px; /* Adjust width as needed */
   padding: 10px 20px;
   margin-right: 10px;
   transition: background-color 0.3s ease;
@@ -116,6 +135,34 @@ header {
   background-color: #cb4d42;
   color:white;
 
+}
+@media (max-width: 699px) {
+  .nav-bar {
+    position: static !important;
+    transform: none !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .left-buttons button,
+  .right-buttons button {
+    min-width: 150px;
+    font-size: 10px;
+    margin: 5px 5px 0 0;
+    padding: 8px 12px;
+  }
+
+
+  .header-content {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .header-content h1 {
+    margin: 10px 0 0 0 !important;
+    font-size: 20px !important;
+    flex-grow: 0 !important;
+  }
 }
 
 /* Right-side nav buttons (Home, Back) */
@@ -303,12 +350,6 @@ header {
   cursor: pointer;
 }
 
-.header-title {
-  flex-grow: 1;
-  text-align: center;
-  margin: 0;
-  font-weight: bold;
-}
 
 .menu-btn {
   background-color: white;
@@ -340,14 +381,19 @@ header {
   gap: 30px;
 }
 
+
+
 /* One card takes ~48% width so two fit per row with some gap */
 .student-row {
+  flex-wrap: wrap;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  width: 48%;
-  min-height: 250px;
+  min-width: 500px; /* Prevent card from shrinking too small */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
   background-color: rgb(212, 188, 90);
   border: 2px solid black;
   border-radius: 8px;
@@ -355,6 +401,7 @@ header {
   padding: 20px;
   box-sizing: border-box;
 }
+
 
 /* Set a consistent fixed height & proportional layout */
 .student-card, .recommender-box, .action-buttons {
@@ -366,15 +413,29 @@ header {
 /* Add right padding only for student content */
 .student-card {
   display: flex;
+  flex-shrink: 1;
+  flex-wrap: wrap;
   flex-direction: column;
   justify-content: space-between;
-  width: 320px
+  width: 100% !important; /* override fixed width */
+  min-width: 0; /* allow flexbox to shrink */
+  box-sizing: border-box; /* include padding in width */
+  overflow-wrap: break-word; /* break long words if any */
 }
+.student-card, .recommender-box, .action-buttons {
+  flex: 1 1 300px; /* allow wrapping with a reasonable min width */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
 
 .student-card p,
 .recommender-box p {
   margin: 6px 0;
   color: #333;
+  
 }
 
 .student-card button.view-more {
@@ -392,6 +453,10 @@ header {
   flex-direction: column;
   justify-content: center;
   padding-left: 10px;
+   min-width: 0; /* allow shrinking inside flex */
+   max-width: 100%;
+  flex-shrink: 1;
+  box-sizing: border-box;
 }
 
 .recommender-box p {
@@ -404,6 +469,10 @@ header {
   justify-content: center;
   align-items: flex-end;
   gap: 12px;
+   min-width: 0; /* allow shrinking inside flex */
+   max-width: 100%;
+  flex-shrink: 1;
+  box-sizing: border-box;
 }
 
 button {
@@ -450,6 +519,40 @@ button {
   color: black;
   border-color: brown;
 }
+@media (max-width: 598px) {
+  .student-row {
+    min-width: 100%; /* For mobile, allow full width */
+    flex-direction: column;
+    width: 100%;
+    min-height: auto; /* Let height adapt */
+    padding: 15px;
+  }
+
+  .student-card, .recommender-box, .action-buttons {
+    flex: none;
+    width: 100%;
+    margin: 8px 0; /* vertical spacing */
+  }
+
+  .action-buttons {
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    min-width: 100%; /* For mobile, allow full width */
+
+    gap: 8px;
+  }
+
+  .action-buttons button {
+    width: auto;   /* buttons can shrink */
+    flex: 1 1 120px; /* flexible width with a min of 120px */
+    padding: 10px;
+  }
+
+  .student-card {
+    width: 100%; /* full width */
+  }
+}
 
   .modal {
       position: fixed;
@@ -466,6 +569,7 @@ button {
       margin: 100px auto;
       border-radius: 8px;
     }
+    
 /* Popup styles */
 .popup-overlay {
   position: fixed;
@@ -518,6 +622,7 @@ button {
   background-color: darkred;
 }
 
+
 .student-row {
   width: 48%;
   min-height: 250px;
@@ -552,4 +657,16 @@ button {
   transition: opacity 0.5s ease;
   opacity: 0;
   box-shadow: 0 0 10px red;
+}
+.modal-content button {
+  padding: 8px 16px;
+  background-color: maroon;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-content button:hover {
+  background-color: darkred;
 }

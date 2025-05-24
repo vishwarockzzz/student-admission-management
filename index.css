@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -9,13 +12,15 @@ body {
       background-color: #830000;
     }
 
-    .title-bar {
+.title-bar {
   display: flex;
+  flex-wrap: wrap; /* allow wrap */
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   background-color: #fff;
   padding: 20px;
   border-bottom: 2px solid #830000;
+  text-align: center;
 }
 
 .title-text {
@@ -30,7 +35,8 @@ body {
 }
 
 .side-image {
-  width: 500px;
+  width: 100%;
+  max-width: 200px;  /* Prevents it from growing too large */
   height: auto;
   object-fit: contain;
 }
@@ -78,4 +84,21 @@ body {
       background-color: #a00000;
     }
   /* Top Maroon Bar */
-  
+  @media (max-width: 768px) {
+  .title-text {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .side-image {
+    max-width: 120px;
+  }
+
+  .title-bar {
+    flex-direction: column;
+  }
+
+  .login-container {
+    padding: 20px;
+  }
+}

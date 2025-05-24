@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Recommendation Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thiagarajar Group of Institutions - MQ processing Dashboard</title>
   <link rel="stylesheet" href="upcoming_request.css">
 </head>
 
@@ -29,12 +30,6 @@
       <option value="all">-- All Departments and Degrees --</option>
       <option value="Clear">-- Clear Filter --</option>
     </select>
-
-    <select id="appNumberSort" onchange="sortByApplication()" class="filter-dropdown">
-  <option value="">-- Sort by Application No --</option>
-  <option value="asc">Application No: Low to High</option>
-  <option value="desc">Application No: High to Low</option>
-</select>
 
   </div>
 </div>
@@ -101,6 +96,7 @@
       </select>
 
       <button onclick="confirmSelection()">Confirm</button>
+      <button onclick="closeSelectionModal()">Cancel</button>
     </div>
   </div>
 <!-- View More Popup -->
