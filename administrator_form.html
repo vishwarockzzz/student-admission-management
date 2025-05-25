@@ -344,12 +344,12 @@
   <!-- Left Section -->
   <div class="form-section">
     <div class="form-group">
-      <label>Name (in Block Letters):<span style="color:red">*</span></label>
-      <input type="text" id="tcaName" placeholder="HABEEBA SHAMRIN BANU" required />
+      <label>Name (Initial at the end):<span style="color:red">*</span></label>
+      <input type="text" id="tcaName" placeholder="HABEEBA SHAMRIN BANU S S" required />
     </div>
-    <div class="form-group">
-      <label>Initial:</label>
-      <input type="text" id="tcaInitial" placeholder="S S" />
+      <div class="form-group">
+      <label>Date of Birth (DD/MM/YYYY):<span style="color:red">*</span></label>
+      <input type="date" id="tcaDOB" required />
     </div>
     <div class="form-group">
       <label>Sex:</label>
@@ -360,13 +360,9 @@
         <option>Other</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>Date of Birth (DD/MM/YYYY):<span style="color:red">*</span></label>
-      <input type="date" id="tcaDOB" required />
-    </div>
-    <div class="form-group">
-      <label>Age as on 01st June 2025:</label>
-      <input type="number" id="tcaAge" placeholder="17" min="0" max="150" />
+        <div class="form-group">
+      <label>Email:</label>
+      <input type="email" id="tcaEmail" placeholder="sajisyed24107@gmail.com" />
     </div>
     <div class="form-group">
       <label>Aadhaar Number (Optional):</label>
@@ -385,28 +381,31 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Parent's Annual Income:</label>
-      <input type="text" id="tcaIncome" placeholder="e.g., ₹1,50,000" />
-    </div>
-    <div class="form-group">
-      <label>Present Address:</label>
+      <label>Address:</label>
       <textarea id="tcaAddress" placeholder="5/269, BAGAVATH SINGH STREET, THASILDHAR NAGAR, MADURAI 625020" rows="3"></textarea>
     </div>
-    <div class="form-group">
-      <label>Application Number:<span style="color:red">*</span></label>
-      <input type="text" id="tcaAppNumber" placeholder="Enter Application Number" required />
-    </div>
+   
   </div>
 
   <!-- Right Section -->
   <div class="form-section">
+    
+
+     <div class="form-group">
+      <label>Application Number:<span style="color:red">*</span></label>
+      <input type="text" id="tcaAppNumber" placeholder="Enter Application Number" required />
+    </div>
+       <div class="form-group">
+      <label>Date of Application:<span style="color:red">*</span></label>
+      <input type="date" id="tcaAppDate" required />
+    </div>
     <div class="form-group">
       <label>Applicant Mobile Number:<span style="color:red">*</span></label>
       <input type="tel" id="tcaMobile" placeholder="9171988686" maxlength="10" required />
     </div>
     <div class="form-group">
-      <label>Email:</label>
-      <input type="email" id="tcaEmail" placeholder="sajisyed24107@gmail.com" />
+      <label>Alternate Mobile Number:<span style="color:red">*</span></label>
+      <input type="tel" id="tcaMobile" placeholder="9171988686" maxlength="10" required />
     </div>
     <div class="form-group">
       <label>School Name:</label>
@@ -437,10 +436,7 @@
       <label>Total Marks as per Marksheet:</label>
       <input type="number" id="tcaTotalMarks" placeholder="487" min="0" />
     </div>
-    <div class="form-group">
-      <label>Date of Application:<span style="color:red">*</span></label>
-      <input type="date" id="tcaAppDate" required />
-    </div>
+ 
   </div>
 
       </div>
