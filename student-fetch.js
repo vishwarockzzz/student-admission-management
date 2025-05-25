@@ -115,6 +115,7 @@ function populateFilters() {
 
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
+      document.getElementById("recommenderFilter").value = "all";
 
   if (selectedFilter === "Clear" || selectedFilter === "all") {
     renderStudents(allStudents);
@@ -170,6 +171,10 @@ function populateRecommenderFilter(students) {
   dropdown.appendChild(allOption);
 
   const recommenderSet = new Set();
+  const clearOption = document.createElement("option");
+  clearOption.value = "clear";
+  clearOption.textContent = "-- Clear Filter --";
+  dropdown.appendChild(clearOption);
 
   students.forEach(student => {
     const rec = student.recommenders?.[0];
@@ -187,11 +192,6 @@ function populateRecommenderFilter(students) {
     option.textContent = label;
     dropdown.appendChild(option);
   });
-  // Add "Clear" option
-  const clearOption = document.createElement("option");
-  clearOption.value = "clear";
-  clearOption.textContent = "-- Clear Filter --";
-  dropdown.appendChild(clearOption);
 
   
 }
@@ -201,15 +201,9 @@ function populateRecommenderFilter(students) {
 
 function filterByRecommender() {
   const selected = document.getElementById("recommenderFilter").value;
-
-  if (selected === "clear") {
+  document.getElementById("combinedFilter").value = "all";
+  if (selected === "clear" || selected === "all") {
     // Clear the filter and show all students
-    renderStudents(allStudents);
-    return;
-  }
-
-  if (selected === "all") {
-    // Show all students (same as the "all" option)
     renderStudents(allStudents);
     return;
   }
@@ -313,7 +307,7 @@ const courseMap = {
   "IT": "B.Tech. Information Technology",
   "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
-  "Civil": "B.E. Civil Engineering",
+  "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
@@ -422,7 +416,14 @@ function acceptStudent(id, branch) {
         modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
-      } else {
+      } else if (["it", "mechatronics"].includes(selected)) {
+    // These branches don't support Aided
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else {
         modeSelect.innerHTML = `
           <option value="">-- Select Mode --</option>
           <option value="aided">Aided</option>
