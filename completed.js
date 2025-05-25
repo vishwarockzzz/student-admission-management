@@ -452,8 +452,7 @@ function acceptStudent(id, branch) {
     "IT", "AI/ML", "CSBS", "Civil"
   ];
 
-  // MSC degree
-  if (degree === "MSC") {
+    if (degree === "MSC") {
     const option = document.createElement("option");
     option.value = "MSC DATA SCIENCE";
     option.textContent = "MSC DATA SCIENCE";
@@ -466,7 +465,6 @@ function acceptStudent(id, branch) {
     modeSelect.disabled = false;
   }
 
-  // B.ARCH degree
   else if (degree === "BARCH") {
     const option = document.createElement("option");
     option.value = "B.ARCH";
@@ -483,20 +481,19 @@ function acceptStudent(id, branch) {
     modeSelect.disabled = false;
   }
 
-  // B.DES degree
-  else if (degree === "BDES") {
-    const option = document.createElement("option");
-    option.value = "B.DES";
-    option.textContent = "B.DES";
-    branchSelect.appendChild(option);
-    branchSelect.value = "B.DES";
-    branchSelect.disabled = true;
 
-    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-    modeSelect.value = "self-finance";
-    modeSelect.disabled = false;
-  }
+  else if (["BDES", "IT", "Mechatronics", "CSBS"].includes(degree)) {
+  const option = document.createElement("option");
+  option.value = degree;
+  option.textContent = degree;
+  branchSelect.appendChild(option);
+  branchSelect.value = degree;
+  branchSelect.disabled = true;
 
+  modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+  modeSelect.value = "self-finance";
+  modeSelect.disabled = false;
+}
   // General case: BE courses
   else {
     const preferences = [
