@@ -829,11 +829,7 @@ function removeCard(id) {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
-      const totalSeats = 20; // If total seats per course fixed
-
       result.forEach((entry, index) => {
-        const remainingSeats = entry.remaining_seats || 0;
-        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -841,9 +837,9 @@ function removeCard(id) {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${totalSeats}</td>
-          <td>${allocatedSeats}</td>
-          <td>${remainingSeats}</td>
+          <td>${entry.total_seats}</td>
+          <td>${entry.allocated_seats}</td>
+          <td>${entry.remaining_seats}</td>
         `;
 
         tableBody.appendChild(row);
