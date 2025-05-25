@@ -398,22 +398,30 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       percode: clean(document.getElementById("percode")?.value),
     }
   };
-
+  function sendStudentDetails(isConfirm = false) {
   fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(formData)
+    body: JSON.stringify({...formData, is_confirm: isConfirm})
   })
-    .then(async response => {
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Backend error:", errorData);
-        throw new Error(errorData.error || "Server error");
+    .then(async (res) => {
+    const data = await res.json().catch(() => ({})); // protect against invalid JSON
+    if (res.status === 409) {
+      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      if (proceed) {
+        return sendStudentDetails(true); // Retry with confirmation
+      } else {
+        throw new Error("Operation cancelled by user.");
       }
-      return response.json();
-    })
+    } 
+    else if (!res.ok) {
+      throw new Error(data.error || "An unknown error occurred.");
+    }
+
+    return data;
+  })
     .then(data => {
       alert("Application form is submitted successfully");
       location.reload();
@@ -425,6 +433,9 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       button.disabled = false;
     });
 }
+sendStudentDetails();
+}
+
 
 function submitFormData() {
   return new Promise(resolve => setTimeout(resolve, 2000));

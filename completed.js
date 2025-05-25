@@ -611,7 +611,6 @@ function sendApprovalRequest(isConfirm = false) {
   .then(async (res) => {
     const data = await res.json().catch(() => ({})); // protect against invalid JSON
     if (res.status === 409) {
-      console.log("hello")
       const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
       if (proceed) {
         return sendApprovalRequest(true); // Retry with confirmation
