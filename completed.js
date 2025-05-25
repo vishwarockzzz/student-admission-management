@@ -579,6 +579,7 @@ function confirmSelection() {
     return;
   }
 
+function sendApprovalRequest(isConfirm = false) {
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -586,32 +587,50 @@ function confirmSelection() {
       student_id: currentStudentId,
       status: "APPROVED",
       course: fullCourseName,
-      course_type: modeFormatted
+      course_type: modeFormatted,
+      is_confirm: isConfirm
     })
   })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(err => { throw new Error(err.error); });
+  .then(async (res) => {
+    const data = await res.json().catch(() => ({})); // protect against invalid JSON
+    if (res.status === 409) {
+      console.log("hello")
+      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      if (proceed) {
+        return sendApprovalRequest(true); // Retry with confirmation
+      } else {
+        throw new Error("Operation cancelled by user.");
+      }
+    } else if (!res.ok) {
+      throw new Error(data.error || "An unknown error occurred.");
     }
-    return res.json();
+
+    return data;
   })
-  .then(data => {
-    alert(data.message);
-    document.getElementById("popup-overlay").style.display = "none";
-    removeCard(currentStudentId);
-    location.reload();
+  .then((data) => {
+    if (data && data.message) {
+      alert(data.message);
+      document.getElementById("popup-overlay").style.display = "none";
+      removeCard(currentStudentId);
+      location.reload();
+    }
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("Error approving student:", err);
     alert(`Failed to approve student: ${err.message}`);
-  });
+  })
+  .finally(() => {
     if (confirmButton) {
       confirmButton.disabled = false;
       confirmButton.innerText = "Allot";
     }
+  });
 }
 
+// Call it initially
+sendApprovalRequest();
 
+}
 
 let currentDeclineId = null;
 
