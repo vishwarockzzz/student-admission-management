@@ -313,7 +313,7 @@ const courseMap = {
   "IT": "B.Tech. Information Technology",
   "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
-  "Civil": "B.E. Civil Engineering",
+  "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
