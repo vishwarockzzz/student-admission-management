@@ -1,5 +1,5 @@
 const API_URL = `${window.env.BASE_URL}/students`;
-
+const API_URL_TCA =`${window.env.BASE_URL}`
   function goHome() {
     window.location.href = 'index.html'; 
    // Change to your actual login route
@@ -272,7 +272,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       }
     }
   
-    async function handleSubmit(event) {
+  async function handleSubmit(event) {
   event.preventDefault();
 
   const inputs = document.querySelectorAll('input, select, textarea');
@@ -435,3 +435,163 @@ window.addEventListener('pageshow', function (event) {
     window.location.reload(); // Reload if user returns via back/forward
   }
 });
+
+
+//FOR TCA //
+
+
+async function handleSubmitTca(event) {
+  event.preventDefault();
+
+  const inputs = document.querySelectorAll('input, select, textarea');
+  let missingFields = [];
+
+  inputs.forEach(input => {
+    const isHidden = input.offsetParent === null;
+    const isIgnorableType = input.type === "button" || input.type === "submit";
+
+    if (!isHidden && !isIgnorableType && input.required) {
+      if (input.value.trim() === "") {
+        // Try to find label text
+        let labelText = "";
+
+        if (input.id) {
+          const label = document.querySelector(`label[for="${input.id}"]`);
+          if (label) labelText = label.textContent.trim();
+        }
+
+        if (!labelText) {
+          const parent = input.parentElement;
+          if (parent) {
+            const labelInParent = parent.querySelector('label');
+            if (labelInParent) labelText = labelInParent.textContent.trim();
+          }
+        }
+
+        if (!labelText) {
+          labelText = input.name || input.id || "Unnamed field";
+        }
+
+        labelText = labelText.replace(/\*/g, '').trim();
+        missingFields.push(labelText);
+      }
+    }
+  });
+
+  if (!selectedCollege) {
+    missingFields.push("College");
+  }
+
+  if (missingFields.length > 0) {
+    alert("Please fill out the following required fields:\n\n- " + missingFields.join("\n- "));
+    return;
+  }
+
+  const button = document.getElementById("submitBtn");
+  if (button.disabled) return; // prevent multiple clicks
+
+  const originalHTML = button.innerHTML;
+
+  // Show loading spinner and disable button
+  button.innerHTML = `<span class="spinner"></span>Loading...`;
+  button.disabled = true;
+
+  try {
+    // Replace this with your actual async submission code, e.g.:
+    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
+
+    await submitFormData();  // Dummy async function simulating a 2-second submission delay
+
+    // Optional: clear form or show success message here
+
+  } catch (error) {
+    alert("Submission failed: " + error.message);
+  } finally {
+    // Re-enable the button and restore original content
+    button.innerHTML = originalHTML;
+    button.disabled = false;
+  }
+
+  // Utility function to clean values
+  function clean(value, type = "string") {
+    if (value === undefined || value === null || value.trim() === "") return null;
+    if (type === "float") return parseFloat(value);
+    return value.trim();
+  }
+
+  const degree = document.getElementById("degree")?.value;
+
+  const formData = {
+    application_number: clean(document.getElementById("applicationNumber")?.value),
+    name: clean(document.getElementById("nameInput")?.value),
+    email: clean(document.getElementById("email")?.value),
+    address: clean(document.getElementById("address")?.value),
+    parent_annual_income: clean(document.getElementById("parentsincome")?.value),
+    school: clean(document.getElementById("school")?.value),
+    district: clean(document.getElementById("district")?.value),
+    twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
+    date_of_application: clean(document.getElementById("applicationDate")?.value),
+    applicationstatus: clean(document.getElementById("applicationStatus")?.value),
+    stdcode: clean(document.getElementById("stucode")?.value),
+    phone_number: clean(document.getElementById("phone")?.value),
+    aadhar_number: clean(document.getElementById("aadhar")?.value),
+    community: clean(document.getElementById("community")?.value),
+    college: clean(selectedCollege),
+    board: clean(document.getElementById("boardSelect")?.value),
+    year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
+    degree: clean(degree),
+    maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
+    physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
+    chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
+    nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
+    engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
+    msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
+    barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
+    bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+    branch_1: clean(document.getElementById("pref1")?.value),
+    branch_2: clean(document.getElementById("pref2")?.value),
+    branch_3: clean(document.getElementById("pref3")?.value),
+    recommender: {
+      name: clean(document.getElementById("nameInput2")?.value),
+      designation: clean(document.getElementById("recDes")?.value),
+      affiliation: clean(document.getElementById("affiliation")?.value),
+      office_address: clean(document.getElementById("recAddress")?.value),
+      office_phone_number: clean(document.getElementById("officePhone")?.value),
+      personal_phone_number: clean(document.getElementById("personalPhone")?.value),
+      email: clean(document.getElementById("recEmail")?.value),
+      offcode: clean(document.getElementById("offcode")?.value),
+      percode: clean(document.getElementById("percode")?.value),
+    }
+  };
+
+  fetch(API_URL_TCA, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(formData)
+  })
+    .then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.error || "Server error");
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Application form is submitted successfully");
+      location.reload();
+    })
+    .catch(error => {
+      console.error("Submission error:", error.message);
+      alert("Failed to submit application. " + error.message);
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    });
+}
+
+function submitFormData() {
+  return new Promise(resolve => setTimeout(resolve, 2000));
+}
+   
