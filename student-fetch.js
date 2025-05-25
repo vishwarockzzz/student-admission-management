@@ -571,6 +571,8 @@ function onHoldStudent(id) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+  const student = allStudents.find(s => s.id === id);
+  const studentName = student?.name || `ID ${id}`;
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -581,7 +583,7 @@ function onHoldStudent(id) {
   })
   .then(res => res.json())
   .then(data => {
-    alert(`Student ${id} is on hold.`);
+    alert(`Student ${studentName} is on hold.`);
     removeCard(id);
   })
   .catch(err => {
