@@ -13,8 +13,34 @@ function goHome() {
     
 // Goes to the previous page
   }
-  function clearSearch() {
+  function clearSearch() { 
   document.getElementById("searchInput").value = "";
+   if (currentStatus === "ALL") {
+    const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
+    const fetches = statuses.map(s =>
+      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+    );
+
+    Promise.all(fetches)
+      .then(results => {
+        const combined = results.flatMap((data, i) => {
+          const s = statuses[i];
+          return (data.students || []).map(stu => ({ ...stu, application_status: s }));
+        });
+
+        renderCards(combined, "ALL", true); // showStatus = true
+      })
+      .catch(error => console.error("Error restoring all statuses:", error));
+  } else {
+    fetch(`${API_URL}?status=${currentStatus}`)
+      .then(response => response.json())
+      .then(data => {
+        const students = data.students || [];
+        renderCards(students, currentStatus); // showStatus = false
+      })
+      .catch(error => console.error("Error restoring current status:", error));
+  }
+
 }
     window.onload = () => {
     loadStatus('APPROVED'); 
@@ -313,7 +339,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function generateTableView(status) {
     const students = allStudentsData.filter(stu => stu.application_status === status || currentStatus === status);
-
+    // Normalize degree value
+const degreeT = {
+  "b.e": "B.E / B.Tech ",
+  "btech": "B.E / B.Tech ",
+  "engineering": "B.E / B.Tech ",
+  "msc": "M.Sc Data Science ",
+  "barch": "B.Arch ",
+  "bdes": "B.Des "
+};
 
   if (!students.length) {
     alert(`No ${status === "APPROVED" ? "Allotted" : "Declined"} applications found.`);
@@ -349,7 +383,8 @@ function generateTableView(status) {
   });
 
   students.forEach((student, index) => {
-
+    const rawDegree = (student.degree || "-").toLowerCase().replace(/\s/g, "");
+    const degreeDisplay = degreeT[rawDegree] || student.degree || "-";
     const outcome = student.outcomes[0] || {};
     const r = student.recommender || student.recommenders?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -362,7 +397,7 @@ function generateTableView(status) {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [student.degree || "-", outcome.course_name || "-"]
+        ? [degreeDisplay, outcome.course_name || "-"]
         : [outcome.course_name || "-"]),
       r.name || "-",
       r.designation || "-"
