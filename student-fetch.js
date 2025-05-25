@@ -313,7 +313,7 @@ const courseMap = {
   "IT": "B.Tech. Information Technology",
   "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
-  "Civil": "B.E. Civil Engineering",
+  "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
@@ -465,6 +465,7 @@ function confirmSelection() {
     return;
   }
 
+  function sendApprovalRequest(isConfirm = false) {
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -472,29 +473,49 @@ function confirmSelection() {
       student_id: currentStudentId,
       status: "APPROVED",
       course: fullCourseName,
-      course_type: modeFormatted
+      course_type: modeFormatted,
+      is_confirm: isConfirm
     })
   })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(err => { throw new Error(err.error); });
+  .then(async (res) => {
+    const data = await res.json().catch(() => ({})); // protect against invalid JSON
+    if (res.status === 409) {
+      console.log("hello")
+      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      if (proceed) {
+        return sendApprovalRequest(true); // Retry with confirmation
+      } else {
+        throw new Error("Operation cancelled by user.");
+      }
+    } else if (!res.ok) {
+      throw new Error(data.error || "An unknown error occurred.");
     }
-    return res.json();
+
+    return data;
   })
-  .then(data => {
-    alert(data.message);
-    document.getElementById("popup-overlay").style.display = "none";
-    removeCard(currentStudentId);
-    location.reload();
+  .then((data) => {
+    if (data && data.message) {
+      alert(data.message);
+      document.getElementById("popup-overlay").style.display = "none";
+      removeCard(currentStudentId);
+      location.reload();
+    }
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("Error approving student:", err);
-    alert(`Failed to allot student: ${err.message}`);
-  });
+    alert(`Failed to approve student: ${err.message}`);
+  })
+  .finally(() => {
     if (confirmButton) {
       confirmButton.disabled = false;
       confirmButton.innerText = "Allot";
     }
+  });
+}
+
+// Call it initially
+sendApprovalRequest();
+
 }
 
 
@@ -729,11 +750,7 @@ function showSeatPopup() {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
-      const totalSeats = 20; // If total seats per course fixed
-
       result.forEach((entry, index) => {
-        const remainingSeats = entry.remaining_seats || 0;
-        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -741,9 +758,9 @@ function showSeatPopup() {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${totalSeats}</td>
-          <td>${allocatedSeats}</td>
-          <td>${remainingSeats}</td>
+          <td>${entry.total_seats}</td>
+          <td>${entry.allocated_seats}</td>
+          <td>${entry.remaining_seats}</td>
         `;
 
         tableBody.appendChild(row);
