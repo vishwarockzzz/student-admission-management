@@ -1,0 +1,687 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background:#f3d0a3; /* light maroon gradient */
+}
+.filter-sort-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-sort-toggle {
+  background-color: #800000;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+
+
+.filter-sort-panel {
+  display: none; /* hidden by default */
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background-color: #f8f8f8;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.filter-sort-panel select {
+  display: block;
+  margin-bottom: 10px;
+  padding: 8px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ===== Header Styling ===== */
+/* Header Styling */
+header {
+  background-color: #800000; /* dark maroon */
+  color: white;
+  width: 100%;
+  padding: 20px 15px;
+  box-sizing: border-box;
+}
+.header-title {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
+  font-weight: bold;
+}
+
+
+/* Container for header content */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-direction: column;
+  flex-wrap: wrap;  /* allow wrapping on small widths or zoom */
+  gap: 10px;        /* add some spacing between elements */
+}
+
+.header-content h1 {
+  flex: 1 1 auto;     /* allow flex-grow and shrink */
+  min-width: 100%;   /* prevent it from shrinking too small */
+  text-align: center;
+  margin: 0;
+  font-size: 26px;
+  word-break: break-word; /* break long titles if needed */
+}
+
+.left-buttons button,
+.right-buttons button {
+  min-width: 120px;   /* reduce min-width */
+  flex-shrink: 1;     /* allow buttons to shrink a bit */
+  white-space: nowrap;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Optional: if buttons wrap on smaller screens */
+.nav-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0 0 0;
+}
+/* Left buttons (Remaining Seats, Requested, Completed) */
+.left-buttons button {
+  background-color: white; /* blend with maroon */
+  color: rgb(168, 47, 47);
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 200px; /* Adjust width as needed */
+  padding: 10px 20px;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.left-buttons button:hover {
+  background-color: #cb4d42;
+  color:white;
+}
+
+
+/* Right buttons (Home, Back) */
+.right-buttons button{
+  background-color:white; /* dark brownish-maroon */
+  color: rgb(168, 47, 47);
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.right-buttons button:hover {
+  background-color: #cb4d42;
+  color:white;
+
+}
+@media (max-width: 699px) {
+  .nav-bar {
+    position: static !important;
+    transform: none !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .left-buttons button,
+  .right-buttons button {
+    min-width: 150px;
+    font-size: 10px;
+    margin: 5px 5px 0 0;
+    padding: 8px 12px;
+  }
+
+
+  .header-content {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .header-content h1 {
+    margin: 10px 0 0 0 !important;
+    font-size: 20px !important;
+    flex-grow: 0 !important;
+  }
+}
+
+/* Right-side nav buttons (Home, Back) */
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+   background-color: #FFFDD0; /* or same as your page background */
+    gap: 5px;
+}
+.clear-input {
+  padding: 8px 14px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+
+}
+
+.clear-input:hover {
+ background-color: #a52a2a;
+}
+
+.input-box {
+  width: 300px;          /* Increased width */
+       /* Increased height */
+  padding: 10px 14px;    /* Inner spacing */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;       /* Slightly larger text */
+  margin-right: 10px;
+}
+
+.submit-input {
+  padding: 8px 14px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submit-input:hover {
+  background-color: #a52a2a;
+}
+
+
+#seatPopup {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  max-height: 80vh;
+  background: rgb(45, 42, 42);
+  border: 1px solid #ccc;
+  padding: 20px;
+  box-shadow: 0px 0px 10px rgba(137, 126, 126, 0.3);
+  z-index: 1000;
+  overflow-y: auto;
+  color: white;
+  border-radius: 8px;
+}
+
+#seatPopup h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 20px;
+  color: #edc59f;
+}
+
+#seatPopup table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  color: black;
+}
+
+#seatPopup th {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+
+#seatPopup td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+#seatPopup button {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 20px;
+  background-color: #a52a2a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#seatPopup button:hover {
+  background-color: #b33a3a;
+}
+
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup.bordered-popup {
+  background-color: #faf7f7;
+  padding: 25px;
+  width: 90%;
+  max-width: 1000px;
+  height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 2px solid #800000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.popup-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.form-two-column {
+  display: flex;
+  gap: 30px;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.detail-section {
+  flex: 1;
+  min-width: 45%;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-section h3 {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 2px solid #000;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-family: monospace;
+  background: white;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table td {
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.detail-table td:first-child {
+  font-weight: bold;
+  color: #222;
+  width: 45%;
+}
+
+.highlight {
+  color: #a10041;
+  font-weight: bold;
+}
+
+.close-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+.menu-btn {
+  background-color: white;
+  color: maroon;
+  border: none;
+  padding: 8px 12px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.side-menu {
+  width: 200px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  display: none;
+}
+
+.container {
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+
+
+/* One card takes ~48% width so two fit per row with some gap */
+.student-row {
+  flex-wrap: wrap;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  min-width: 500px; /* Prevent card from shrinking too small */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  background-color: rgb(212, 188, 90);
+  border: 2px solid black;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* Set a consistent fixed height & proportional layout */
+.student-card, .recommender-box, .action-buttons {
+  flex: 1;
+  margin: 0 10px;
+}
+
+
+/* Add right padding only for student content */
+.student-card {
+  display: flex;
+  flex-shrink: 1;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100% !important; /* override fixed width */
+  min-width: 0; /* allow flexbox to shrink */
+  box-sizing: border-box; /* include padding in width */
+  overflow-wrap: break-word; /* break long words if any */
+}
+.student-card, .recommender-box, .action-buttons {
+  flex: 1 1 300px; /* allow wrapping with a reasonable min width */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+
+.student-card p,
+.recommender-box p {
+  margin: 6px 0;
+  color: #333;
+  
+}
+
+.student-card button.view-more {
+  background: transparent;
+  border: 1px solid orange;
+  color: orange;
+  align-self: flex-end;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.recommender-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 10px;
+   min-width: 0; /* allow shrinking inside flex */
+   max-width: 100%;
+  flex-shrink: 1;
+  box-sizing: border-box;
+}
+
+.recommender-box p {
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+   min-width: 0; /* allow shrinking inside flex */
+   max-width: 100%;
+  flex-shrink: 1;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 8px 12px;
+  border: 1px solid #333;
+  background-color: white;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  font-weight: bold;
+  width: 100px;
+}
+.accept:hover {
+  box-shadow: 0 0 10px green;
+}
+.decline:hover {
+  box-shadow: 0 0 10px red;
+}
+.onhold:hover {
+  box-shadow: 0 0 10px yellow;
+}
+.delete:hover {
+  box-shadow: 0 0 10px brown;
+}
+.accept:hover {
+  background-color: green;
+  color: white;
+  border-color: green;
+}
+
+.decline:hover {
+  background-color: red;
+  color: white;
+  border-color: red;
+}
+
+.onhold:hover {
+  background-color: gold;
+  color: black;
+  border-color: gold;
+}
+
+.delete:hover {
+  background-color: brown;
+  color: black;
+  border-color: brown;
+}
+@media (max-width: 598px) {
+  .student-row {
+    min-width: 100%; /* For mobile, allow full width */
+    flex-direction: column;
+    width: 100%;
+    min-height: auto; /* Let height adapt */
+    padding: 15px;
+  }
+
+  .student-card, .recommender-box, .action-buttons {
+    flex: none;
+    width: 100%;
+    margin: 8px 0; /* vertical spacing */
+  }
+
+  .action-buttons {
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    min-width: 100%; /* For mobile, allow full width */
+
+    gap: 8px;
+  }
+
+  .action-buttons button {
+    width: auto;   /* buttons can shrink */
+    flex: 1 1 120px; /* flexible width with a min of 120px */
+    padding: 10px;
+  }
+
+  .student-card {
+    width: 100%; /* full width */
+  }
+}
+
+  .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 999;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      width: 300px;
+      margin: 100px auto;
+      border-radius: 8px;
+    }
+    
+/* Popup styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.popup label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.popup select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.popup button {
+  padding: 8px 16px;
+  background-color: maroon;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.popup button:hover {
+  background-color: darkred;
+}
+
+
+.student-row {
+  width: 48%;
+  min-height: 250px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+}
+
+  #seatPopup table {
+    border-collapse: collapse;
+  }
+
+
+  #seatPopup th {
+    background-color: #8d0303;
+  }
+#seatTable thead th {
+  position: sticky;
+  top: 0;
+  background: #433939; /* match popup bg */
+  color: white;
+  z-index: 10;
+}
+.decline-shadow {
+  transition: opacity 0.5s ease;
+  opacity: 0;
+  box-shadow: 0 0 10px red;
+}
+.modal-content button {
+  padding: 8px 16px;
+  background-color: maroon;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-content button:hover {
+  background-color: darkred;
+}
