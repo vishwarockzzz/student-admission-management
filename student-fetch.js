@@ -14,6 +14,11 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
+  currentStatus="UNALLOCATED"
+  fetch(`${API_URL}?status=${currentStatus}`)
+    .then(response => response.json())
+    .then(data => renderStudents(data.students || []))
+    .catch(error => console.error("Error loading students:", error));
 }
 fetch(SEATS_URL)
   .then(response => {

@@ -36,7 +36,7 @@ body {
 
 .side-image {
   width: 100%;
-  max-width: 200px;  /* Prevents it from growing too large */
+  max-width: 400px;  /* Prevents it from growing too large */
   height: auto;
   object-fit: contain;
 }
