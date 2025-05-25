@@ -25,7 +25,7 @@ let currentStatus = 'APPROVED'; // Default status on initial load
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title></title>');
+    printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
@@ -334,9 +334,9 @@ function generateTableView(status) {
     "S.No",
     "Student Name",
     "Application No",
-    "Aadhar",
     "Cut-Off",
     "Phone",
+    "Address",
     ...(status === "APPROVED" ? ["Degree", "Allotted Course"] : ["Decline Reason"]),
     "Recommender Name",
     "Designation"
@@ -358,9 +358,9 @@ function generateTableView(status) {
       index + 1,
       student.name || "-",
       student.application_number || "-",
-      student.aadhar_number || "-",
       cutoff,
       student.phone_number || "-",
+      student.address || "-",
       ...(status === "APPROVED"
         ? [student.degree || "-", outcome.course_name || "-"]
         : [outcome.course_name || "-"]),
@@ -386,7 +386,7 @@ function closeStudentPopup() {
 function printStudentTable() {
   const popupContent = document.getElementById("studentTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title></title>');
+    printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
