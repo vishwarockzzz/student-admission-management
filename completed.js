@@ -531,22 +531,7 @@ function acceptStudent(id, branch) {
 }
   // General case: BE courses
   else {
-    const preferences = [
-      (student.branch_1 || "").toLowerCase(),
-      (student.branch_2 || "").toLowerCase(),
-      (student.branch_3 || "").toLowerCase()
-    ];
-
-    const isGeneral = preferences.includes("any branch");
-    const branchesToShow = isGeneral
-      ? beCourses
-      : preferences.filter(course =>
-          beCourses.map(c => c.toLowerCase()).includes(course)
-        ).map(course =>
-          // Normalize capitalization
-          beCourses.find(c => c.toLowerCase() === course)
-        );
-
+    const branchesToShow = beCourses
     // Add a default option
     const defaultOption = document.createElement("option");
     defaultOption.textContent = "Select Branch";
@@ -564,7 +549,7 @@ function acceptStudent(id, branch) {
     // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
+      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
         modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
@@ -844,11 +829,7 @@ function removeCard(id) {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
-      const totalSeats = 20; // If total seats per course fixed
-
       result.forEach((entry, index) => {
-        const remainingSeats = entry.remaining_seats || 0;
-        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -856,9 +837,9 @@ function removeCard(id) {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${totalSeats}</td>
-          <td>${allocatedSeats}</td>
-          <td>${remainingSeats}</td>
+          <td>${entry.total_seats}</td>
+          <td>${entry.allocated_seats}</td>
+          <td>${entry.remaining_seats}</td>
         `;
 
         tableBody.appendChild(row);
