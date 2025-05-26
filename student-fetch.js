@@ -229,79 +229,127 @@ function filterByRecommender() {
 
 
 function renderStudents(students) {
-      const container = document.getElementById("studentList");
-      container.innerHTML = "";
+  const container = document.getElementById("studentList");
+  container.innerHTML = "";
 
-      students.forEach(student => {
-        const row = document.createElement("div");
-        row.className = "student-row";
-        row.id = `student-${student.id}`;
+  const degreeMap = {
+    "b.e": "B.E. / B.Tech.",
+    "btech": "B.E. / B.Tech.",
+    "engineering": "B.E. / B.Tech.",
+    "msc": "M.Sc. DS ",
+    "bdes": "B.Des",
+    "barch": "B.Arch."
+  };
 
-        const card = document.createElement("div");
-        card.className = "student-card";
+  const orderedDegreeKeys = ["b.e", "btech", "engineering", "msc", "bdes", "barch"];
 
-        let cutoff = "";
-        switch (student.degree.toLowerCase()) {
-          case "b.e":
-          case "btech":
-          case "engineering":
-            cutoff = student.engineering_cutoff;
-            break;
-          case "msc":
-            cutoff = student.msc_cutoff;
-            break;
-          case "bdes":
-            cutoff = student.bdes_cutoff;
-            break;
-          case "barch":
-            cutoff = student.barch_cutoff;
-            break;
-          default:
-            cutoff = "N/A";
-        }
+  // Group students by normalized degree key
+  const grouped = {};
+  students.forEach(student => {
+    const degreeKey = student.degree?.toLowerCase();
+    if (!grouped[degreeKey]) grouped[degreeKey] = [];
+    grouped[degreeKey].push(student);
+  });
 
-        card.innerHTML = `
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>Application No:</strong> ${student.application_number}</p>
-          <p><strong>DOA:</strong> ${student.date_of_application}</p>
-          <p><strong>Degree:</strong> ${student.degree}</p>
-          <p><strong>Cut-Off:</strong> ${cutoff}</p>
-         <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-        `;
+  let isFirstGroup = true;
 
-        const recommender = student.recommenders?.[0] || {
-          name: "-",
-          affiliation: "-",
-          designation: "-"
-        };
+  for (const key of orderedDegreeKeys) {
+    const studentsList = grouped[key];
+    if (!studentsList || studentsList.length === 0) continue;
 
-        const recommenderBox = document.createElement("div");
-        recommenderBox.className = "recommender-box";
-        recommenderBox.innerHTML = `
-          <p><strong>Recommender:</strong> ${recommender.name}</p>
-          <p><strong>Designation:</strong> ${recommender.designation}</p>
-          <p><strong>Company:</strong> ${recommender.affiliation}</p>
-        `;
+    if (!isFirstGroup) {
+  const divider = document.createElement("hr");
+  divider.className = "degree-divider"; // ✅ Add this line
+  container.appendChild(divider);
+}
 
-        const actions = document.createElement("div");
-        actions.className = "action-buttons";
-        let withdrawOrDeleteBtn = "";
-        if (!isAdmin) {
-          withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
-        }
-        actions.innerHTML = `
-          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
-          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-          ${withdrawOrDeleteBtn}
-        `;
+const title = document.createElement("h2");
+title.className = "degree-section-header";
+title.textContent = degreeMap[key] || key.toUpperCase();
+container.appendChild(title);
 
-        row.appendChild(card);
-        row.appendChild(recommenderBox);
-        row.appendChild(actions);
-        container.appendChild(row);
-      });
-    }
+
+    studentsList.forEach(student => {
+      const row = document.createElement("div");
+      row.className = "student-row";
+      row.id = `student-${student.id}`;
+
+      const card = document.createElement("div");
+      card.className = "student-card";
+
+      let cutoff = "";
+      let deg = "";
+      switch (student.degree.toLowerCase()) {
+        case "b.e":
+        case "btech":
+        case "engineering":
+          cutoff = student.engineering_cutoff;
+          deg = degreeMap["b.e"];
+          break;
+        case "msc":
+          cutoff = student.msc_cutoff;
+          deg = degreeMap["msc"];
+          break;
+        case "bdes":
+          cutoff = student.bdes_cutoff;
+          deg = degreeMap["bdes"];
+          break;
+        case "barch":
+          cutoff = student.barch_cutoff;
+          deg = degreeMap["barch"];
+          break;
+        default:
+          cutoff = "N/A";
+      }
+
+      card.innerHTML = `
+        <p><strong>Name:</strong> ${student.name}</p>
+        <p><strong>Application No:</strong> ${student.application_number}</p>
+        <p><strong>DOA:</strong> ${student.date_of_application}</p>
+        <p><strong>Degree:</strong> ${deg}</p>
+        <p><strong>Cut-Off:</strong> ${cutoff}</p>
+        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+      `;
+
+      const recommender = student.recommenders?.[0] || {
+        name: "-",
+        affiliation: "-",
+        designation: "-"
+      };
+
+      const recommenderBox = document.createElement("div");
+      recommenderBox.className = "recommender-box";
+      recommenderBox.innerHTML = `
+        <p><strong>Recommender:</strong> ${recommender.name}</p>
+        <p><strong>Designation:</strong> ${recommender.designation}</p>
+        <p><strong>Company:</strong> ${recommender.affiliation}</p>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "action-buttons";
+      let withdrawOrDeleteBtn = "";
+      if (!isAdmin) {
+        withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
+      }
+
+      actions.innerHTML = `
+        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+        <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+        <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+        ${withdrawOrDeleteBtn}
+      `;
+
+      row.appendChild(card);
+      row.appendChild(recommenderBox);
+      row.appendChild(actions);
+      container.appendChild(row);
+    });
+
+    isFirstGroup = false;
+  }
+}
+
+
 
 const courseMap = {
   "CSE": "B.E. Computer Science and Engineering",
