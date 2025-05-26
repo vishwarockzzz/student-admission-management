@@ -362,3 +362,14 @@ select:hover {
     padding: 1rem;
   }
 }
+
+
+
+
+.hidden {
+      display: none;
+    }
+    input[type="number"] {
+      width: 100%;
+      
+    }

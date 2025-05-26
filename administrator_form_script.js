@@ -605,4 +605,100 @@ async function handleSubmitTca(event) {
 function submitFormData() {
   return new Promise(resolve => setTimeout(resolve, 2000));
 }
-   
+
+
+
+//TCA form
+
+const aidedCourses = {
+      "B.A.": ["Tamil", "English", "Economics (Tamil Medium)"],
+      "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology", "Computer Science"],
+      "B.Com.": [],
+      "B.B.A.": [],
+      "M.A.": ["Tamil", "English", "Economics"],
+      "M.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology"]
+    };
+
+    const sfCourses = {
+      "B.A.": ["Tamil", "English", "Economics (English Medium)"],
+      "B.Com. (Professional Accounting)": [],
+      "B.Com. (Computer Applications)": [],
+      "B.Com. (Honours)": [],
+      "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
+      "M.Com.": ["ICWAI Integrated"],
+      "M.Sc.": ["Mathematics", "Computer Science", "Chemistry", "Microbiology", "Biotechnology", "Psychology"],
+      "B.B.A.": [],
+      "B.C.A.": [],
+      "New Programmes": ["B.Com. (Fintech)", "B.Sc. Computer Science in AI", "MBA*"]
+    };
+
+    const degreeSelect = document.getElementById("degreeSelect");
+    const courseSelect = document.getElementById("courseSelect");
+
+    document.getElementById("tcamode").addEventListener("change", function () {
+      const mode = this.value;
+      degreeSelect.innerHTML = "<option value=''>-- Select Degree --</option>";
+      courseSelect.innerHTML = "";
+      document.getElementById("courseGroup").classList.add("hidden");
+      document.getElementById("subjectGroup").classList.add("hidden");
+      document.getElementById("submitGroup").classList.add("hidden");
+      document.getElementById("resultGroup").classList.add("hidden");
+
+      const data = mode === "Aided" ? aidedCourses : mode === "Self-Finance" ? sfCourses : null;
+      if (data) {
+        for (const deg in data) {
+          const option = document.createElement("option");
+          option.value = deg;
+          option.textContent = deg;
+          degreeSelect.appendChild(option);
+        }
+        document.getElementById("degreeGroup").classList.remove("hidden");
+      } else {
+        document.getElementById("degreeGroup").classList.add("hidden");
+      }
+    });
+
+    degreeSelect.addEventListener("change", function () {
+      const degree = this.value;
+      const mode = document.getElementById("tcamode").value;
+      const data = mode === "Aided" ? aidedCourses : sfCourses;
+
+      courseSelect.innerHTML = "<option value=''>-- Select Course --</option>";
+      const courses = data[degree] || [];
+
+      if (courses.length) {
+        courses.forEach(course => {
+          const option = document.createElement("option");
+          option.value = course;
+          option.textContent = course;
+          courseSelect.appendChild(option);
+        });
+        document.getElementById("courseGroup").classList.remove("hidden");
+      } else {
+        document.getElementById("courseGroup").classList.add("hidden");
+        document.getElementById("subjectGroup").classList.remove("hidden");
+        document.getElementById("submitGroup").classList.remove("hidden");
+      }
+
+      document.getElementById("resultGroup").classList.add("hidden");
+    });
+
+    courseSelect.addEventListener("change", function () {
+      if (this.value) {
+        document.getElementById("subjectGroup").classList.remove("hidden");
+        document.getElementById("submitGroup").classList.remove("hidden");
+        document.getElementById("resultGroup").classList.add("hidden");
+      }
+    });
+
+    function calculateCutoff() {
+      const s1 = parseFloat(document.getElementById("sub1").value || 0);
+      const s2 = parseFloat(document.getElementById("sub2").value || 0);
+      const s3 = parseFloat(document.getElementById("sub3").value || 0);
+      const s4 = parseFloat(document.getElementById("sub4").value || 0);
+      const total = s1 + s2 + s3 + s4;
+      const cutoff = (total / 4).toFixed(2);
+
+      document.getElementById("cutoffResult").textContent = cutoff;
+      document.getElementById("resultGroup").classList.remove("hidden");
+    }
