@@ -364,6 +364,10 @@
       <label>Email:</label>
       <input type="email" id="tcaEmail" placeholder="sajisyed24107@gmail.com" />
     </div>
+        <div class="form-group">
+      <label>Total Marks as per Marksheet:</label>
+      <input type="number" id="tcaTotalMarks" placeholder="487" min="0" />
+    </div>
     <div class="form-group">
       <label>Aadhaar Number (Optional):</label>
       <input type="text" id="tcaAadhar" placeholder="XXXX-XXXX-XXXX" maxlength="14" />
@@ -394,18 +398,45 @@
      <div class="form-group">
       <label>Application Number:<span style="color:red">*</span></label>
       <input type="text" id="tcaAppNumber" placeholder="Enter Application Number" required />
-    </div>
-       <div class="form-group">
-      <label>Date of Application:<span style="color:red">*</span></label>
-      <input type="date" id="tcaAppDate" required />
+    <div class="form-group">
+            <label>Date Of Application:<span style="color:red">*</span></label>
+            <input type="date" id ="tcaAppDate" name="applicationDate" required />
+            <script>
+              // Set max date to today
+              const todaytca = new Date().toISOString().split("T")[0];
+              document.getElementById("tcaAppDate").setAttribute("max", todaytca);
+            </script>
+          </div>
+    <div class="form-group">
+      <label>Mobile Number:<span style="color:red">*</span></label>
+       <div style="display: flex; gap: 5px;">
+              <select id="tcastdcode" required style="font-size: 15px; padding: 2px; width: 100px;">
+                <option value="+91">+91</option>
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+              </select>
+      <input type="tel" id="tcaMobile" placeholder="9171988686" maxlength="10" required />
+       </div>
     </div>
     <div class="form-group">
-      <label>Applicant Mobile Number:<span style="color:red">*</span></label>
-      <input type="tel" id="tcaMobile" placeholder="9171988686" maxlength="10" required />
+      <label>Alternate Mobile Number:</label>
+      <div style="display: flex; gap: 5px;">
+              <select id="tcastdcode2" required style="font-size: 15px; padding: 2px; width: 100px;">
+                <option value="+91">+91</option>
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+              </select>
+      <input type="tel" id="tcaMobile2" placeholder="9171988686" maxlength="10" required />
+    </div>
     </div>
     <div class="form-group">
-      <label>Alternate Mobile Number:<span style="color:red">*</span></label>
-      <input type="tel" id="tcaMobile" placeholder="9171988686" maxlength="10" required />
+      <label>Board of Study:</label>
+      <select id="tcaBoard">
+        <option value="">-- Select --</option>
+        <option>State Board</option>
+        <option>CBSE</option>
+        <option>ICSE</option>
+      </select>
     </div>
     <div class="form-group">
       <label>School Name:</label>
@@ -419,28 +450,12 @@
       <label>Year of Passing:</label>
       <input type="number" id="tcaYearPassing" placeholder="2024" min="2000" max="2030" />
     </div>
-    <div class="form-group">
-      <label>Board of Study:</label>
-      <select id="tcaBoard">
-        <option value="">-- Select --</option>
-        <option>State Board</option>
-        <option>CBSE</option>
-        <option>ICSE</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Pre-requisite Course:</label>
-      <input type="text" id="tcaPrerequisiteCourse" placeholder="Computer Appl./Commerce/Economics/Accountancy" />
-    </div>
-    <div class="form-group">
-      <label>Total Marks as per Marksheet:</label>
-      <input type="number" id="tcaTotalMarks" placeholder="487" min="0" />
-    </div>
- 
+     
   </div>
 
-      </div>
- <label for="degree">Select Degree:<span style="color:red">*</span></label>
+    </div>
+    <div class="form-group">
+ <label for="degree">Academic Degree Applying for:<span style="color:red">*</span></label>
 <select id="degree" onchange="showCourseOptions()">
   <option value="">-- Select Degree --</option>
   <option value="ba">BA</option>
@@ -449,14 +464,14 @@
   <option value="bca">BCA</option>
   <option value="bba">BBA</option>
 </select>
-
-<div id="courseGroup" style="display: none; margin-top: 10px;">
-  <label for="course">Select Course:<span style="color:red">*</span></label>
-  <select id="course">
+</div class="form-group">
+<div id="courseGroup" style="display: none; margin-top: 15px;">
+  <label for="tcacourse">Select Course:<span style="color:red">*</span></label>
+  <select id="tcacourse">
     <option value="">-- Select Course --</option>
   </select>
 </div>
-
+    </div>
 
     <!-- Add more TCA-specific fields if needed -->
       <h2>Recommender Details</h2>
@@ -465,59 +480,57 @@
   <div class="form-section">
     <div class="form-group">
       <label>Name:<span style="color:red">*</span></label>
-      <input type="text" id="nameInput2" placeholder="e.g., Arun Kumar S" required/>
+      <input type="text" id="tcarecName" placeholder="e.g., Arun Kumar S" required/>
     </div>
 
     <div class="form-group">
       <label>Affiliation:</label>
-      <input type="text" id ="affiliation"/>
+      <input type="text" id ="tcaaffiliation"/>
     </div>
 
     <div class="form-group">
       <label>Office Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="offcode" style="font-size: 12px; padding: 2px; width: 100px;">
-          <option value="">STD Code</option>
+        <select id="tcaoffcode" style="font-size: 12px; padding: 2px; width: 100px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
         </select>
-        <input type="tel" id="officePhone" placeholder="Enter 10-digit number" />
+        <input type="tel" id="tcaofficePhone" placeholder="Enter 10-digit number" />
       </div>
-      <small id="officePhone-error" style="color: red; display: none;">
+      <small id="tcaofficePhone-error" style="color: red; display: none;">
         Enter a valid 10-digit phone number.
       </small>
     </div>
 
     <div class="form-group">
       <label>Email Id:</label>
-      <input type="email" id="recEmail" />
+      <input type="email" id="tcarecEmail" />
     </div>
   </div>
 
   <div class="form-section">
     <div class="form-group">
       <label>Designation:</label>
-      <input type="text" id = recDes/>
+      <input type="text" id = "tcarecDes"/>
     </div>
 
     <div class="form-group">
       <label>Office Address:</label>
-      <input type="text" id="recAddress"/>
+      <input type="text" id="tcarecAddress"/>
     </div>
 
     <div class="form-group">
       <label>Personal Phone Number:</label>
       <div style="display: flex; gap: 5px;">
-        <select id="percode" style="font-size: 12px; padding: 2px; width: 100px;">
-          <option value="">STD Code</option>
+        <select id="tcapercode" style="font-size: 12px; padding: 2px; width: 100px;">
           <option value="+91">+91</option>
           <option value="+1">+1</option>
           <option value="+44">+44</option>
         </select>
-        <input type="tel" id="personalPhone" placeholder="Enter 10-digit number" />
+        <input type="tel" id="tcapersonalPhone" placeholder="Enter 10-digit number" />
       </div>
-      <small id="personalPhone-error" style="color: red; display: none;">
+      <small id="tcapersonalPhone-error" style="color: red; display: none;">
         Enter a valid 10-digit phone number.
       </small>
     </div>

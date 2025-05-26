@@ -14,11 +14,6 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
-  currentStatus="UNALLOCATED"
-  fetch(`${API_URL}?status=${currentStatus}`)
-    .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
-    .catch(error => console.error("Error loading students:", error));
 }
 fetch(SEATS_URL)
   .then(response => {
@@ -120,7 +115,6 @@ function populateFilters() {
 
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
-      document.getElementById("recommenderFilter").value = "all";
 
   if (selectedFilter === "Clear" || selectedFilter === "all") {
     renderStudents(allStudents);
@@ -176,10 +170,6 @@ function populateRecommenderFilter(students) {
   dropdown.appendChild(allOption);
 
   const recommenderSet = new Set();
-  const clearOption = document.createElement("option");
-  clearOption.value = "clear";
-  clearOption.textContent = "-- Clear Filter --";
-  dropdown.appendChild(clearOption);
 
   students.forEach(student => {
     const rec = student.recommenders?.[0];
@@ -197,6 +187,11 @@ function populateRecommenderFilter(students) {
     option.textContent = label;
     dropdown.appendChild(option);
   });
+  // Add "Clear" option
+  const clearOption = document.createElement("option");
+  clearOption.value = "clear";
+  clearOption.textContent = "-- Clear Filter --";
+  dropdown.appendChild(clearOption);
 
   
 }
@@ -206,9 +201,15 @@ function populateRecommenderFilter(students) {
 
 function filterByRecommender() {
   const selected = document.getElementById("recommenderFilter").value;
-  document.getElementById("combinedFilter").value = "all";
-  if (selected === "clear" || selected === "all") {
+
+  if (selected === "clear") {
     // Clear the filter and show all students
+    renderStudents(allStudents);
+    return;
+  }
+
+  if (selected === "all") {
+    // Show all students (same as the "all" option)
     renderStudents(allStudents);
     return;
   }
@@ -229,127 +230,79 @@ function filterByRecommender() {
 
 
 function renderStudents(students) {
-  const container = document.getElementById("studentList");
-  container.innerHTML = "";
+      const container = document.getElementById("studentList");
+      container.innerHTML = "";
 
-  const degreeMap = {
-    "b.e": "B.E. / B.Tech.",
-    "btech": "B.E. / B.Tech.",
-    "engineering": "B.E. / B.Tech.",
-    "msc": "M.Sc. DS ",
-    "bdes": "B.Des",
-    "barch": "B.Arch."
-  };
+      students.forEach(student => {
+        const row = document.createElement("div");
+        row.className = "student-row";
+        row.id = `student-${student.id}`;
 
-  const orderedDegreeKeys = ["b.e", "btech", "engineering", "msc", "bdes", "barch"];
+        const card = document.createElement("div");
+        card.className = "student-card";
 
-  // Group students by normalized degree key
-  const grouped = {};
-  students.forEach(student => {
-    const degreeKey = student.degree?.toLowerCase();
-    if (!grouped[degreeKey]) grouped[degreeKey] = [];
-    grouped[degreeKey].push(student);
-  });
+        let cutoff = "";
+        switch (student.degree.toLowerCase()) {
+          case "b.e":
+          case "btech":
+          case "engineering":
+            cutoff = student.engineering_cutoff;
+            break;
+          case "msc":
+            cutoff = student.msc_cutoff;
+            break;
+          case "bdes":
+            cutoff = student.bdes_cutoff;
+            break;
+          case "barch":
+            cutoff = student.barch_cutoff;
+            break;
+          default:
+            cutoff = "N/A";
+        }
 
-  let isFirstGroup = true;
+        card.innerHTML = `
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Application No:</strong> ${student.application_number}</p>
+          <p><strong>DOA:</strong> ${student.date_of_application}</p>
+          <p><strong>Degree:</strong> ${student.degree}</p>
+          <p><strong>Cut-Off:</strong> ${cutoff}</p>
+         <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        `;
 
-  for (const key of orderedDegreeKeys) {
-    const studentsList = grouped[key];
-    if (!studentsList || studentsList.length === 0) continue;
+        const recommender = student.recommenders?.[0] || {
+          name: "-",
+          affiliation: "-",
+          designation: "-"
+        };
 
-    if (!isFirstGroup) {
-  const divider = document.createElement("hr");
-  divider.className = "degree-divider"; // ✅ Add this line
-  container.appendChild(divider);
-}
+        const recommenderBox = document.createElement("div");
+        recommenderBox.className = "recommender-box";
+        recommenderBox.innerHTML = `
+          <p><strong>Recommender:</strong> ${recommender.name}</p>
+          <p><strong>Designation:</strong> ${recommender.designation}</p>
+          <p><strong>Company:</strong> ${recommender.affiliation}</p>
+        `;
 
-const title = document.createElement("h2");
-title.className = "degree-section-header";
-title.textContent = degreeMap[key] || key.toUpperCase();
-container.appendChild(title);
+        const actions = document.createElement("div");
+        actions.className = "action-buttons";
+        let withdrawOrDeleteBtn = "";
+        if (!isAdmin) {
+          withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
+        }
+        actions.innerHTML = `
+          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          ${withdrawOrDeleteBtn}
+        `;
 
-
-    studentsList.forEach(student => {
-      const row = document.createElement("div");
-      row.className = "student-row";
-      row.id = `student-${student.id}`;
-
-      const card = document.createElement("div");
-      card.className = "student-card";
-
-      let cutoff = "";
-      let deg = "";
-      switch (student.degree.toLowerCase()) {
-        case "b.e":
-        case "btech":
-        case "engineering":
-          cutoff = student.engineering_cutoff;
-          deg = degreeMap["b.e"];
-          break;
-        case "msc":
-          cutoff = student.msc_cutoff;
-          deg = degreeMap["msc"];
-          break;
-        case "bdes":
-          cutoff = student.bdes_cutoff;
-          deg = degreeMap["bdes"];
-          break;
-        case "barch":
-          cutoff = student.barch_cutoff;
-          deg = degreeMap["barch"];
-          break;
-        default:
-          cutoff = "N/A";
-      }
-
-      card.innerHTML = `
-        <p><strong>Name:</strong> ${student.name}</p>
-        <p><strong>Application No:</strong> ${student.application_number}</p>
-        <p><strong>DOA:</strong> ${student.date_of_application}</p>
-        <p><strong>Degree:</strong> ${deg}</p>
-        <p><strong>Cut-Off:</strong> ${cutoff}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-      `;
-
-      const recommender = student.recommenders?.[0] || {
-        name: "-",
-        affiliation: "-",
-        designation: "-"
-      };
-
-      const recommenderBox = document.createElement("div");
-      recommenderBox.className = "recommender-box";
-      recommenderBox.innerHTML = `
-        <p><strong>Recommender:</strong> ${recommender.name}</p>
-        <p><strong>Designation:</strong> ${recommender.designation}</p>
-        <p><strong>Company:</strong> ${recommender.affiliation}</p>
-      `;
-
-      const actions = document.createElement("div");
-      actions.className = "action-buttons";
-      let withdrawOrDeleteBtn = "";
-      if (!isAdmin) {
-        withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
-      }
-
-      actions.innerHTML = `
-        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
-        <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-        <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-        ${withdrawOrDeleteBtn}
-      `;
-
-      row.appendChild(card);
-      row.appendChild(recommenderBox);
-      row.appendChild(actions);
-      container.appendChild(row);
-    });
-
-    isFirstGroup = false;
-  }
-}
-
-
+        row.appendChild(card);
+        row.appendChild(recommenderBox);
+        row.appendChild(actions);
+        container.appendChild(row);
+      });
+    }
 
 const courseMap = {
   "CSE": "B.E. Computer Science and Engineering",
@@ -360,7 +313,7 @@ const courseMap = {
   "IT": "B.Tech. Information Technology",
   "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
-  "CIVIL": "B.E. Civil Engineering",
+  "Civil": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture"
@@ -432,7 +385,21 @@ function acceptStudent(id, branch) {
 
   // General case: BE courses
   else {
-    const branchesToShow = beCourses
+    const preferences = [
+      (student.branch_1 || "").toLowerCase(),
+      (student.branch_2 || "").toLowerCase(),
+      (student.branch_3 || "").toLowerCase()
+    ];
+
+    const isGeneral = preferences.includes("any branch");
+    const branchesToShow = isGeneral
+      ? beCourses
+      : preferences.filter(course =>
+          beCourses.map(c => c.toLowerCase()).includes(course)
+        ).map(course =>
+          // Normalize capitalization
+          beCourses.find(c => c.toLowerCase() === course)
+        );
 
     // Add a default option
     const defaultOption = document.createElement("option");
@@ -451,18 +418,11 @@ function acceptStudent(id, branch) {
     // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
+      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
         modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
-      } else if (["it", "mechatronics"].includes(selected)) {
-    // These branches don't support Aided
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
-    modeSelect.disabled = false;
-  } else {
+      } else {
         modeSelect.innerHTML = `
           <option value="">-- Select Mode --</option>
           <option value="aided">Aided</option>
@@ -505,7 +465,6 @@ function confirmSelection() {
     return;
   }
 
-  function sendApprovalRequest(isConfirm = false) {
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -513,49 +472,29 @@ function confirmSelection() {
       student_id: currentStudentId,
       status: "APPROVED",
       course: fullCourseName,
-      course_type: modeFormatted,
-      is_confirm: isConfirm
+      course_type: modeFormatted
     })
   })
-  .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      console.log("hello")
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendApprovalRequest(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
-      }
-    } else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(err => { throw new Error(err.error); });
     }
-
-    return data;
+    return res.json();
   })
-  .then((data) => {
-    if (data && data.message) {
-      alert(data.message);
-      document.getElementById("popup-overlay").style.display = "none";
-      removeCard(currentStudentId);
-      location.reload();
-    }
+  .then(data => {
+    alert(data.message);
+    document.getElementById("popup-overlay").style.display = "none";
+    removeCard(currentStudentId);
+    location.reload();
   })
-  .catch((err) => {
+  .catch(err => {
     console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
-  })
-  .finally(() => {
+    alert(`Failed to allot student: ${err.message}`);
+  });
     if (confirmButton) {
       confirmButton.disabled = false;
       confirmButton.innerText = "Allot";
     }
-  });
-}
-
-// Call it initially
-sendApprovalRequest();
-
 }
 
 
@@ -619,8 +558,6 @@ function onHoldStudent(id) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
-  const student = allStudents.find(s => s.id === id);
-  const studentName = student?.name || `ID ${id}`;
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -631,7 +568,7 @@ function onHoldStudent(id) {
   })
   .then(res => res.json())
   .then(data => {
-    alert(`Student ${studentName} is on hold.`);
+    alert(`Student ${id} is on hold.`);
     removeCard(id);
   })
   .catch(err => {
@@ -792,7 +729,11 @@ function showSeatPopup() {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totalSeats = 20; // If total seats per course fixed
+
       result.forEach((entry, index) => {
+        const remainingSeats = entry.remaining_seats || 0;
+        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -800,9 +741,9 @@ function showSeatPopup() {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${entry.total_seats}</td>
-          <td>${entry.allocated_seats}</td>
-          <td>${entry.remaining_seats}</td>
+          <td>${totalSeats}</td>
+          <td>${allocatedSeats}</td>
+          <td>${remainingSeats}</td>
         `;
 
         tableBody.appendChild(row);

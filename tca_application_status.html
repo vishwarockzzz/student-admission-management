@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Thiagarajar Group of Institutions - MQ Status Dashboard</title>
+  <link rel="stylesheet" href="completed.css" />
+</head>
+
+<body>
+<header>
+  <h1 class="header-title">Application Status</h1>
+  
+  <div class="header-buttons">
+    <div class="left">
+      <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
+      <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
+    </div>
+    <div class="right">
+      
+      <button class="nav-btn" onclick="goHome()">Logout</button>
+      <button class="nav-btn" onclick="goBack()">Back to Application process</button>
+    </div>
+  </div>
+</header>
+  
+ <div class="search-container">
+
+<div class="status-buttons">
+  <button class="active" onclick="loadStatus('APPROVED', this)">Alloted Application</button>
+  <button onclick="loadStatus('ONHOLD', this)">OnHold Application</button>
+  <button onclick="loadStatus('DECLINED', this)">Declined Application</button>
+  <button onclick="loadStatus('WITHDRAWN', this)">Withdrawn Application</button>
+</div>
+<div class="export-buttons">
+  <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted Students</button>
+  <button id="declinedBtn" onclick="generateTableView('DECLINED')" >Print Declined Students</button>
+</div>
+
+<!-- Popup Modal -->
+<div id="studentPopup">
+  <div id="studentTableContainer">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="popupTitle">Student Status</h3>
+      <button onclick="printStudentTable()">🖨️ Print</button>
+    </div>
+    
+    <table id="studentTable">
+      <thead><tr id="studentTableHead"></tr></thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+
+    <button onclick="closeStudentPopup()">Close</button>
+  </div>
+</div>
+
+
+
+
+  <div class="search-group">
+    <input id="searchInput" class="input-box" placeholder="Search for details..." />
+    <button class="submit-input" onclick="handleSearch()">Search</button>
+     <button class="clear-input" onclick="clearSearch()">Clear</button>
+  </div>
+</div>
+<div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
+<div id="tableViewContainer"></div>
+
+  <div class="content" id="studentCards">
+    <!-- Student cards will be inserted here -->
+  </div>
+</div>
+   <div id="declineModal" class="modal">
+    <div class="modal-content">
+      <h3>Decline Reason</h3>
+      <textarea id="declineComment" placeholder="Enter reason..." rows="4" style="width:100%;"></textarea>
+      <br/>
+      <button onclick="submitDecline()">Submit</button>
+      <button onclick="closeDeclineModal()">Cancel</button>
+    </div>
+  </div>
+
+  <div id="popup-overlay" class="popup-overlay" style="display:none">
+    <div class="popup">
+      <label for="branchSelect">Choose Branch:</label>
+      <select id="branchSelect">
+        <option value="CSE">CSE</option>
+        <option value="IT">IT</option>
+        <option value="ECE">ECE</option>
+      </select>
+
+      <label for="modeSelect">Select Mode:</label>
+      <select id="modeSelect">
+        <option value="Aided">Aided</option>
+        <option value="Self Finance">Self Finance</option>
+      </select>
+
+      <button onclick="confirmSelection()">Confirm</button>
+      <button onclick="closeSelectionModal()">Cancel</button>
+    </div>
+  </div>
+  <!-- View More Popup -->
+  <div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
+    <div class="popup bordered-popup">
+      <h2 class="popup-title">Student Application Details</h2>
+      <div class="form-two-column" id="viewMoreContent"></div>
+      <button onclick="closeViewMore()" class="close-btn">Close</button>
+    </div>
+  </div>
+    <div id="seatPopup">
+  <div id="seatsTableContainer">
+  <h3>Seat Status</h3>
+  
+  <table border="1" width="100%" id="seatTable">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Course Name</th>
+        <th>Total Seats</th>
+        <th>Allocated Seats</th>
+        <th>Remaining Seats</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <button onclick="printSeatsTable()">🖨️ Print Table</button>
+<div id="tableViewContainer"></div>
+
+  <br>
+  <button onclick="closeSeatPopup()">Close</button>
+</div>
+  <script src="env.js"></script>
+  <script src="completed.js"></script>
+</body>
+
+</html>

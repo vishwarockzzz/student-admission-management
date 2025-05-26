@@ -399,6 +399,23 @@ header {
 
 
 /* One card takes ~48% width so two fit per row with some gap */
+.student-row {
+  flex-wrap: wrap;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  min-width: 500px; /* Prevent card from shrinking too small */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  background-color: rgb(212, 188, 90);
+  border: 2px solid black;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+}
 
 
 /* Set a consistent fixed height & proportional layout */
@@ -667,26 +684,4 @@ button {
 
 .modal-content button:hover {
   background-color: darkred;
-}
-.degree-title-container {
-  width: 100%;       /* full width */
-  font-size: 15px;
-  text-align: center; /* center the degree title */
-  margin-bottom: 15px;
-  color:#800000;
-}
-.degree-section-header {
-  font-size: 22px;
-  font-weight: bold;
-  color: #222;
-  text-align: center;
-  margin: 40px 0 20px 0; /* space above and below */
-  width: 100%; /* force full width so next line starts below */
-  display: block;
-}
-.degree-divider {
-  border: none;
-  border-top: 2px solid #555;
-  margin: 40px 0 20px;
-  width: 100%;
 }
