@@ -1,6 +1,6 @@
-const API_URL = `${window.env.BASE_URL}/students`;
-const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
-const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+const API_URL = `${window.env.BASE_URL}/tcarts/students`;
+const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
+const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
 
 function goHome() {
     window.location.href = 'index.html'; 

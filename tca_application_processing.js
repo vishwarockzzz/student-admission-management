@@ -1,9 +1,9 @@
 
-const API_URL = `${window.env.BASE_URL}/students`;
+const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 console.log(API_URL);
-const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
+const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
 
-const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+const SEATS_URL =`${window.env.BASE_URL}tcarts/statusdetails`;
 
 let result = [];
 let seats = {};
