@@ -519,7 +519,7 @@ async function handleSubmitTca(event) {
   community: clean(document.getElementById("tcaCommunity")?.value),
   college: clean(selectedCollege),
   board: clean(document.getElementById("tcaBoard")?.value),
-  year: clean(document.getElementById("year")?.value),
+  year: clean(document.getElementById("tcayear")?.value),
   applicationstatus: clean(document.getElementById("tcaapplicationStatus")?.value),
   degreeType : clean(document.getElementById("tcaDegreeType")?.value),
   course: clean(document.getElementById("tcaCourse")?.value),
