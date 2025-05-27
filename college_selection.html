@@ -1,46 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Thiagarajar Group of Institutions Dashboard</title>
-  <link rel="stylesheet" href="college_selection.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TCE Login</title>
+  <link rel="stylesheet" href="temp.css" />
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <img src="static/images/Thiagarajar_College_of_Engineering_logo.png" alt="TCE Logo" class="logo">
-      <div class="college-info">
-        <h1>Thiagarajar College of Engineering</h1>
-        <div class="sub-info">
-          <span>68 YEARS</span>
-          <span>1957–2025</span>
-          <span class="sub-text">Celebrating Academic Excellence</span>
-        </div>
-        <p class="tagline">where quality and ethics matter</p>
-      </div>
+
+  <!-- Maroon Top Bar -->
+  <div class="header-maroon"></div>
+
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <img class="side-image" src="static/images/TCE LOGIN.png" alt="TCE Image" />
+    
+    <div class="title-text">
+      Thiagarajar Group of Institutions:<br>
+      Management Quota Application Dashboard
     </div>
+    
+    <img class="side-image" src="static/images/TCA LOGIN.png" alt="TCA Image" />
+  </div>
 
-    <div class="header-center">
-      <h2>
-        Thiagarajar Group of Institutions:<br>
-        <span>Management Quota Application</span><br>
-        <span>Dashboard</span>
-      </h2>
-    </div>
+  <!-- Institution Buttons -->
+  <div class="button-container">
+    <a href="upcoming_request.html" class="institution-button">
+      <img src="static/images/Thiagarajar_College_of_Engineering_logo.png" alt="TCE Logo">
+    </a>
+    
+    <a href="tca_application_processing.html" class="institution-button">
+      <img src="static/images/Thiagarajar_College_Arts_and_Science_logo.png" alt="TCA Logo">
+    </a>
+  </div>
 
-    <div class="header-right">
-      <img src="static/images/Thiagarajar_College_Arts_and_Science_logo.png" alt="TCA Logo" class="tc-logo">
-    </div>
-  </header>
-
-  <main>
-<div class="button-container">
-  <a href="upcoming_request.html"><button class="nav-button">TCE</button></a>
-  <a href="tca_application_processing.html"><button class="nav-button">TCA</button></a>
-</div>
-
-  </main>
-    <script src="env.js"></script>
-  <script src="college_selection.js"></script>
+  <script src="env.js"></script>
 </body>
 </html>
