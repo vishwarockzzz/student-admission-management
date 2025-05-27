@@ -1,5 +1,5 @@
 const API_URL = `${window.env.BASE_URL}/students`;
-const API_URL_TCA =`${window.env.BASE_URL}`
+const API_URL_TCA =`${window.env.BASE_URL}/tcarts/students`
   function goHome() {
     window.location.href = 'index.html'; 
    // Change to your actual login route
@@ -25,6 +25,10 @@ buttons.forEach(button => {
 });
 function goToUpdateRequestPage() {
   window.location.href = "upcoming_request.html";
+  // Replace with your actual update request page URL
+}
+function goToUpdateRequestPagetca() {
+  window.location.href = "tca_application_processing.html";
   // Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
@@ -239,39 +243,6 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     document.getElementById('personalPhone').addEventListener('input', () => {
       validatePhone('personalPhone', 'personalPhone-error');
     });
-    function showCourseOptions() {
-      const degree = document.getElementById("degree").value;
-      const courseGroup = document.getElementById("courseGroup");
-      const courseSelect = document.getElementById("course");
-
-      const courses = {
-        ba: ["English", "Tamil", "History"],
-        bsc: [
-          "Computer Science", "Mathematics", "Physics", "Chemistry",
-          "Zoology", "Biotechnology", "Electronics", "Psychology",
-          "Information Technology", "Fashion Technology", "Visual Communication", "Data Science"
-        ],
-        bcom: ["General", "Computer Applications", "Professional Accounting"],
-        bca: ["Computer Applications"],
-        bba: ["Business Administration"]
-      };
-
-      // Clear existing options
-      courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
-
-      if (courses[degree]) {
-        courses[degree].forEach(course => {
-          const option = document.createElement("option");
-          option.value = course;
-          option.textContent = course;
-          courseSelect.appendChild(option);
-        });
-        courseGroup.style.display = "block";
-      } else {
-        courseGroup.style.display = "none";
-      }
-    }
-  
   async function handleSubmit(event) {
   event.preventDefault();
 
@@ -525,55 +496,55 @@ async function handleSubmitTca(event) {
 
   // Utility function to clean values
   function clean(value, type = "string") {
-    if (value === undefined || value === null || value.trim() === "") return null;
-    if (type === "float") return parseFloat(value);
-    return value.trim();
+  if (value === null || value === undefined || value === "") return null;
+  if (type === "float") {
+    const floatVal = parseFloat(value);
+    return isNaN(floatVal) ? null : floatVal;
   }
+  return value.trim();
+}
 
-  const degree = document.getElementById("degree")?.value;
+  const degree = document.getElementById("tcaDegree")?.value;
 
   const formData = {
-    application_number: clean(document.getElementById("applicationNumber")?.value),
-    name: clean(document.getElementById("nameInput")?.value),
-    email: clean(document.getElementById("email")?.value),
-    address: clean(document.getElementById("address")?.value),
-    parent_annual_income: clean(document.getElementById("parentsincome")?.value),
-    school: clean(document.getElementById("school")?.value),
-    district: clean(document.getElementById("district")?.value),
-    twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
-    date_of_application: clean(document.getElementById("applicationDate")?.value),
-    applicationstatus: clean(document.getElementById("applicationStatus")?.value),
-    stdcode: clean(document.getElementById("stucode")?.value),
-    phone_number: clean(document.getElementById("phone")?.value),
-    aadhar_number: clean(document.getElementById("aadhar")?.value),
-    community: clean(document.getElementById("community")?.value),
-    college: clean(selectedCollege),
-    board: clean(document.getElementById("boardSelect")?.value),
-    year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
-    degree: clean(degree),
-    maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
-    physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
-    chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
-    nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
-    engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
-    msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
-    barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
-    bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
-    branch_1: clean(document.getElementById("pref1")?.value),
-    branch_2: clean(document.getElementById("pref2")?.value),
-    branch_3: clean(document.getElementById("pref3")?.value),
-    recommender: {
-      name: clean(document.getElementById("nameInput2")?.value),
-      designation: clean(document.getElementById("recDes")?.value),
-      affiliation: clean(document.getElementById("affiliation")?.value),
-      office_address: clean(document.getElementById("recAddress")?.value),
-      office_phone_number: clean(document.getElementById("officePhone")?.value),
-      personal_phone_number: clean(document.getElementById("personalPhone")?.value),
-      email: clean(document.getElementById("recEmail")?.value),
-      offcode: clean(document.getElementById("offcode")?.value),
-      percode: clean(document.getElementById("percode")?.value),
-    }
-  };
+  application_number: clean(document.getElementById("tcaAppNumber")?.value),
+  name: clean(document.getElementById("tcaName")?.value),
+  date_of_birth: clean(document.getElementById("tcaDOB")?.value), // Added for DOB
+  gender :clean(document.getElementById("tcaSex")?.value),
+  school: clean(document.getElementById("tcaSchool")?.value),
+  address: clean(document.getElementById("tcaAddress")?.value),
+  email: clean(document.getElementById("tcaEmail")?.value),
+  phone_number: clean(document.getElementById("tcaMobile")?.value),
+  alternate_number: clean(document.getElementById("tcaMobile2")?.value),
+  community: clean(document.getElementById("tcaCommunity")?.value),
+  college: clean(selectedCollege),
+  board: clean(document.getElementById("tcaBoard")?.value),
+  year: clean(document.getElementById("year")?.value),
+  applicationstatus: clean(document.getElementById("tcaapplicationStatus")?.value),
+  degreeType : clean(document.getElementById("tcaDegreeType")?.value),
+  course: clean(document.getElementById("tcaCourse")?.value),
+  degree: clean(degree),
+  subject1: clean(document.getElementById("sub1")?.value, "float"),
+  subject2: clean(document.getElementById("sub2")?.value, "float"),
+  subject3: clean(document.getElementById("sub3")?.value, "float"),
+  subject4: clean(document.getElementById("sub4")?.value, "float"),
+  twelfth_mark: clean(document.getElementById("tcaTotalMarks")?.value, "float"),
+  date_of_application: clean(document.getElementById("tcaAppDate")?.value),
+  aadhar_number: clean(document.getElementById("tcaAadhar")?.value),
+  cutoff: clean(document.getElementById("tcacutoff")?.value),
+  recommender: {
+    name: clean(document.getElementById("tcarecName")?.value),
+    designation: clean(document.getElementById("tcarecDes")?.value),
+    affiliation: clean(document.getElementById("tcaaffiliation")?.value),
+    office_address: clean(document.getElementById("tcarecAddress")?.value),
+    office_phone_number: clean(document.getElementById("tcaofficePhone")?.value),
+    personal_phone_number: clean(document.getElementById("tcapersonalPhone")?.value),
+    email: clean(document.getElementById("tcarecEmail")?.value),
+    offcode: clean(document.getElementById("tcaoffcode")?.value),
+    percode: clean(document.getElementById("tcapercode")?.value),
+  }
+};
+
 
   fetch(API_URL_TCA, {
     method: "POST",
@@ -610,95 +581,141 @@ function submitFormData() {
 
 //TCA form
 
-const aidedCourses = {
-      "B.A.": ["Tamil", "English", "Economics (Tamil Medium)"],
-      "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology", "Computer Science"],
-      "B.Com.": [],
-      "B.B.A.": [],
-      "M.A.": ["Tamil", "English", "Economics"],
-      "M.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology"]
-    };
+  const aidedCourses = {
+    "B.A.": ["Tamil", "English", "Economics (Tamil Medium)"],
+    "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology", "Computer Science"],
+    "B.Com.": [],
+    "B.B.A.": []
+  };
 
-    const sfCourses = {
-      "B.A.": ["Tamil", "English", "Economics (English Medium)"],
-      "B.Com. (Professional Accounting)": [],
-      "B.Com. (Computer Applications)": [],
-      "B.Com. (Honours)": [],
-      "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
-      "M.Com.": ["ICWAI Integrated"],
-      "M.Sc.": ["Mathematics", "Computer Science", "Chemistry", "Microbiology", "Biotechnology", "Psychology"],
-      "B.B.A.": [],
-      "B.C.A.": [],
-      "New Programmes": ["B.Com. (Fintech)", "B.Sc. Computer Science in AI", "MBA*"]
-    };
+  const sfCourses = {
+    "B.A.": ["Tamil", "English", "Economics (English Medium)"],
+    "B.Com. (Professional Accounting)": [],
+    "B.Com. (Computer Applications)": [],
+    "B.Com. (Honours)": [],
+    "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
+    "B.B.A.": [],
+    "B.C.A.": [],
+    "B.Com. (Fintech)": [],
+    "B.Sc. Computer Science (Artificial Intelligence)": []
+  };
 
-    const degreeSelect = document.getElementById("degreeSelect");
-    const courseSelect = document.getElementById("courseSelect");
+  const degreeTypeSelect = document.getElementById('tcaDegreeType');
+  const degreeSelect = document.getElementById('tcaDegree');
+  const courseSelect = document.getElementById('tcaCourse');
 
-    document.getElementById("tcamode").addEventListener("change", function () {
-      const mode = this.value;
-      degreeSelect.innerHTML = "<option value=''>-- Select Degree --</option>";
-      courseSelect.innerHTML = "";
-      document.getElementById("courseGroup").classList.add("hidden");
-      document.getElementById("subjectGroup").classList.add("hidden");
-      document.getElementById("submitGroup").classList.add("hidden");
-      document.getElementById("resultGroup").classList.add("hidden");
+  const degreeStep = document.getElementById('degreeStep');
+  const courseStep = document.getElementById('courseStep');
+  const marksStep = document.getElementById('marksStep');
 
-      const data = mode === "Aided" ? aidedCourses : mode === "Self-Finance" ? sfCourses : null;
-      if (data) {
-        for (const deg in data) {
-          const option = document.createElement("option");
-          option.value = deg;
-          option.textContent = deg;
-          degreeSelect.appendChild(option);
-        }
-        document.getElementById("degreeGroup").classList.remove("hidden");
-      } else {
-        document.getElementById("degreeGroup").classList.add("hidden");
-      }
-    });
+  degreeTypeSelect.addEventListener('change', () => {
+    const selectedType = degreeTypeSelect.value;
+    degreeSelect.innerHTML = `<option value="">-- Select --</option>`;
+    courseSelect.innerHTML = `<option value="">-- Select --</option>`;
+    courseStep.style.display = 'none';
+    marksStep.style.display = 'none';
 
-    degreeSelect.addEventListener("change", function () {
-      const degree = this.value;
-      const mode = document.getElementById("tcamode").value;
-      const data = mode === "Aided" ? aidedCourses : sfCourses;
+    let courseData = selectedType === 'Aided' ? aidedCourses : selectedType === 'Self-Finance' ? sfCourses : null;
 
-      courseSelect.innerHTML = "<option value=''>-- Select Course --</option>";
-      const courses = data[degree] || [];
+    if (courseData) {
+      Object.keys(courseData).forEach(degree => {
+        const option = document.createElement('option');
+        option.value = degree;
+        option.textContent = degree;
+        degreeSelect.appendChild(option);
+      });
+      degreeStep.style.display = 'block';
+    } else {
+      degreeStep.style.display = 'none';
+    }
+  });
 
-      if (courses.length) {
+  degreeSelect.addEventListener('change', () => {
+    const selectedType = degreeTypeSelect.value;
+    const selectedDegree = degreeSelect.value;
+    const courseData = selectedType === 'Aided' ? aidedCourses : sfCourses;
+
+    courseSelect.innerHTML = `<option value="">-- Select --</option>`;
+    marksStep.style.display = 'none';
+
+    if (selectedDegree && courseData[selectedDegree]) {
+      const courses = courseData[selectedDegree];
+      if (courses.length > 0) {
         courses.forEach(course => {
-          const option = document.createElement("option");
+          const option = document.createElement('option');
           option.value = course;
           option.textContent = course;
           courseSelect.appendChild(option);
         });
-        document.getElementById("courseGroup").classList.remove("hidden");
+        courseStep.style.display = 'block';
       } else {
-        document.getElementById("courseGroup").classList.add("hidden");
-        document.getElementById("subjectGroup").classList.remove("hidden");
-        document.getElementById("submitGroup").classList.remove("hidden");
+        // No courses → Skip course step
+        courseStep.style.display = 'none';
+        marksStep.style.display = 'block';
       }
-
-      document.getElementById("resultGroup").classList.add("hidden");
-    });
-
-    courseSelect.addEventListener("change", function () {
-      if (this.value) {
-        document.getElementById("subjectGroup").classList.remove("hidden");
-        document.getElementById("submitGroup").classList.remove("hidden");
-        document.getElementById("resultGroup").classList.add("hidden");
-      }
-    });
-
-    function calculateCutoff() {
-      const s1 = parseFloat(document.getElementById("sub1").value || 0);
-      const s2 = parseFloat(document.getElementById("sub2").value || 0);
-      const s3 = parseFloat(document.getElementById("sub3").value || 0);
-      const s4 = parseFloat(document.getElementById("sub4").value || 0);
-      const total = s1 + s2 + s3 + s4;
-      const cutoff = (total / 4).toFixed(2);
-
-      document.getElementById("cutoffResult").textContent = cutoff;
-      document.getElementById("resultGroup").classList.remove("hidden");
+    } else {
+      courseStep.style.display = 'none';
     }
+  });
+
+  courseSelect.addEventListener('change', () => {
+    if (courseSelect.value) {
+      marksStep.style.display = 'block';
+    } else {
+      marksStep.style.display = 'none';
+    }
+  });
+function validatePhone(inputId, errorId) {
+      const phone = document.getElementById(inputId).value;
+      const isValid = /^\d{10}$/.test(phone);
+      document.getElementById(errorId).style.display = isValid ? 'none' : 'block';
+    }
+  
+    document.getElementById('tcaofficePhone').addEventListener('input', () => {
+      validatePhone('tcaofficePhone', 'tcaofficePhone-error');
+    });
+  
+    document.getElementById('tcapersonalPhone').addEventListener('input', () => {
+      validatePhone('tcapersonalPhone', 'tcapersonalPhone-error');
+    });
+
+    document.getElementById('tcaMobile').addEventListener('input', function () {
+    const phone = this.value;
+    const isValid = /^[0-9]{10}$/.test(phone);
+    document.getElementById('tcaMobile-error').style.display = isValid ? 'none' : 'block';
+  });
+ document.getElementById('tcaMobile2').addEventListener('input', function () {
+    const phone = this.value;
+    const isValid = /^[0-9]{10}$/.test(phone);
+    document.getElementById('tcaMobile2-error').style.display = isValid ? 'none' : 'block';
+  });
+  document.getElementById('tcaTotalMarks').addEventListener('input', function () {
+    const value = parseInt(this.value);
+    const error = document.getElementById('twelthMark-error');
+
+    if (isNaN(value) || value < 0 || value > 600) {
+      error.style.display = 'block';
+    } else {
+      error.style.display = 'none';
+    }
+  });
+
+// document.getElementById('tcaAadhar').addEventListener('input', function () {
+//   let input = this.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+
+//   // Limit to 12 digits
+//   if (input.length > 12) input = input.slice(0, 12);
+
+//   // Format: 4 4 4 (XXXX XXXX XXXX)
+//   const formatted = input.replace(/(\d{4})(?=\d)/g, '$1 ');
+//   this.value = formatted;
+
+//   const errorEl = document.getElementById('tcaAadhar-error');
+
+//   // Show error only if input is not empty and not 12 digits
+//   if (input.length === 0 || input.length === 12) {
+//     errorEl.style.display = 'none';
+//   } else {
+//     errorEl.style.display = 'block';
+//   }
+// });

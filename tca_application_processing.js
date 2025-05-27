@@ -99,50 +99,94 @@ function handleSearch(status) {
 function populateFilters() {
   const filterElement = document.getElementById("combinedFilter");
 
-  // Options for departments and degrees
-  const options = [
-    "CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+  // Clear existing options
+  filterElement.innerHTML = '<option value="">-- Select --</option>';
+
+  // Aided UG Courses
+  const aidedUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (Tamil Medium)",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Botany",
+    "B.Sc. - Zoology",
+    "B.Sc. - Computer Science",
+    "B.Com.",
+    "B.B.A."
   ];
 
-  // Populate the dropdown
-  options.forEach(option => {
-    const optElement = document.createElement("option");
-    optElement.value = option;
-    optElement.text = option;
-    filterElement.appendChild(optElement);
+  // Self-Finance UG Courses
+  const sfUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (English Medium)",
+    "B.Com. (Professional Accounting)",
+    "B.Com. (Computer Applications)",
+    "B.Com. (Honours)",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Biotechnology",
+    "B.Sc. - Microbiology",
+    "B.Sc. - Computer Science",
+    "B.Sc. - Information Technology",
+    "B.Sc. - Psychology",
+    "B.Sc. - Data Science",
+    "B.B.A.",
+    "B.C.A.",
+    "B.Com. (Fintech)",
+    "B.Sc. Computer Science in AI"
+  ];
+
+  // Add Aided options
+  const aidedOptGroup = document.createElement("optgroup");
+  aidedOptGroup.label = "Aided";
+  aidedUG.forEach(course => {
+    const opt = document.createElement("option");
+    opt.value = `Aided - ${course}`;
+    opt.text = `Aided - ${course}`;
+    aidedOptGroup.appendChild(opt);
   });
+  filterElement.appendChild(aidedOptGroup);
+
+  // Add SF options
+  const sfOptGroup = document.createElement("optgroup");
+  sfOptGroup.label = "Self-Finance";
+  sfUG.forEach(course => {
+    const opt = document.createElement("option");
+    opt.value = `Self-Finance - ${course}`;
+    opt.text = `Self-Finance - ${course}`;
+    sfOptGroup.appendChild(opt);
+  });
+  filterElement.appendChild(sfOptGroup);
 }
 
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
 
-  if (selectedFilter === "Clear" || selectedFilter === "all") {
+  if (selectedFilter === "Clear" || selectedFilter === "all" || selectedFilter === "") {
     renderStudents(allStudents);
     return;
   }
 
-  const filteredStudents = allStudents.filter(student => {
-    const departments = [student.branch_1, student.branch_2, student.branch_3];
-    const degree = student.degree;
+const [type, degree, course] = selectedFilter.split(" - ").map(part => part.trim().toLowerCase());
 
-    const degreeMatches = {
-      "BE/BTECH": ["btech"],
-      "M.SC DATA SCIENCE": ["msc"],
-      "B.DES": ["bdes"],
-      "B.ARCH": ["barch"]
-    };
+const filteredStudents = allStudents.filter(student => {
+  const degreeType = student.degreeType?.toLowerCase() || "";
+  const studentDegree = student.degree?.toLowerCase() || "";
+  const studentCourse = student.course?.toLowerCase() || "";
 
-    if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"].includes(selectedFilter)) {
-      return departments.includes(selectedFilter);
-    }
+  return (
+    degreeType === type &&
+    studentDegree === degree &&(
+    studentCourse === course || studentCourse =="")
+  );
+});
 
-    if (Object.keys(degreeMatches).includes(selectedFilter)) {
-      return degreeMatches[selectedFilter].includes(degree);
-    }
-    
-    return false;
-  });
-renderStudents(filteredStudents);
+
+  renderStudents(filteredStudents);
 }
 
 
@@ -230,94 +274,111 @@ function filterByRecommender() {
 
 
 function renderStudents(students) {
-      const container = document.getElementById("studentList");
-      container.innerHTML = "";
+  const container = document.getElementById("studentList");
+  container.innerHTML = "";
 
-      students.forEach(student => {
-        const row = document.createElement("div");
-        row.className = "student-row";
-        row.id = `student-${student.id}`;
+  // Group students by "type - course"
+  const grouped = {};
+  students.forEach(student => {
+    const type = student.degreeType?.trim() || "Unknown"; // e.g., "Aided" or "Self-Finance"
+    const degree = student.degree?.trim() || "Unknown";
+    const course = student.course?.trim();
+    const coursePart = course && course.toLowerCase() !== "unknown" ? ` - ${course}` : "";
 
-        const card = document.createElement("div");
-        card.className = "student-card";
+    const key = `${type} - ${degree}${coursePart}`;
 
-        let cutoff = "";
-        switch (student.degree.toLowerCase()) {
-          case "b.e":
-          case "btech":
-          case "engineering":
-            cutoff = student.engineering_cutoff;
-            break;
-          case "msc":
-            cutoff = student.msc_cutoff;
-            break;
-          case "bdes":
-            cutoff = student.bdes_cutoff;
-            break;
-          case "barch":
-            cutoff = student.barch_cutoff;
-            break;
-          default:
-            cutoff = "N/A";
-        }
+  if (!grouped[key]) grouped[key] = [];
+  grouped[key].push(student);
+});
 
-        card.innerHTML = `
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>Application No:</strong> ${student.application_number}</p>
-          <p><strong>DOA:</strong> ${student.date_of_application}</p>
-          <p><strong>Degree:</strong> ${student.degree}</p>
-          <p><strong>Cut-Off:</strong> ${cutoff}</p>
-         <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-        `;
+// Sort keys: Aided groups first, then SF, then alphabetically within each
+const orderedKeys = Object.keys(grouped).sort((a, b) => {
+  const [typeA] = a.split(" - ");
+  const [typeB] = b.split(" - ");
+  return typeA.toLowerCase() === "aided" && typeB.toLowerCase() !== "aided"
+    ? -1
+    : typeA.toLowerCase() !== "aided" && typeB.toLowerCase() === "aided"
+    ? 1
+    : a.localeCompare(b);
+});
+let isFirstGroup = true;
 
-        const recommender = student.recommenders?.[0] || {
-          name: "-",
-          affiliation: "-",
-          designation: "-"
-        };
+  orderedKeys.forEach(groupKey => {
+    const studentsList = grouped[groupKey];
+    if (!studentsList || studentsList.length === 0) return;
 
-        const recommenderBox = document.createElement("div");
-        recommenderBox.className = "recommender-box";
-        recommenderBox.innerHTML = `
-          <p><strong>Recommender:</strong> ${recommender.name}</p>
-          <p><strong>Designation:</strong> ${recommender.designation}</p>
-          <p><strong>Company:</strong> ${recommender.affiliation}</p>
-        `;
-
-        const actions = document.createElement("div");
-        actions.className = "action-buttons";
-        let withdrawOrDeleteBtn = "";
-        if (!isAdmin) {
-          withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
-        }
-        actions.innerHTML = `
-          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
-          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-          ${withdrawOrDeleteBtn}
-        `;
-
-        row.appendChild(card);
-        row.appendChild(recommenderBox);
-        row.appendChild(actions);
-        container.appendChild(row);
-      });
+    if (!isFirstGroup) {
+      const divider = document.createElement("hr");
+      divider.className = "degree-divider";
+      container.appendChild(divider);
     }
 
-const courseMap = {
-  "CSE": "B.E. Computer Science and Engineering",
-  "ECE": "B.E. Electronics and Communication Engineering",
-  "EEE": "B.E. Electrical and Electronics Engineering",
-  "MECHANICAL": "B.E. Mechanical Engineering",
-  "MECHATRONICS": "B.E. Mechatronics",
-  "IT": "B.Tech. Information Technology",
-  "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
-  "CSBS": "B.Tech. Computer Science and Business Systems",
-  "Civil": "B.E. Civil Engineering",
-  "MSC DATA SCIENCE": "Msc. Data Science",
-  "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
-};
+    const title = document.createElement("h2");
+    title.className = "degree-section-header";
+    title.textContent = groupKey;
+    container.appendChild(title);
+
+    studentsList.forEach(student => {
+      const row = document.createElement("div");
+      row.className = "student-row";
+      row.id = `student-${student.id}`;
+
+      const card = document.createElement("div");
+      card.className = "student-card";
+      const type = student.degreeType?.trim() || "Unknown";
+      const degree = student.degree?.trim() || "Unknown";
+      const course = student.course?.trim() || "Unknown";
+      const key = course.toLowerCase() !== "unknown"
+        ? `${type} - ${degree} - ${course}`
+        : `${type} - ${degree}`;
+
+      card.innerHTML = `
+        <p><strong>Name:</strong> ${student.name}</p>
+        <p><strong>Application No:</strong> ${student.application_number}</p>
+        <p><strong>DOA:</strong> ${student.date_of_application}</p>
+        <p><strong>Course:</strong> ${key}</p>
+        <p><strong>Total Mark:</strong> ${student.twelfth_mark}</p>
+        <p><strong>Cut-Off:</strong> ${student.cutoff || "N/A"}</p>
+        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+      `;
+
+      const recommender = student.recommenders?.[0] || {
+        name: "-",
+        affiliation: "-",
+        designation: "-"
+      };
+
+      const recommenderBox = document.createElement("div");
+      recommenderBox.className = "recommender-box";
+      recommenderBox.innerHTML = `
+        <p><strong>Recommender:</strong> ${recommender.name}</p>
+        <p><strong>Designation:</strong> ${recommender.designation}</p>
+        <p><strong>Company:</strong> ${recommender.affiliation}</p>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "action-buttons";
+      let withdrawOrDeleteBtn = "";
+      if (!isAdmin) {
+        withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
+      }
+
+      actions.innerHTML = `
+        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+        <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+        <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+        ${withdrawOrDeleteBtn}
+      `;
+
+      row.appendChild(card);
+      row.appendChild(recommenderBox);
+      row.appendChild(actions);
+      container.appendChild(row);
+    });
+
+    isFirstGroup = false;
+  });
+}
 function acceptStudent(id, branch) {
   currentStudentId = id;
   const student = allStudents.find(s => s.id === id);
@@ -385,21 +446,7 @@ function acceptStudent(id, branch) {
 
   // General case: BE courses
   else {
-    const preferences = [
-      (student.branch_1 || "").toLowerCase(),
-      (student.branch_2 || "").toLowerCase(),
-      (student.branch_3 || "").toLowerCase()
-    ];
-
-    const isGeneral = preferences.includes("any branch");
-    const branchesToShow = isGeneral
-      ? beCourses
-      : preferences.filter(course =>
-          beCourses.map(c => c.toLowerCase()).includes(course)
-        ).map(course =>
-          // Normalize capitalization
-          beCourses.find(c => c.toLowerCase() === course)
-        );
+    const branchesToShow = beCourses
 
     // Add a default option
     const defaultOption = document.createElement("option");
@@ -418,11 +465,18 @@ function acceptStudent(id, branch) {
     // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
+      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
         modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
-      } else {
+      } else if (["it", "mechatronics"].includes(selected)) {
+    // These branches don't support Aided
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else {
         modeSelect.innerHTML = `
           <option value="">-- Select Mode --</option>
           <option value="aided">Aided</option>
@@ -465,6 +519,7 @@ function confirmSelection() {
     return;
   }
 
+  function sendApprovalRequest(isConfirm = false) {
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -472,29 +527,49 @@ function confirmSelection() {
       student_id: currentStudentId,
       status: "APPROVED",
       course: fullCourseName,
-      course_type: modeFormatted
+      course_type: modeFormatted,
+      is_confirm: isConfirm
     })
   })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(err => { throw new Error(err.error); });
+  .then(async (res) => {
+    const data = await res.json().catch(() => ({})); // protect against invalid JSON
+    if (res.status === 409) {
+      console.log("hello")
+      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      if (proceed) {
+        return sendApprovalRequest(true); // Retry with confirmation
+      } else {
+        throw new Error("Operation cancelled by user.");
+      }
+    } else if (!res.ok) {
+      throw new Error(data.error || "An unknown error occurred.");
     }
-    return res.json();
+
+    return data;
   })
-  .then(data => {
-    alert(data.message);
-    document.getElementById("popup-overlay").style.display = "none";
-    removeCard(currentStudentId);
-    location.reload();
+  .then((data) => {
+    if (data && data.message) {
+      alert(data.message);
+      document.getElementById("popup-overlay").style.display = "none";
+      removeCard(currentStudentId);
+      location.reload();
+    }
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("Error approving student:", err);
-    alert(`Failed to allot student: ${err.message}`);
-  });
+    alert(`Failed to approve student: ${err.message}`);
+  })
+  .finally(() => {
     if (confirmButton) {
       confirmButton.disabled = false;
       confirmButton.innerText = "Allot";
     }
+  });
+}
+
+// Call it initially
+sendApprovalRequest();
+
 }
 
 
@@ -558,6 +633,8 @@ function onHoldStudent(id) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+  const student = allStudents.find(s => s.id === id);
+  const studentName = student?.name || `ID ${id}`;
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -568,7 +645,7 @@ function onHoldStudent(id) {
   })
   .then(res => res.json())
   .then(data => {
-    alert(`Student ${id} is on hold.`);
+    alert(`Student ${studentName} is on hold.`);
     removeCard(id);
   })
   .catch(err => {
@@ -629,6 +706,7 @@ function deleteStudent(id) {
     alert("Failed to delete student");
   });
 }
+
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
@@ -643,30 +721,26 @@ function showViewMore(student) {
         ["Application Number", student.application_number],
         ["Name", student.name],
         ["DOA", student.date_of_application],
+        ["Gender", student.gender],
         ["School", student.school],
-        ["City", student.district],
-        ["Std Code", student.stdcode],
-        ["Phone", student.phone_number],
+        ["Phone Number", student.phone_number],
+        ["Alternate Number", student.alternate_number],
         ["Email", student.email],
-        ["Aadhar Number", student.aadhar_number],
-        ["Parent Annual Income", student.parent_annual_income],
+        ["Aadhar Number", student.aadhar],
         ["Community", student.community],
         ["Board", student.board],
-        ["Year of Passing", student.year_of_passing],
+        ["Year", student.year],
         ["College", student.college],
+        ["DegreeType", student.degreeType],
         ["Degree", student.degree],
-        ["Branch 1", student.branch_1],
-        ["Branch 2", student.branch_2],
-        ["Branch 3", student.branch_3],
-        ["Maths", student.maths],
-        ["Physics", student.physics],
-        ["Chemistry", student.chemistry],
+        ["Course", student.course],
+        ["Subject 1", student.subject1],
+        ["Subject 2", student.subject2],
+        ["Subject 3", student.subject3],
+        ["Subject 4", student.subject4],
         ["Total Marks", student.twelfth_mark],
-        ["Mark %", student.markpercentage],
-        ["Engineering Cutoff", student.engineering_cutoff, true],
-        ["MSC Cutoff", student.msc_cutoff, true],
-        ["BArch Cutoff", student.barch_cutoff, true],
-        ["BDes Cutoff", student.bdes_cutoff, true]
+        ["Cutoff", student.cutoff, true],
+
       ];
 
       const recommenderFields = [
@@ -729,11 +803,7 @@ function showSeatPopup() {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
-      const totalSeats = 20; // If total seats per course fixed
-
       result.forEach((entry, index) => {
-        const remainingSeats = entry.remaining_seats || 0;
-        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -741,9 +811,9 @@ function showSeatPopup() {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${totalSeats}</td>
-          <td>${allocatedSeats}</td>
-          <td>${remainingSeats}</td>
+          <td>${entry.total_seats}</td>
+          <td>${entry.allocated_seats}</td>
+          <td>${entry.remaining_seats}</td>
         `;
 
         tableBody.appendChild(row);
@@ -756,7 +826,6 @@ function showSeatPopup() {
       alert("Failed to load seat status.");
     });
 }
-
 
 
 function closeSeatPopup() {
