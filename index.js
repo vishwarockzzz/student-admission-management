@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
               // Redirect based on email
               if (data.is_admin) {
                   localStorage.setItem("is_admin", "true");
-                  window.location.href = "upcoming_request.html";
+                  window.location.href = "college_selection.html";
               } else {
                   localStorage.setItem("is_admin", "false");
                   window.location.href = "administrator_form.html";

@@ -362,3 +362,36 @@ select:hover {
     padding: 1rem;
   }
 }
+
+
+
+
+.hidden {
+      display: none;
+    }
+    input[type="number"] {
+      width: 100%;
+      
+    }
+
+
+.subs {
+  display: flex;
+  gap: 15px;
+  flex-wrap: nowrap; /* prevent wrapping */
+}
+
+.tcasubject input {
+  width: 220px; /* adjust width as needed */
+  padding: 10px;
+  gap: 15px;
+}#tcaDegreeType,
+#tcaDegree,
+#tcaCourse {
+ 
+  width: 925px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,116 @@
+/* Reset & Base Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
+}
+
+/* Maroon Top Bar */
+.header-maroon {
+  height: 10px;
+  background-color: #800000;
+}
+
+/* Title Bar */
+.title-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+  background-color: white;
+  border-bottom: 2px solid #800000;
+  gap: 20px;
+}
+
+.side-image {
+  width: 300px;
+  height: auto;
+}
+
+.title-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #800000;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Instruction Text */
+.instruction-text {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 22px;
+  color: #800000;
+  font-weight: bold;
+}
+
+/* Button Section */
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 80px;
+  margin-top: 50px;
+  padding-bottom: 60px;
+}
+
+.button-card {
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 2px solid #800000;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.button-card:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(128, 0, 0, 0.3);
+  border-color: #a00000;
+}
+
+.institution-button img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.institution-button:hover img {
+  transform: scale(1.05);
+}
+
+.button-label {
+  margin-top: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+.nav-buttons {
+  position: absolute;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Unified button style */
+.nav-btn {
+  background-color: white;
+  color: maroon;
+  border: 2px solid maroon;
+  border-radius: 6px;
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: #b30000;
+  color: white;
+}

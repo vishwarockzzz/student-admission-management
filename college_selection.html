@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>College Selection</title>
+  <link rel="stylesheet" href="college_selection.css" />
+</head>
+<body>
+
+  <!-- Maroon Top Bar -->
+  <div class="header-maroon"></div>
+
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <img class="side-image" src="static/images/TCE LOGIN.png" alt="TCE Image" />
+    
+    <div class="title-text">
+      Thiagarajar Group of Institutions:<br>
+      Management Quota Application Dashboard
+    </div>
+    
+    <img class="side-image" src="static/images/TCA LOGIN.png" alt="TCA Image" />
+    <button class="nav-btn" onclick="goHome()">Logout</button>
+      <button class="nav-btn" onclick="goBack()"> Back</button>
+  </div>
+
+  <!-- Instruction -->
+  <div class="instruction-text">
+    CHOOSE ONE TO PROCEED FURTHER
+  </div>
+
+  <!-- Buttons Section -->
+  <div class="button-container">
+    <div class="button-card">
+      <a href="upcoming_request.html" class="institution-button">
+        <img src="static/images/Thiagarajar_College_of_Engineering_logo.png" alt="TCE Logo">
+      </a>
+      <div class="button-label">TCE</div>
+    </div>
+
+    <div class="button-card">
+      <a href="tca_application_processing.html" class="institution-button">
+        <img src="static/images/Thiagarajar_College_Arts_and_Science_logo.png" alt="TCA Logo">
+      </a>
+      <div class="button-label">TCA</div>
+    </div>
+  </div>
+
+  <script src="env.js"></script>
+  <script src="college_selection.js"></script>
+</body>
+</html>
