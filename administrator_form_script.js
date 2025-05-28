@@ -102,7 +102,7 @@ function setCollege(college) {
     }
   });
   
-  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronics', 'IT', 'AI/ML', 'CSBS', 'Civil', 'Any Branch'];
+  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
 
 function populateDropdown(dropdownId, exclude = []) {
   const dropdown = document.getElementById(dropdownId);
