@@ -1,10 +1,7 @@
 
 const API_URL = `${window.env.BASE_URL}/tcarts/students`;
-console.log(API_URL);
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
-
-const SEATS_URL =`${window.env.BASE_URL}tcarts/statusdetails`;
-
+const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
 let result = [];
 let seats = {};
 
@@ -14,6 +11,11 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
+  currentStatus="UNALLOCATED"
+  fetch(`${API_URL}?status=${currentStatus}`)
+    .then(response => response.json())
+    .then(data => renderStudents(data.students || []))
+    .catch(error => console.error("Error loading students:", error));
 }
 fetch(SEATS_URL)
   .then(response => {
@@ -76,7 +78,7 @@ document.addEventListener("click", function (event) {
 });
 
 
-let currentStudentId = null;
+
 
 window.onload = () => {
   loadStatus('UNALLOCATED');
@@ -122,9 +124,9 @@ function populateFilters() {
     "B.A. - Tamil",
     "B.A. - English",
     "B.A. - Economics (English Medium)",
-    "B.Com. (Professional Accounting)",
-    "B.Com. (Computer Applications)",
-    "B.Com. (Honours)",
+    "B.Com. Professional Accounting",
+    "B.Com. Computer Applications",
+    "B.Com. Honours",
     "B.Sc. - Mathematics",
     "B.Sc. - Physics",
     "B.Sc. - Chemistry",
@@ -153,11 +155,11 @@ function populateFilters() {
 
   // Add SF options
   const sfOptGroup = document.createElement("optgroup");
-  sfOptGroup.label = "Self-Finance";
+  sfOptGroup.label = "Self Finance";
   sfUG.forEach(course => {
     const opt = document.createElement("option");
-    opt.value = `Self-Finance - ${course}`;
-    opt.text = `Self-Finance - ${course}`;
+    opt.value = `Self Finance - ${course}`;
+    opt.text = `Self Finance - ${course}`;
     sfOptGroup.appendChild(opt);
   });
   filterElement.appendChild(sfOptGroup);
@@ -364,7 +366,7 @@ let isFirstGroup = true;
       }
 
       actions.innerHTML = `
-        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+        <button class="accept" onclick="acceptStudent(${student.id}, '${key}')">Allot</button>
         <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
         <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
         ${withdrawOrDeleteBtn}
@@ -379,198 +381,99 @@ let isFirstGroup = true;
     isFirstGroup = false;
   });
 }
-function acceptStudent(id, branch) {
-  currentStudentId = id;
-  const student = allStudents.find(s => s.id === id);
+// Use global vars on window, since you're storing there in acceptStudent
+// Just avoid re-declaring local vars with the same name to prevent confusion.
+
+function acceptStudent(id, key) {
+  const [degreeType, degree, course] = key.split(" - ");
+  const courseName = course ? `${degree} ${course}` : degree; // combine degree + course if course exists, else degree alone
+
+  const fullCourseName = `${degreeType} - ${courseName}`;
+
   const branchSelect = document.getElementById("branchSelect");
-  const modeSelect = document.getElementById("modeSelect");
-
-  // Reset and enable dropdowns
   branchSelect.innerHTML = "";
-  modeSelect.innerHTML = "";
-  branchSelect.disabled = false;
-  modeSelect.disabled = false;
 
-  const degree = (student.degree || "").toUpperCase();
-  const branch1 = (student.branch || "").toLowerCase();
+  const option = document.createElement("option");
+  option.value = fullCourseName;
+  option.textContent = fullCourseName;
+  option.disabled = false;
+  option.selected = true;
+  branchSelect.appendChild(option);
 
-  const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
-    "IT", "AI/ML", "CSBS", "Civil"
-  ];
+  // Store globally for confirmSelection
+  window.selectedStudentInfo = {
+    course_type: degreeType,
+    course_name: courseName,
+  };
+  window.currentStudentId = id;
 
-  // MSC degree
-  if (degree === "MSC") {
-    const option = document.createElement("option");
-    option.value = "MSC DATA SCIENCE";
-    option.textContent = "MSC DATA SCIENCE";
-    branchSelect.appendChild(option);
-    branchSelect.value = "MSC DATA SCIENCE";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-    modeSelect.value = "self-finance";
-    modeSelect.disabled = false;
-  }
-
-  // B.ARCH degree
-  else if (degree === "BARCH") {
-    const option = document.createElement("option");
-    option.value = "B.ARCH";
-    option.textContent = "B.ARCH";
-    branchSelect.appendChild(option);
-    branchSelect.value = "B.ARCH";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
-    modeSelect.disabled = false;
-  }
-
-  // B.DES degree
-  else if (degree === "BDES") {
-    const option = document.createElement("option");
-    option.value = "B.DES";
-    option.textContent = "B.DES";
-    branchSelect.appendChild(option);
-    branchSelect.value = "B.DES";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-    modeSelect.value = "self-finance";
-    modeSelect.disabled = false;
-  }
-
-  // General case: BE courses
-  else {
-    const branchesToShow = beCourses
-
-    // Add a default option
-    const defaultOption = document.createElement("option");
-    defaultOption.textContent = "Select Branch";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    branchSelect.appendChild(defaultOption);
-
-    branchesToShow.forEach(course => {
-      const option = document.createElement("option");
-      option.value = course;
-      option.textContent = course;
-      branchSelect.appendChild(option);
-    });
-
-    // Handle mode change on branch selection
-    branchSelect.onchange = () => {
-      const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
-        modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-        modeSelect.value = "self-finance";
-        modeSelect.disabled = false;
-      } else if (["it", "mechatronics"].includes(selected)) {
-    // These branches don't support Aided
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
-    modeSelect.disabled = false;
-  } else {
-        modeSelect.innerHTML = `
-          <option value="">-- Select Mode --</option>
-          <option value="aided">Aided</option>
-          <option value="self-finance">Self-Finance</option>
-        `;
-        modeSelect.disabled = false;
-      }
-    };
-
-    // Trigger mode dropdown update initially
-    branchSelect.dispatchEvent(new Event("change"));
-  }
-
-  // Show the popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
 
-
-
-
 function confirmSelection() {
-  const branch = document.getElementById("branchSelect").value;
-  const selectedMode = document.getElementById("modeSelect").value;
+  const selectedStudentInfo = window.selectedStudentInfo;
+  const currentStudentId = window.currentStudentId;
 
-  if (!branch || !selectedMode) {
-    alert("Please select both branch and mode.");
+  if (!selectedStudentInfo || !currentStudentId) {
+    alert("Invalid student selection.");
     return;
   }
-  const fullCourseName = courseMap[branch.toUpperCase()];
-  const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
- const confirmButton = document.querySelector("#popup-overlay button.accept");
-  if (confirmButton) {
-    confirmButton.disabled = true;
-    confirmButton.innerText = "Loading...";
-  }
 
-  if (!fullCourseName) {
-    alert("Course name not recognized.");
+  // Validate required fields: course_type and course_name must exist
+  if (!selectedStudentInfo.course_type || !selectedStudentInfo.course_name) {
+    alert("Course type and course name must be selected.");
     return;
   }
+
+  const confirmButton = document.getElementById("confirmBtn");
+  confirmButton.disabled = true;
+  confirmButton.innerText = "Loading...";
 
   function sendApprovalRequest(isConfirm = false) {
-  fetch(UPDATE_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      student_id: currentStudentId,
-      status: "APPROVED",
-      course: fullCourseName,
-      course_type: modeFormatted,
-      is_confirm: isConfirm
+    fetch(UPDATE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_id: currentStudentId,
+        status: "APPROVED",
+        course_type: selectedStudentInfo.course_type,
+        course_name: selectedStudentInfo.course_name,
+        is_confirm: isConfirm,
+      }),
     })
-  })
-  .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      console.log("hello")
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendApprovalRequest(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
-      }
-    } else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
-    }
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          const proceed = confirm(
+            `${data.error || "Conflict detected"}\nDo you want to continue?`
+          );
+          if (proceed) return sendApprovalRequest(true);
+          else throw new Error("User cancelled");
+        } else if (!res.ok) {
+          throw new Error(data.error || "Unknown error");
+        }
+        return data;
+      })
+      .then((data) => {
+        if (data && data.message) {
+          alert(data.message);
+          document.getElementById("popup-overlay").style.display = "none";
+          removeCard(currentStudentId);
+          location.reload();
+        }
+      })
+      .catch((err) => {
+        alert("Error: " + err.message);
+      })
+      .finally(() => {
+        confirmButton.disabled = false;
+        confirmButton.innerText = "Confirm";
+      });
+  }
 
-    return data;
-  })
-  .then((data) => {
-    if (data && data.message) {
-      alert(data.message);
-      document.getElementById("popup-overlay").style.display = "none";
-      removeCard(currentStudentId);
-      location.reload();
-    }
-  })
-  .catch((err) => {
-    console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
-  })
-  .finally(() => {
-    if (confirmButton) {
-      confirmButton.disabled = false;
-      confirmButton.innerText = "Allot";
-    }
-  });
+  sendApprovalRequest();
 }
 
-// Call it initially
-sendApprovalRequest();
-
-}
 
 
 
@@ -826,6 +729,7 @@ function showSeatPopup() {
       alert("Failed to load seat status.");
     });
 }
+
 
 
 function closeSeatPopup() {

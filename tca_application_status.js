@@ -13,8 +13,35 @@ function goHome() {
     
 // Goes to the previous page
   }
-  function clearSearch() {
+
+  function clearSearch() { 
   document.getElementById("searchInput").value = "";
+   if (currentStatus === "ALL") {
+    const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
+    const fetches = statuses.map(s =>
+      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+    );
+
+    Promise.all(fetches)
+      .then(results => {
+        const combined = results.flatMap((data, i) => {
+          const s = statuses[i];
+          return (data.students || []).map(stu => ({ ...stu, application_status: s }));
+        });
+
+        renderCards(combined, "ALL", true); // showStatus = true
+      })
+      .catch(error => console.error("Error restoring all statuses:", error));
+  } else {
+    fetch(`${API_URL}?status=${currentStatus}`)
+      .then(response => response.json())
+      .then(data => {
+        const students = data.students || [];
+        renderCards(students, currentStatus); // showStatus = false
+      })
+      .catch(error => console.error("Error restoring current status:", error));
+  }
+
 }
     window.onload = () => {
     loadStatus('APPROVED'); 
@@ -786,18 +813,14 @@ function removeCard(id) {
     function closeViewMore() {
       document.getElementById("viewMoreOverlay").style.display = "none";
     }
-    function showSeatPopup() {
+function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
-      const totalSeats = 20; // If total seats per course fixed
-
       result.forEach((entry, index) => {
-        const remainingSeats = entry.remaining_seats || 0;
-        const allocatedSeats = totalSeats - remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
 
@@ -805,9 +828,9 @@ function removeCard(id) {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td>${totalSeats}</td>
-          <td>${allocatedSeats}</td>
-          <td>${remainingSeats}</td>
+          <td>${entry.total_seats}</td>
+          <td>${entry.allocated_seats}</td>
+          <td>${entry.remaining_seats}</td>
         `;
 
         tableBody.appendChild(row);

@@ -352,6 +352,15 @@
       <label>Date of Birth (DD/MM/YYYY):<span style="color:red">*</span></label>
       <input type="date" id="tcaDOB" required />
     </div>
+        <div class="form-group">
+      <label>Board of Study:<span style="color:red">*</span></label>
+      <select id="tcaBoard" required>
+        <option value="">-- Select --</option>
+        <option>State Board</option>
+        <option>CBSE</option>
+        <option>ICSE</option>
+      </select>
+    </div>
     <div class="form-group">
       <label>Sex:</label>
       <select id="tcaSex">
@@ -388,10 +397,7 @@
         <option>ST</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>Address:</label>
-      <textarea id="tcaAddress" placeholder="ABC Street, Madurai" rows="3"></textarea>
-    </div>
+   
  
    
   </div>
@@ -425,21 +431,17 @@
     <div class="form-group">
       <label>Alternate Mobile Number:</label>
       <div style="display: flex; gap: 5px;">
-      <input type="tel" id="tcaMobile2" placeholder="912302020"" maxlength="10" required />
+      <input type="tel" id="tcaMobile2" placeholder="912302020" maxlength="10" />
       <small id="tcaMobile2-error" style="color: red; display: none;">
         Enter a valid 10-digit phone number.
       </small>
     </div>
     </div>
-    <div class="form-group">
-      <label>Board of Study:</label>
-      <select id="tcaBoard">
-        <option value="">-- Select --</option>
-        <option>State Board</option>
-        <option>CBSE</option>
-        <option>ICSE</option>
-      </select>
+     <div class="form-group">
+      <label>Address:</label>
+      <textarea id="tcaAddress" placeholder="ABC Street, Madurai" rows="3"></textarea>
     </div>
+
     <div class="form-group">
       <label>School Name:</label>
       <input type="text" id="tcaSchool" placeholder="Enter School Name" />
@@ -453,9 +455,9 @@
     <div class="form-group">
             <label>Remarks on Application:</label>
             <select id="applicationStatus" disabled>
-            <option>Applied</option>
-            <option>To be given</option>
-            <option>Pending</option>
+            <option value="Applied">Applied</option>
+            <option value="To be given">To be given</option>
+            <option value="Pendin">Pending</option>
           </select>
     </div>
 
@@ -464,43 +466,43 @@
 <div style="display:block;">
   <!-- Step 1: Degree Type -->
   <div class="form-group step">
-    <label>Degree Type:</label>
-    <select id="tcaDegreeType">
+    <label>Degree Type:<span style="color:red">*</span></label>
+    <select id="tcaDegreeType" required>
       <option value="">-- Select --</option>
       <option value="Aided">Aided</option>
-      <option value="Self-Finance">Self-Finance</option>
+      <option value="Self Finance">Self Finance</option>
     </select>
   </div>
 
   <!-- Step 2: Degree (Initially Hidden) -->
   <div class="form-group step" id="degreeStep" style="display: none;">
-    <label>Select Degree:</label>
-    <select id="tcaDegree">
+    <label>Select Degree:<span style="color:red">*</span></label>
+    <select id="tcaDegree" required>
       <option value="">-- Select --</option>
     </select>
   </div>
 
   <!-- Step 3: Course (Initially Hidden) -->
   <div class="form-group step" id="courseStep" style="display: none;">
-    <label>Select Course:</label>
-    <select id="tcaCourse">
+    <label>Select Course:<span style="color:red">*</span></label>
+    <select id="tcaCourse" required>
       <option value="">-- Select --</option>
     </select>
   </div>
 
   <!-- Step 4: Marks and Cutoff (Initially Hidden) -->
   <div class="step" id="marksStep" style="display: none;">
-    <label>Enter 4 Subject Marks (out of 100):</label>
+    <label>Enter 4 Subject Marks (out of 100): <span style="color:red">*</span></label>
     <div class="subs">
-      <div class="tcasubject"><input type="number" id="sub1" min="0" max="100"></div>
-      <div class="tcasubject"><input type="number" id="sub2" min="0" max="100"></div>
-      <div class="tcasubject"><input type="number" id="sub3" min="0" max="100"></div>
-      <div class="tcasubject"><input type="number" id="sub4" min="0" max="100"></div>
+      <div class="tcasubject"><input type="number" id="sub1" min="0" max="100" required></div>
+      <div class="tcasubject"><input type="number" id="sub2" min="0" max="100" required></div>
+      <div class="tcasubject"><input type="number" id="sub3" min="0" max="100" required></div>
+      <div class="tcasubject"><input type="number" id="sub4" min="0" max="100" required></div>
     </div>
 
     <div class="form-group">
-      <label>Cutoff (out of 400):</label>
-      <input type="number" id="tcacutoff" min="0" max="400">
+      <label>Cutoff (out of 400):<span style="color:red">*</span></label>
+      <input type="number" id="tcacutoff" min="0" max="400" required>
     </div>
   </div>
 </div>
@@ -571,8 +573,8 @@
     </div>
   </div>
 </div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button type="submit" class="submit-btn" id="submitBtn" onclick="handleSubmitTca(event)">Submit Application</button>
+   <div style="text-align: center; margin-top: 20px;">
+      <button id="submitBtn" type="submit" class="submit-btn" onclick="handleSubmitTca(event)">Submit Application</button>
     </div>
   </main>
 </div>

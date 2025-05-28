@@ -590,14 +590,14 @@ function submitFormData() {
 
   const sfCourses = {
     "B.A.": ["Tamil", "English", "Economics (English Medium)"],
-    "B.Com. (Professional Accounting)": [],
-    "B.Com. (Computer Applications)": [],
-    "B.Com. (Honours)": [],
+    "B.Com. Professional Accounting": [],
+    "B.Com. Computer Applications": [],
+    "B.Com. Honours": [],
     "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
     "B.B.A.": [],
     "B.C.A.": [],
     "B.Com. (Fintech)": [],
-    "B.Sc. Computer Science (Artificial Intelligence)": []
+    "B.Sc. Computer Science in AI": []
   };
 
   const degreeTypeSelect = document.getElementById('tcaDegreeType');
@@ -615,7 +615,7 @@ function submitFormData() {
     courseStep.style.display = 'none';
     marksStep.style.display = 'none';
 
-    let courseData = selectedType === 'Aided' ? aidedCourses : selectedType === 'Self-Finance' ? sfCourses : null;
+    let courseData = selectedType === 'Aided' ? aidedCourses : selectedType === 'Self Finance' ? sfCourses : null;
 
     if (courseData) {
       Object.keys(courseData).forEach(degree => {
