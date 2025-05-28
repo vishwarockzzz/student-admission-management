@@ -106,7 +106,7 @@ function populateFilters() {
 
   // Options for departments and degrees
   const options = [
-    "CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+    "Any Branch","CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
   ];
 
   // Populate the dropdown
@@ -126,28 +126,39 @@ function filterByCombined() {
     renderStudents(allStudents);
     return;
   }
+const filteredStudents = allStudents.filter(student => {
+  const departments = [student.branch_1, student.branch_2, student.branch_3];
+  const degree = student.degree;
 
-  const filteredStudents = allStudents.filter(student => {
-    const departments = [student.branch_1, student.branch_2, student.branch_3];
-    const degree = student.degree;
+  const degreeMatches = {
+    "BE/BTECH": ["btech"],
+    "M.SC DATA SCIENCE": ["msc"],
+    "B.DES": ["bdes"],
+    "B.ARCH": ["barch"]
+  };
 
-    const degreeMatches = {
-      "BE/BTECH": ["btech"],
-      "M.SC DATA SCIENCE": ["msc"],
-      "B.DES": ["bdes"],
-      "B.ARCH": ["barch"]
-    };
+ if (selectedFilter === "Any Branch") {
+  // Only allow students with degree exactly "BE/BTECH"
+  if (degree !== "btech") return false;
 
-    if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronics", "IT", "AI/ML", "CSBS", "Civil"].includes(selectedFilter)) {
-      return departments.includes(selectedFilter);
-    }
+  return (
+    departments.includes("Any Branch") ||
+    departments.every(branch => !branch || branch.trim() === "")
+  );
+}
+  // Match specific departments
+  if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil"].includes(selectedFilter)) {
+    return departments.includes(selectedFilter);
+  }
 
-    if (Object.keys(degreeMatches).includes(selectedFilter)) {
-      return degreeMatches[selectedFilter].includes(degree);
-    }
-    
-    return false;
-  });
+  // Match by degree type
+  if (Object.keys(degreeMatches).includes(selectedFilter)) {
+    return degreeMatches[selectedFilter].includes(degree?.toLowerCase());
+  }
+
+  return false;
+});
+
 renderStudents(filteredStudents);
 }
 
@@ -356,9 +367,9 @@ const courseMap = {
   "ECE": "B.E. Electronics and Communication Engineering",
   "EEE": "B.E. Electrical and Electronics Engineering",
   "MECHANICAL": "B.E. Mechanical Engineering",
-  "MECHATRONICS": "B.E. Mechatronics",
+  "MECHATRONIC": "B.E. Mechatronics",
   "IT": "B.Tech. Information Technology",
-  "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
+  "AI&ML": "B.E. Computer Science and Engineering (AI & ML)",
   "CSBS": "B.Tech. Computer Science and Business Systems",
   "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
@@ -381,8 +392,8 @@ function acceptStudent(id, branch) {
   const branch1 = (student.branch || "").toLowerCase();
 
   const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
-    "IT", "AI/ML", "CSBS", "Civil"
+    "CSE", "ECE", "EEE", "Mechanical", "Mechatronic",
+    "IT", "AI&ML", "CSBS", "Civil"
   ];
 
   // MSC degree
@@ -451,11 +462,11 @@ function acceptStudent(id, branch) {
     // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
+      if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronic", "csbs", "ai&ml"].includes(selected)) {
         modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
-      } else if (["it", "mechatronics"].includes(selected)) {
+      } else if (["it", "mechatronic"].includes(selected)) {
     // These branches don't support Aided
     modeSelect.innerHTML = `
       <option value="">-- Select Mode --</option>
