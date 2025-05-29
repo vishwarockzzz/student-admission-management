@@ -24,11 +24,7 @@ buttons.forEach(button => {
   });
 });
 function goToUpdateRequestPage() {
-  window.location.href = "upcoming_request.html";
-  // Replace with your actual update request page URL
-}
-function goToUpdateRequestPagetca() {
-  window.location.href = "tca_application_processing.html";
+  window.location.href = "college_selection.html";
   // Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
