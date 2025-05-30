@@ -338,6 +338,7 @@ let isFirstGroup = true;
         <p><strong>Name:</strong> ${student.name}</p>
         <p><strong>Application No:</strong> ${student.application_number}</p>
         <p><strong>DOA:</strong> ${student.date_of_application}</p>
+        <p><strong>Course Type:</strong> ${student.type}</p>
         <p><strong>Course:</strong> ${key}</p>
         <p><strong>Total Mark:</strong> ${student.twelfth_mark}</p>
         <p><strong>Cut-Off:</strong> ${student.cutoff || "N/A"}</p>
