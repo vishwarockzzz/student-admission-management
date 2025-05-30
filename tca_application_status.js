@@ -274,8 +274,6 @@ orderedKeys.forEach(groupKey => {
     } else if (currentStatus === "APPROVED") {
       buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
       buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
-    } else if (currentStatus === "DECLINED") {
-      buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${groupKey}')">Re-Allot</button>`;
     }
 
     card.innerHTML = `

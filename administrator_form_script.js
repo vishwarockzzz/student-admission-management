@@ -53,7 +53,17 @@ function setCollege(college) {
   }
 }
 
+window.addEventListener('DOMContentLoaded', () => {
+  const dobInput = document.getElementById('tcaDOB');
+  const today = new Date();
+  const minAge = 16;
 
+  // Calculate the date 17 years ago
+  const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+  const formattedMaxDate = maxDate.toISOString().split('T')[0];  // Format as YYYY-MM-DD
+
+  dobInput.max = formattedMaxDate;
+});
 
 
   document.getElementById('yearOfPassing').addEventListener('input', function () {
