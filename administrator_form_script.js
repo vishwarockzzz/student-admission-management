@@ -337,7 +337,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     application_number: clean(document.getElementById("applicationNumber")?.value),
     name: clean(document.getElementById("nameInput")?.value),
     email: clean(document.getElementById("email")?.value),
-    address: clean(document.getElementById("address")?.value),
+    address: clean(document.getElementById("tceAddress")?.value),
     parent_annual_income: clean(document.getElementById("parentsincome")?.value),
     school: clean(document.getElementById("school")?.value),
     district: clean(document.getElementById("district")?.value),
