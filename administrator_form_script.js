@@ -603,6 +603,7 @@ function submitFormData() {
     "B.B.A.": [],
     "B.C.A.": [],
     "B.Com. (Fintech)": [],
+    "B.Com.": [],
     "B.Sc. Computer Science in AI": []
   };
 
