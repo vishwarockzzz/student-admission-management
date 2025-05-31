@@ -762,6 +762,7 @@ function removeCard(id) {
         ["Std Code", student.stdcode],
         ["Phone", student.phone_number],
         ["Email", student.email],
+        ["Address", student.address],
         ["Aadhar Number", student.aadhar_number],
         ["Parent Annual Income", student.parent_annual_income],
         ["Community", student.community],

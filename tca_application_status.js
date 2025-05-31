@@ -379,7 +379,7 @@ function generateTableView(status) {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [student.degreeType || "-",student.degree || "-", student.course_name || "-"]
+        ? [student.degreeType || "-",outcome.course_name || "-"]
         : [outcome.course_name || "-"]),
       r.name || "-",
       r.designation || "-"
@@ -582,8 +582,8 @@ function submitDecline() {
 
 function withdrawStudent(withdraw_id) {
   // Show confirmation dialog first
-  const confirmWithdraw = confirm("Are you sure you want to withdraw this student?");
-  if (!confirmWithdraw) return; // If canceled, stop here
+  const confirmWithdraw = window.confirm("Are you sure you want to withdraw this student?");
+  if (!confirmWithdraw) return; // If canceled, stop execution
 
   const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
   if (btn) {
@@ -604,12 +604,13 @@ function withdrawStudent(withdraw_id) {
     const card = document.getElementById(`student-${withdraw_id}`);
     if (card) {
       card.classList.add("decline-shadow");
-      setTimeout(() => card.remove(), 500); // remove after animation
+      setTimeout(() => card.remove(), 500); // visually remove the card
     }
+    alert("Student has been withdrawn successfully.");
   })
   .catch(err => {
-    console.error("Error Withdrawing student:", err);
-    alert("Failed to withdraw student");
+    console.error("Error withdrawing student:", err);
+    alert("Failed to withdraw student.");
   })
   .finally(() => {
     if (btn) {
@@ -618,6 +619,7 @@ function withdrawStudent(withdraw_id) {
     }
   });
 }
+
 
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
@@ -641,6 +643,7 @@ function showViewMore(student) {
         ["School", student.school],
         ["Phone Number", student.phone_number],
         ["Alternate Number", student.alternate_number],
+        ["Address", student.address],
         ["Email", student.email],
         ["Aadhar Number", student.aadhar],
         ["Community", student.community],

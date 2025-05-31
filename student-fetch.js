@@ -625,6 +625,8 @@ function submitDecline() {
 
 
 function onHoldStudent(id) {
+  const confirmed = confirm("Are you sure you want to On-Hold this student's application?");
+  if (!confirmed) return;
   const btn = document.querySelector(`#student-${id} .onhold`);
   if (btn) {
     btn.disabled = true;
@@ -692,6 +694,8 @@ function withdrawStudent(id) {
 }
 
 function deleteStudent(id) {
+  const confirmed = confirm("Are you sure you want to delete this student's application?");
+  if (!confirmed) return;
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -730,6 +734,7 @@ function showViewMore(student) {
         ["Std Code", student.stdcode],
         ["Phone", student.phone_number],
         ["Email", student.email],
+        ["Address", student.address],
         ["Aadhar Number", student.aadhar_number],
         ["Parent Annual Income", student.parent_annual_income],
         ["Community", student.community],
