@@ -1,3 +1,3 @@
 window.env = {
-  BASE_URL: "https://valliammaise.pythonanywhere.com/api"
+  BASE_URL: "https://thiagarajarapplications.pythonanywhere.com/api"
 };
