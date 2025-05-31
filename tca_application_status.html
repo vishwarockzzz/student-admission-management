@@ -80,25 +80,17 @@
     </div>
   </div>
 
-  <div id="popup-overlay" class="popup-overlay" style="display:none">
-    <div class="popup">
-      <label for="branchSelect">Choose Branch:</label>
-      <select id="branchSelect">
-        <option value="CSE">CSE</option>
-        <option value="IT">IT</option>
-        <option value="ECE">ECE</option>
-      </select>
+<div id="popup-overlay" class="popup-overlay" style="display:none">
+  <div class="popup">
+    <label for="branchSelect">Choose Branch:</label>
+    <select id="branchSelect">
+      <!-- Options will be added dynamically via JS -->
+    </select>
 
-      <label for="modeSelect">Select Mode:</label>
-      <select id="modeSelect">
-        <option value="Aided">Aided</option>
-        <option value="Self Finance">Self Finance</option>
-      </select>
-
-      <button onclick="confirmSelection()">Confirm</button>
-      <button onclick="closeSelectionModal()">Cancel</button>
-    </div>
+    <button id="confirmBtn" onclick="confirmSelection()">Confirm</button>
+    <button onclick="closeSelectionModal()">Cancel</button>
   </div>
+</div>
   <!-- View More Popup -->
   <div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
     <div class="popup bordered-popup">

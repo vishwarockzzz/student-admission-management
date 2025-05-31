@@ -371,7 +371,7 @@ const degreeT = {
     "Cut-Off",
     "Phone",
     "Address",
-    ...(status === "APPROVED" ? ["Degree", "Allotted Course"] : ["Decline Reason"]),
+    ...(status === "APPROVED" ? ["Degree Type","Degree", "Allotted Course"] : ["Decline Reason"]),
     "Recommender Name",
     "Designation"
   ];
@@ -397,7 +397,7 @@ const degreeT = {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [degreeDisplay, outcome.course_name || "-"]
+        ? [outcome.course_type,degreeDisplay, outcome.course_name || "-"]
         : [outcome.course_name || "-"]),
       r.name || "-",
       r.designation || "-"

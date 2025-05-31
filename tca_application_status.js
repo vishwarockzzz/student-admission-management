@@ -205,135 +205,125 @@ function renderCards(students, status, showStatus = false) {
   const container = document.getElementById("studentCards");
   container.innerHTML = "";
 
-  const grouped = students.reduce((acc, student) => {
-    const degreeKey = student.degree.trim().toLowerCase();
-    if (!acc[degreeKey]) acc[degreeKey] = [];
-    acc[degreeKey].push(student);
-    return acc;
-  }, {});
+  const grouped = {};
+  students.forEach(student => {
+    const type = student.degreeType?.trim() || "Unknown";
+    const degree = student.degree?.trim() || "Unknown";
+    const course = student.course?.trim();
+    const coursePart = course && course.toLowerCase() !== "unknown" ? ` - ${course}` : "";
+    const key = `${type} - ${degree}${coursePart}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(student);
+  });
 
-  const degreeTitles = {
-    "b.e": "B.E / B.Tech :",
-    "btech": "B.E / B.Tech :",
-    "engineering": "B.E / B.Tech :",
-    "msc": "M.Sc Data Science :",
-    "barch": "B.Arch :",
-    "bdes": "B.Des :"
-  };
+  const orderedKeys = Object.keys(grouped).sort((a, b) => {
+    const [typeA] = a.split(" - ");
+    const [typeB] = b.split(" - ");
+    return typeA.toLowerCase() === "aided" && typeB.toLowerCase() !== "aided"
+      ? -1
+      : typeA.toLowerCase() !== "aided" && typeB.toLowerCase() === "aided"
+      ? 1
+      : a.localeCompare(b);
+  });
 
   let isFirstGroup = true;
 
-  for (const [degreeKey, studentsList] of Object.entries(grouped)) {
-    if (!isFirstGroup) {
-      const divider = document.createElement("hr");
-      container.appendChild(divider);
+orderedKeys.forEach(groupKey => {
+  const studentsList = grouped[groupKey];
+  if (!studentsList || studentsList.length === 0) return;
+
+  if (!isFirstGroup) {
+    const divider = document.createElement("hr");
+    divider.className = "degree-divider";
+    container.appendChild(divider);
+  }
+
+  // Title Section
+  const titleContainer = document.createElement("div");
+  titleContainer.className = "degree-title-container";
+
+   const title = document.createElement("h2");
+    title.className = "degree-section-header";
+    title.textContent = groupKey;
+    container.appendChild(title);
+
+  titleContainer.appendChild(title);
+  container.appendChild(titleContainer);
+
+  // Card Wrapper
+  const cardWrapper = document.createElement("div");
+  cardWrapper.className = "card-wrapper";
+
+  studentsList.forEach(student => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = `student-${student.id}`;
+
+    const cutoff = student.cutoff || "N/A";
+    const recommender = student.recommender || student.recommenders?.[0] || {};
+    const currentStatus = showStatus ? student.application_status : status;
+
+    const statusHTML = showStatus
+      ? `<p class="status-line"><strong>Status:</strong> ${student.application_status || status}</p>`
+      : "";
+
+    let buttonsHTML = "";
+    if (currentStatus === "ONHOLD") {
+      buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${groupKey}')">Allot</button>`;
+      buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
+    } else if (currentStatus === "APPROVED") {
+      buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
+      buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
     }
 
-     const titleContainer = document.createElement("div");
-    titleContainer.className = "degree-title-container";
-
-    const title = document.createElement("h2");
-    title.textContent = degreeTitles[degreeKey] || degreeKey.toUpperCase() + " :";
-    title.className = "degree-title";
-
-    titleContainer.appendChild(title);
-    container.appendChild(titleContainer);
-
-    // Card wrapper with left aligned cards
-    const cardWrapper = document.createElement("div");
-    cardWrapper.className = "card-wrapper";
-
-    studentsList.forEach(student => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.id = `student-${student.id}`;
-
-
-      let cutoff = "";
-      switch (student.degree.toLowerCase()) {
-        case "b.e":
-        case "btech":
-        case "engineering":
-          cutoff = student.engineering_cutoff;
-          break;
-        case "msc":
-          cutoff = student.msc_cutoff;
-          break;
-        case "bdes":
-          cutoff = student.bdes_cutoff;
-          break;
-        case "barch":
-          cutoff = student.barch_cutoff;
-          break;
-        default:
-          cutoff = "N/A";
-      }
-
-      const recommender = student.recommender || student.recommenders?.[0] || {};
-      let buttonsHTML = "";
-      if (status === "ONHOLD") {
-        buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>`;
-        buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
-      } else if (status === "APPROVED") {
-        buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
-        buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
-      }
-
-      const statusHTML = showStatus
-  ? `<p class="status-line"><strong>Status:</strong> ${student.application_status || status}</p>`
-  
-  : "";
-
-
     card.innerHTML = `
-  <div class="card-row">
-    <div class="student-box">
-      <p><strong>${student.application_number}</strong></p>
-      <p>${student.name}</p>
-      <p><strong>DOA:</strong> ${student.date_of_application}</p>
-      <p><strong>Degree:</strong> ${student.degree}</p>
-      <p><strong>Cut-Off:</strong> ${cutoff}</p>
-       ${statusHTML}
-    </div>
-    <div class="recommender-box">
-      <p><strong>Recommender</strong></p>
-      <p>${recommender.name || '-'}</p>
-      <p>${recommender.designation || '-'}</p>
-      <p>${recommender.affiliation || '-'}</p>
-    </div>
-  </div>
-  <div class="card-bottom">
-    <div class="action-buttons">${buttonsHTML}</div>
-    <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-  </div>
-`;
-
-      const currentStatus = showStatus ? student.application_status : status;
-
-  if (currentStatus === "APPROVED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `
-      <p><strong>Alloted Department :</strong> ${firstOutcome.course_name}</p>
-      <p><strong>Type :</strong> ${firstOutcome.course_type}</p>
+      <div class="card-row">
+        <div class="student-box">
+          <p><strong>${student.application_number}</strong></p>
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>DOA:</strong> ${student.date_of_application}</p>
+          <p><strong>Course:</strong> ${groupKey}</p>
+          <p><strong>Cut-Off:</strong> ${cutoff}</p>
+          ${statusHTML}
+        </div>
+        <div class="recommender-box">
+          <p><strong>Recommender</strong></p>
+          <p>${recommender.name || '-'}</p>
+          <p>${recommender.designation || '-'}</p>
+          <p>${recommender.affiliation || '-'}</p>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="action-buttons">${buttonsHTML}</div>
+        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+      </div>
     `;
-    card.appendChild(commentBox);
-  } else if (currentStatus === "DECLINED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `<p><strong>Decline Reason:</strong> ${firstOutcome.course_name}</p>`;
-    card.appendChild(commentBox);
-  }
 
-      cardWrapper.appendChild(card);
-    });
+    // Outcome / Decline Reason Box
+    const outcome = student.outcomes?.[0];
+    if (currentStatus === "APPROVED" && outcome) {
+      const outcomeBox = document.createElement("div");
+      outcomeBox.className = "decline-comment-box";
+      outcomeBox.innerHTML = `
+        <p><strong>Allotted Department:</strong> ${outcome.course_name}</p>
+        <p><strong>Type:</strong> ${outcome.course_type}</p>
+      `;
+      card.appendChild(outcomeBox);
+    } else if (currentStatus === "DECLINED" && outcome) {
+      const reasonBox = document.createElement("div");
+      reasonBox.className = "decline-comment-box";
+      reasonBox.innerHTML = `<p><strong>Decline Reason:</strong> ${outcome.course_name}</p>`;
+      card.appendChild(reasonBox);
+    }
 
-    container.appendChild(cardWrapper);
-    isFirstGroup = false;
-  }
+    cardWrapper.appendChild(card);
+  });
+
+  container.appendChild(cardWrapper);
+  isFirstGroup = false;
+});
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   updateButtonVisibility("APPROVED"); // Show "Allotted" Print button initially
 });
@@ -379,7 +369,7 @@ function generateTableView(status) {
 
     const outcome = student.outcomes[0] || {};
     const r = student.recommender || student.recommenders?.[0] || {};
-    const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
+    const cutoff = student.cutoff || "N/A";
 
     const rowData = [
       index + 1,
@@ -389,7 +379,7 @@ function generateTableView(status) {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [student.degree || "-", outcome.course_name || "-"]
+        ? [student.degreeType || "-",student.degree || "-", student.course_name || "-"]
         : [outcome.course_name || "-"]),
       r.name || "-",
       r.designation || "-"
@@ -440,203 +430,101 @@ function updateButtonVisibility(status) {
   }
 }
 
-const courseMap = {
-  "CSE": "B.E. Computer Science and Engineering",
-  "ECE": "B.E. Electronics and Communication Engineering",
-  "EEE": "B.E. Electrical and Electronics Engineering",
-  "MECHANICAL": "B.E. Mechanical Engineering",
-  "MECHATRONICS": "B.E. Mechatronics",
-  "IT": "B.Tech. Information Technology",
-  "AI/ML": "B.E. Computer Science and Engineering (AI & ML)",
-  "CSBS": "B.Tech. Computer Science and Business Systems",
-  "Civil": "B.E. Civil Engineering",
-  "MSC DATA SCIENCE": "Msc. Data Science",
-  "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
-};
-
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
 }
-function acceptStudent(id, branch) {
-  currentStudentId = id;
-  const student = allStudentsData.find(s => s.id === id);
+
+function acceptStudent(id, key) {
+  const [degreeType, degree, course] = key.split(" - ");
+  const courseName = course ? `${degree} ${course}` : degree; // combine degree + course if course exists, else degree alone
+
+  const fullCourseName = `${degreeType} - ${courseName}`;
+
   const branchSelect = document.getElementById("branchSelect");
-  const modeSelect = document.getElementById("modeSelect");
-
-  // Reset and enable dropdowns
   branchSelect.innerHTML = "";
-  modeSelect.innerHTML = "";
-  branchSelect.disabled = false;
-  modeSelect.disabled = false;
 
-  const degree = (student.degree || "").toUpperCase();
-  const branch1 = (student.branch || "").toLowerCase();
+  const option = document.createElement("option");
+  option.value = fullCourseName;
+  option.textContent = fullCourseName;
+  option.disabled = false;
+  option.selected = true;
+  branchSelect.appendChild(option);
 
-  const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
-    "IT", "AI/ML", "CSBS", "Civil"
-  ];
+  // Store globally for confirmSelection
+  window.selectedStudentInfo = {
+    course_type: degreeType,
+    course_name: courseName,
+  };
+  window.currentStudentId = id;
 
-  // MSC degree
-  if (degree === "MSC") {
-    const option = document.createElement("option");
-    option.value = "MSC DATA SCIENCE";
-    option.textContent = "MSC DATA SCIENCE";
-    branchSelect.appendChild(option);
-    branchSelect.value = "MSC DATA SCIENCE";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-    modeSelect.value = "self-finance";
-    modeSelect.disabled = false;
-  }
-
-  // B.ARCH degree
-  else if (degree === "BARCH") {
-    const option = document.createElement("option");
-    option.value = "B.ARCH";
-    option.textContent = "B.ARCH";
-    branchSelect.appendChild(option);
-    branchSelect.value = "B.ARCH";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `
-      <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
-      <option value="self-finance">Self-Finance</option>
-    `;
-    modeSelect.disabled = false;
-  }
-
-  // B.DES degree
-  else if (degree === "BDES") {
-    const option = document.createElement("option");
-    option.value = "B.DES";
-    option.textContent = "B.DES";
-    branchSelect.appendChild(option);
-    branchSelect.value = "B.DES";
-    branchSelect.disabled = true;
-
-    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-    modeSelect.value = "self-finance";
-    modeSelect.disabled = false;
-  }
-
-  // General case: BE courses
-  else {
-    const preferences = [
-      (student.branch_1 || "").toLowerCase(),
-      (student.branch_2 || "").toLowerCase(),
-      (student.branch_3 || "").toLowerCase()
-    ];
-
-    const isGeneral = preferences.includes("any branch");
-    const branchesToShow = isGeneral
-      ? beCourses
-      : preferences.filter(course =>
-          beCourses.map(c => c.toLowerCase()).includes(course)
-        ).map(course =>
-          // Normalize capitalization
-          beCourses.find(c => c.toLowerCase() === course)
-        );
-
-    // Add a default option
-    const defaultOption = document.createElement("option");
-    defaultOption.textContent = "Select Branch";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    branchSelect.appendChild(defaultOption);
-
-    branchesToShow.forEach(course => {
-      const option = document.createElement("option");
-      option.value = course;
-      option.textContent = course;
-      branchSelect.appendChild(option);
-    });
-
-    // Handle mode change on branch selection
-    branchSelect.onchange = () => {
-      const selected = branchSelect.value.toLowerCase();
-      if (["msc data science", "data science", "b.des", "b.arch"].includes(selected)) {
-        modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-        modeSelect.value = "self-finance";
-        modeSelect.disabled = false;
-      } else {
-        modeSelect.innerHTML = `
-          <option value="">-- Select Mode --</option>
-          <option value="aided">Aided</option>
-          <option value="self-finance">Self-Finance</option>
-        `;
-        modeSelect.disabled = false;
-      }
-    };
-
-    // Trigger mode dropdown update initially
-    branchSelect.dispatchEvent(new Event("change"));
-  }
-
-  // Show the popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
 
-
-
-
 function confirmSelection() {
-  const branch = document.getElementById("branchSelect").value;
-  const selectedMode = document.getElementById("modeSelect").value;
+  const selectedStudentInfo = window.selectedStudentInfo;
+  const currentStudentId = window.currentStudentId;
 
-  if (!branch || !selectedMode) {
-    alert("Please select both branch and mode.");
-    return;
-  }
-  const fullCourseName = courseMap[branch.toUpperCase()];
-  const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
- const confirmButton = document.querySelector("#popup-overlay button.accept");
-  if (confirmButton) {
-    confirmButton.disabled = true;
-    confirmButton.innerText = "Loading...";
-  }
-
-  if (!fullCourseName) {
-    alert("Course name not recognized.");
+  if (!selectedStudentInfo || !currentStudentId) {
+    alert("Invalid student selection.");
     return;
   }
 
-  fetch(UPDATE_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      student_id: currentStudentId,
-      status: "APPROVED",
-      course: fullCourseName,
-      course_type: modeFormatted
+  // Validate required fields: course_type and course_name must exist
+  if (!selectedStudentInfo.course_type || !selectedStudentInfo.course_name) {
+    alert("Course type and course name must be selected.");
+    return;
+  }
+
+  const confirmButton = document.getElementById("confirmBtn");
+  confirmButton.disabled = true;
+  confirmButton.innerText = "Loading...";
+
+  function sendApprovalRequest(isConfirm = false) {
+    fetch(UPDATE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_id: currentStudentId,
+        status: "APPROVED",
+        course_type: selectedStudentInfo.course_type,
+        course_name: selectedStudentInfo.course_name,
+        is_confirm: isConfirm,
+      }),
     })
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(err => { throw new Error(err.error); });
-    }
-    return res.json();
-  })
-  .then(data => {
-    alert(data.message);
-    document.getElementById("popup-overlay").style.display = "none";
-    removeCard(currentStudentId);
-    location.reload();
-  })
-  .catch(err => {
-    console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
-  });
-    if (confirmButton) {
-      confirmButton.disabled = false;
-      confirmButton.innerText = "Allot";
-    }
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          const proceed = confirm(
+            `${data.error || "Conflict detected"}\nDo you want to continue?`
+          );
+          if (proceed) return sendApprovalRequest(true);
+          else throw new Error("User cancelled");
+        } else if (!res.ok) {
+          throw new Error(data.error || "Unknown error");
+        }
+        return data;
+      })
+      .then((data) => {
+        if (data && data.message) {
+          alert(data.message);
+          document.getElementById("popup-overlay").style.display = "none";
+          removeCard(currentStudentId);
+          location.reload();
+        }
+      })
+      .catch((err) => {
+        alert("Error: " + err.message);
+      })
+      .finally(() => {
+        confirmButton.disabled = false;
+        confirmButton.innerText = "Confirm";
+      });
+  }
+
+  sendApprovalRequest();
 }
+
 
 
 
@@ -676,25 +564,24 @@ function submitDecline() {
     .then(res => res.json())
     .then(data => {
       const card = document.getElementById(`student-${currentDeclineId}`);
-if (card) {
-  card.classList.add("decline-shadow");
-  setTimeout(() => card.remove(), 500);
-}
+      if (card) {
+        card.classList.add("decline-shadow");
+        setTimeout(() => card.remove(), 500);
+      }
       closeDeclineModal();
     })
     .catch(err => {
       console.error("Error declining student:", err);
       alert("Failed to decline student");
     });
-    if (submitBtn) {
+     if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerText = "Submit";
       }
 }
 
-
-function withdrawStudent(withdraw_id) {
-const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
+function withdrawStudent(id) {
+  const btn = document.querySelector(`#student-${id} .withdraw`);
   if (btn) {
     btn.disabled = true;
     btn.innerText = "Loading...";
@@ -703,17 +590,15 @@ const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      student_id: withdraw_id,
+      student_id: id,
       status: "WITHDRAWN"
     })
   })
   .then(res => res.json())
   .then(data => {
-    const card = document.getElementById(`student-${withdraw_id}`);
-    if (card) {
-      card.classList.add("decline-shadow");
-      setTimeout(() => card.remove(), 500); // 👈 remove after animation
-    }
+    const card = document.getElementById(`student-${id}`);
+    card.classList.add("decline-shadow");
+    setTimeout(() => removeCard(id), 500);
   })
   .catch(err => {
     console.error("Error Withdrawing student:", err);
@@ -732,7 +617,7 @@ function removeCard(id) {
 
 
 
-    function showViewMore(student) {
+function showViewMore(student) {
       const container = document.getElementById("viewMoreContent");
       container.innerHTML = "";
 
@@ -742,30 +627,26 @@ function removeCard(id) {
         ["Application Number", student.application_number],
         ["Name", student.name],
         ["DOA", student.date_of_application],
+        ["Gender", student.gender],
         ["School", student.school],
-        ["City", student.district],
-        ["Std Code", student.stdcode],
-        ["Phone", student.phone_number],
+        ["Phone Number", student.phone_number],
+        ["Alternate Number", student.alternate_number],
         ["Email", student.email],
-        ["Aadhar Number", student.aadhar_number],
-        ["Parent Annual Income", student.parent_annual_income],
+        ["Aadhar Number", student.aadhar],
         ["Community", student.community],
         ["Board", student.board],
-        ["Year of Passing", student.year_of_passing],
+        ["Year", student.year],
         ["College", student.college],
+        ["DegreeType", student.degreeType],
         ["Degree", student.degree],
-        ["Branch 1", student.branch_1],
-        ["Branch 2", student.branch_2],
-        ["Branch 3", student.branch_3],
-        ["Maths", student.maths],
-        ["Physics", student.physics],
-        ["Chemistry", student.chemistry],
+        ["Course", student.course],
+        ["Subject 1", student.subject1],
+        ["Subject 2", student.subject2],
+        ["Subject 3", student.subject3],
+        ["Subject 4", student.subject4],
         ["Total Marks", student.twelfth_mark],
-        ["Mark %", student.markpercentage],
-        ["Engineering Cutoff", student.engineering_cutoff, true],
-        ["MSC Cutoff", student.msc_cutoff, true],
-        ["BArch Cutoff", student.barch_cutoff, true],
-        ["BDes Cutoff", student.bdes_cutoff, true]
+        ["Cutoff", student.cutoff, true],
+
       ];
 
       const recommenderFields = [
@@ -808,11 +689,19 @@ function removeCard(id) {
       if (recommenderSection) container.appendChild(recommenderSection);
 
       document.getElementById("viewMoreOverlay").style.display = "flex";
+
     }
 
     function closeViewMore() {
       document.getElementById("viewMoreOverlay").style.display = "none";
     }
+    
+    
+window.onload = () => {
+  fetchAndRenderStudents("UNALLOCATED");
+  populateFilters();
+};
+
 function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
@@ -849,6 +738,7 @@ function showSeatPopup() {
 function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
+
 
 window.onload = function() {
   const defaultButton = document.querySelector(".status-buttons button.active");
