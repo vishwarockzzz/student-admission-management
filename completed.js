@@ -702,11 +702,15 @@ if (card) {
 
 
 function withdrawStudent(withdraw_id) {
-const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
+  const confirmWithdraw = confirm("Are you sure you want to withdraw this student?");
+  if (!confirmWithdraw) return;
+
+  const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
   if (btn) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -720,18 +724,21 @@ const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
     const card = document.getElementById(`student-${withdraw_id}`);
     if (card) {
       card.classList.add("decline-shadow");
-      setTimeout(() => card.remove(), 500); // 👈 remove after animation
+      setTimeout(() => card.remove(), 500); // remove after animation
     }
   })
   .catch(err => {
-    console.error("Error Withdrawing student:", err);
+    console.error("Error withdrawing student:", err);
     alert("Failed to withdraw student");
-  });
-  if (btn) {
+  })
+  .finally(() => {
+    if (btn) {
       btn.disabled = false;
       btn.innerText = "Withdraw";
     }
+  });
 }
+
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
