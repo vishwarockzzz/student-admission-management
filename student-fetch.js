@@ -655,11 +655,16 @@ function onHoldStudent(id) {
   });
 }
 function withdrawStudent(id) {
+  // Show confirmation dialog before proceeding
+  const confirmed = confirm("Are you sure you want to withdraw this student?");
+  if (!confirmed) return; // Exit if user cancels
+
   const btn = document.querySelector(`#student-${id} .withdraw`);
   if (btn) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -675,14 +680,17 @@ function withdrawStudent(id) {
     setTimeout(() => removeCard(id), 500);
   })
   .catch(err => {
-    console.error("Error Withdrawing student:", err);
+    console.error("Error withdrawing student:", err);
     alert("Failed to withdraw student");
-  });
-  if (btn) {
+  })
+  .finally(() => {
+    if (btn) {
       btn.disabled = false;
       btn.innerText = "Withdraw";
     }
+  });
 }
+
 function deleteStudent(id) {
   fetch(UPDATE_URL, {
     method: "PUT",
