@@ -138,6 +138,7 @@ function populateFilters() {
     "B.Sc. - Data Science",
     "B.B.A.",
     "B.C.A.",
+    "B.Com.",
     "B.Com. (Fintech)",
     "B.Sc. Computer Science in AI"
   ];
