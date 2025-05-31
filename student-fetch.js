@@ -625,6 +625,8 @@ function submitDecline() {
 
 
 function onHoldStudent(id) {
+  const confirmed = confirm("Are you sure you want to On-Hold this student's application?");
+  if (!confirmed) return;
   const btn = document.querySelector(`#student-${id} .onhold`);
   if (btn) {
     btn.disabled = true;
@@ -655,11 +657,16 @@ function onHoldStudent(id) {
   });
 }
 function withdrawStudent(id) {
+  // Show confirmation dialog before proceeding
+  const confirmed = confirm("Are you sure you want to withdraw this student?");
+  if (!confirmed) return; // Exit if user cancels
+
   const btn = document.querySelector(`#student-${id} .withdraw`);
   if (btn) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -675,15 +682,20 @@ function withdrawStudent(id) {
     setTimeout(() => removeCard(id), 500);
   })
   .catch(err => {
-    console.error("Error Withdrawing student:", err);
+    console.error("Error withdrawing student:", err);
     alert("Failed to withdraw student");
-  });
-  if (btn) {
+  })
+  .finally(() => {
+    if (btn) {
       btn.disabled = false;
       btn.innerText = "Withdraw";
     }
+  });
 }
+
 function deleteStudent(id) {
+  const confirmed = confirm("Are you sure you want to delete this student's application?");
+  if (!confirmed) return;
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -722,6 +734,7 @@ function showViewMore(student) {
         ["Std Code", student.stdcode],
         ["Phone", student.phone_number],
         ["Email", student.email],
+        ["Address", student.address],
         ["Aadhar Number", student.aadhar_number],
         ["Parent Annual Income", student.parent_annual_income],
         ["Community", student.community],

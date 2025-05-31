@@ -379,7 +379,7 @@ function generateTableView(status) {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [student.degreeType || "-",student.degree || "-", student.course_name || "-"]
+        ? [student.degreeType || "-",outcome.course_name || "-"]
         : [outcome.course_name || "-"]),
       r.name || "-",
       r.designation || "-"
@@ -580,35 +580,47 @@ function submitDecline() {
       }
 }
 
-function withdrawStudent(id) {
-  const btn = document.querySelector(`#student-${id} .withdraw`);
+function withdrawStudent(withdraw_id) {
+  // Show confirmation dialog first
+  const confirmWithdraw = window.confirm("Are you sure you want to withdraw this student?");
+  if (!confirmWithdraw) return; // If canceled, stop execution
+
+  const btn = document.querySelector(`#student-${withdraw_id} .withdraw`);
   if (btn) {
     btn.disabled = true;
     btn.innerText = "Loading...";
   }
+
   fetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      student_id: id,
+      student_id: withdraw_id,
       status: "WITHDRAWN"
     })
   })
   .then(res => res.json())
   .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
+    const card = document.getElementById(`student-${withdraw_id}`);
+    if (card) {
+      card.classList.add("decline-shadow");
+      setTimeout(() => card.remove(), 500); // visually remove the card
+    }
+    alert("Student has been withdrawn successfully.");
   })
   .catch(err => {
-    console.error("Error Withdrawing student:", err);
-    alert("Failed to withdraw student");
-  });
-  if (btn) {
+    console.error("Error withdrawing student:", err);
+    alert("Failed to withdraw student.");
+  })
+  .finally(() => {
+    if (btn) {
       btn.disabled = false;
       btn.innerText = "Withdraw";
     }
+  });
 }
+
+
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
@@ -631,6 +643,7 @@ function showViewMore(student) {
         ["School", student.school],
         ["Phone Number", student.phone_number],
         ["Alternate Number", student.alternate_number],
+        ["Address", student.address],
         ["Email", student.email],
         ["Aadhar Number", student.aadhar],
         ["Community", student.community],
