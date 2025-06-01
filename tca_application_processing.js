@@ -5,6 +5,46 @@ const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
 let result = [];
 let seats = {};
 
+// Aided UG Courses
+  const aidedUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (Tamil Medium)",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Botany",
+    "B.Sc. - Zoology",
+    "B.Sc. - Computer Science",
+    "B.Com.",
+    "B.B.A."
+  ];
+
+  // Self-Finance UG Courses
+  const sfUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (English Medium)",
+    "B.Com. Professional Accounting",
+    "B.Com. Computer Applications",
+    "B.Com. Honours",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Biotechnology",
+    "B.Sc. - Microbiology",
+    "B.Sc. - Computer Science",
+    "B.Sc. - Information Technology",
+    "B.Sc. - Psychology",
+    "B.Sc. - Data Science",
+    "B.B.A.",
+    "B.C.A.",
+    "B.Com.",
+    "B.Com. (Fintech)",
+    "B.Sc. Computer Science in AI"
+  ];
+
+
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
 }
@@ -103,46 +143,6 @@ function populateFilters() {
 
   // Clear existing options
   filterElement.innerHTML = '<option value="">-- Select --</option>';
-
-  // Aided UG Courses
-  const aidedUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (Tamil Medium)",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Botany",
-    "B.Sc. - Zoology",
-    "B.Sc. - Computer Science",
-    "B.Com.",
-    "B.B.A."
-  ];
-
-  // Self-Finance UG Courses
-  const sfUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (English Medium)",
-    "B.Com. Professional Accounting",
-    "B.Com. Computer Applications",
-    "B.Com. Honours",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Biotechnology",
-    "B.Sc. - Microbiology",
-    "B.Sc. - Computer Science",
-    "B.Sc. - Information Technology",
-    "B.Sc. - Psychology",
-    "B.Sc. - Data Science",
-    "B.B.A.",
-    "B.C.A.",
-    "B.Com.",
-    "B.Com. (Fintech)",
-    "B.Sc. Computer Science in AI"
-  ];
-
   // Add Aided options
   const aidedOptGroup = document.createElement("optgroup");
   aidedOptGroup.label = "Aided";
@@ -387,29 +387,80 @@ let isFirstGroup = true;
 
 function acceptStudent(id, key) {
   const [degreeType, degree, course] = key.split(" - ");
-  const courseName = course ? `${degree} ${course}` : degree; // combine degree + course if course exists, else degree alone
+  const courseName = course ? `${degree} - ${course}` : degree;
 
-  const fullCourseName = `${degreeType} - ${courseName}`;
+  const degreeSelect = document.getElementById("degreeTypeSelect");
+  const courseSelect = document.getElementById("courseSelect");
 
-  const branchSelect = document.getElementById("branchSelect");
-  branchSelect.innerHTML = "";
+  // Populate degree select with current degreeType selected
+  degreeSelect.innerHTML = `
+    <option value="">-- Select Degree Type --</option>
+    <option value="Aided" ${degreeType === "Aided" ? "selected" : ""}>Aided</option>
+    <option value="Self Finance" ${degreeType === "Self Finance" ? "selected" : ""}>Self Finance</option>
+  `;
 
-  const option = document.createElement("option");
-  option.value = fullCourseName;
-  option.textContent = fullCourseName;
-  option.disabled = false;
-  option.selected = true;
-  branchSelect.appendChild(option);
+  // Function to populate courses dropdown WITHOUT auto-selecting first course on degree change
+  // Only select if selectedCourse exists in the list
+  function populateCourses(degreeType, selectedCourse = "") {
+    courseSelect.disabled = false;
+    courseSelect.innerHTML = `<option value="">-- Select Course --</option>`;
 
-  // Store globally for confirmSelection
+    let courseList = [];
+    if (degreeType.trim().toLowerCase() === "aided") {
+      courseList = aidedUG;
+    } else if (degreeType.trim().toLowerCase() === "self finance") {
+      courseList = sfUG;
+    }
+
+    const courseExists = courseList.includes(selectedCourse);
+
+    courseList.forEach(c => {
+      const option = document.createElement("option");
+      option.value = c;
+      option.textContent = c;
+      if (courseExists && c === selectedCourse) {
+        option.selected = true;
+      }
+      courseSelect.appendChild(option);
+    });
+
+    if (!courseExists) {
+      // Keep default empty selection, no course selected
+      courseSelect.value = "";
+    }
+  }
+
+  // Initial population of courses with courseName preselected if it exists
+  populateCourses(degreeType, courseName);
+
+  // Save initial selected info
   window.selectedStudentInfo = {
     course_type: degreeType,
-    course_name: courseName,
+    course_name: courseSelect.value || ""
   };
   window.currentStudentId = id;
 
+  // On degree type change — repopulate courses, only select if courseName matches
+  degreeSelect.addEventListener("change", () => {
+    const selectedDegree = degreeSelect.value;
+    // Try to keep the original courseName preselected if exists in new list
+    populateCourses(selectedDegree, courseName);
+
+    // Update selectedStudentInfo after change
+    window.selectedStudentInfo.course_type = selectedDegree;
+    window.selectedStudentInfo.course_name = courseSelect.value || "";
+  });
+
+  // Update selectedStudentInfo when course changes manually
+  courseSelect.addEventListener("change", () => {
+    window.selectedStudentInfo.course_name = courseSelect.value || "";
+  });
+
+  // Show popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
+
+
 
 function confirmSelection() {
   const selectedStudentInfo = window.selectedStudentInfo;
