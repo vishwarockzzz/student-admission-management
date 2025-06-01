@@ -200,6 +200,115 @@ function handleSearch() {
   }
 }
 
+function generateAllStudentTableView(allStudents) {
+  // Fill table header
+  const headers = [
+    "S.No",
+    "Student Name",
+    "Application No",
+    "Cut-Off",
+    "Phone",
+    "Course Name",
+    "Course Type",
+    "Status"
+  ];
+
+  const theadRow = document.getElementById("studentTableHead");
+  const tbody = document.getElementById("studentTableBody");
+
+  theadRow.innerHTML = ""; // Clear old headers
+  tbody.innerHTML = "";    // Clear old body
+
+  headers.forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    theadRow.appendChild(th);
+  });
+
+  allStudents.forEach((student, index) => {
+    const outcome = student.outcomes?.[0] || {};
+    const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
+
+    const rowData = [
+      index + 1,
+      student.name || "-",
+      student.application_number || "-",
+      student.cutoff,
+      student.phone_number || "-",
+      outcome.course_name || "-",
+      outcome.course_type || "-",
+      student.application_status || "-"
+    ];
+
+    const tr = document.createElement("tr");
+    rowData.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function printAllWithUnallocated() {
+  const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD", "UNALLOCATED"];
+  const fetchStatus = statuses.map(status =>
+    fetch(`${API_URL}?status=${status}`).then(res => res.json())
+  );
+
+  const fetchAll = fetch(`${API_URL}?status=ALL`).then(res => res.json());
+
+  Promise.all([...fetchStatus, fetchAll])
+    .then(results => {
+      const allStudents = results.slice(0, 4).flatMap((result, i) =>
+        (result.students || []).map(stu => ({
+          ...stu,
+          application_status: statuses[i]
+        }))
+      );
+
+      const allFetched = results[4].students || [];
+      const knownIds = new Set(allStudents.map(s => s.id));
+      const unallocated = allFetched
+        .filter(stu => !knownIds.has(stu.id))
+        .map(stu => ({ ...stu, application_status: "UNALLOCATED" }));
+
+      const combined = [...allStudents, ...unallocated];
+
+      generateAllStudentTableView(combined);
+      openStudentPopup();
+    })
+    .catch(err => console.error("Failed to print all with unallocated:", err));
+}
+
+function openStudentPopup() {
+  const popup = document.getElementById("studentPopup");
+  if (popup) popup.style.display = "block";
+}
+
+function closeStudentPopup() {
+  const popup = document.getElementById("studentPopup");
+  if (popup) popup.style.display = "none";
+}
+
+
+function printAllStudentsTable() {
+  const popupContent = document.getElementById("allStudentTableContainer").innerHTML;
+
+  const printWindow = window.open('', '', 'height=600,width=800');
+  printWindow.document.write('<html><head><title>TCE - All Students</title>');
+  printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; } button { margin: 10px 0; padding: 6px 12px; font-size: 14px; cursor: pointer; }</style>');
+  printWindow.document.write('</head><body>');
+  printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard - All Students</h2>');
+  printWindow.document.write('<button id="printBtn">Print Table</button>');
+  printWindow.document.write(popupContent);
+  printWindow.document.write('<script>document.getElementById("printBtn").onclick = function() { window.print(); }<\/script>');
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.focus();
+}
+
+
 
 function renderCards(students, status, showStatus = false) {
   const container = document.getElementById("studentCards");
