@@ -336,7 +336,7 @@ function printAllStudentsTable() {
   const popupContent = document.getElementById("allStudentTableContainer").innerHTML;
 
   const printWindow = window.open('', '', 'height=600,width=800');
-  printWindow.document.write('<html><head><title>TCE - All Students</title>');
+  printWindow.document.write('<html><head><title style="text-align:center;>TCA - All Students</title>');
   printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; } button { margin: 10px 0; padding: 6px 12px; font-size: 14px; cursor: pointer; }</style>');
   printWindow.document.write('</head><body>');
   printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard - All Students</h2>');
@@ -552,7 +552,7 @@ function closeStudentPopup() {
 function printStudentTable() {
   const popupContent = document.getElementById("studentTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title>TCE</title>');
+    printWindow.document.write('<html><head><title>TCA</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
