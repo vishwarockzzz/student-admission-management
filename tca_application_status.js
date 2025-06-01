@@ -2,6 +2,46 @@ const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
 
+
+// Aided UG Courses
+  const aidedUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (Tamil Medium)",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Botany",
+    "B.Sc. - Zoology",
+    "B.Sc. - Computer Science",
+    "B.Com.",
+    "B.B.A."
+  ];
+
+  // Self-Finance UG Courses
+  const sfUG = [
+    "B.A. - Tamil",
+    "B.A. - English",
+    "B.A. - Economics (English Medium)",
+    "B.Com. Professional Accounting",
+    "B.Com. Computer Applications",
+    "B.Com. Honours",
+    "B.Sc. - Mathematics",
+    "B.Sc. - Physics",
+    "B.Sc. - Chemistry",
+    "B.Sc. - Biotechnology",
+    "B.Sc. - Microbiology",
+    "B.Sc. - Computer Science",
+    "B.Sc. - Information Technology",
+    "B.Sc. - Psychology",
+    "B.Sc. - Data Science",
+    "B.B.A.",
+    "B.C.A.",
+    "B.Com.",
+    "B.Com. (Fintech)",
+    "B.Sc. Computer Science in AI"
+  ];
+
 function goHome() {
     window.location.href = 'index.html'; 
    // Change to your actual login route
@@ -199,6 +239,115 @@ function handleSearch() {
       .catch(error => console.error("Error during search:", error));
   }
 }
+
+function generateAllStudentTableView(allStudents) {
+  // Fill table header
+  const headers = [
+    "S.No",
+    "Student Name",
+    "Application No",
+    "Cut-Off",
+    "Phone",
+    "Course Name",
+    "Course Type",
+    "Status"
+  ];
+
+  const theadRow = document.getElementById("studentTableHead");
+  const tbody = document.getElementById("studentTableBody");
+
+  theadRow.innerHTML = ""; // Clear old headers
+  tbody.innerHTML = "";    // Clear old body
+
+  headers.forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    theadRow.appendChild(th);
+  });
+
+  allStudents.forEach((student, index) => {
+    const outcome = student.outcomes?.[0] || {};
+    const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
+
+    const rowData = [
+      index + 1,
+      student.name || "-",
+      student.application_number || "-",
+      student.cutoff,
+      student.phone_number || "-",
+      outcome.course_name || "-",
+      outcome.course_type || "-",
+      student.application_status || "-"
+    ];
+
+    const tr = document.createElement("tr");
+    rowData.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function printAllWithUnallocated() {
+  const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD", "UNALLOCATED"];
+  const fetchStatus = statuses.map(status =>
+    fetch(`${API_URL}?status=${status}`).then(res => res.json())
+  );
+
+  const fetchAll = fetch(`${API_URL}?status=ALL`).then(res => res.json());
+
+  Promise.all([...fetchStatus, fetchAll])
+    .then(results => {
+      const allStudents = results.slice(0, 4).flatMap((result, i) =>
+        (result.students || []).map(stu => ({
+          ...stu,
+          application_status: statuses[i]
+        }))
+      );
+
+      const allFetched = results[4].students || [];
+      const knownIds = new Set(allStudents.map(s => s.id));
+      const unallocated = allFetched
+        .filter(stu => !knownIds.has(stu.id))
+        .map(stu => ({ ...stu, application_status: "UNALLOCATED" }));
+
+      const combined = [...allStudents, ...unallocated];
+
+      generateAllStudentTableView(combined);
+      openStudentPopup();
+    })
+    .catch(err => console.error("Failed to print all with unallocated:", err));
+}
+
+function openStudentPopup() {
+  const popup = document.getElementById("studentPopup");
+  if (popup) popup.style.display = "block";
+}
+
+function closeStudentPopup() {
+  const popup = document.getElementById("studentPopup");
+  if (popup) popup.style.display = "none";
+}
+
+
+function printAllStudentsTable() {
+  const popupContent = document.getElementById("allStudentTableContainer").innerHTML;
+
+  const printWindow = window.open('', '', 'height=600,width=800');
+  printWindow.document.write('<html><head><title>TCE - All Students</title>');
+  printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; } button { margin: 10px 0; padding: 6px 12px; font-size: 14px; cursor: pointer; }</style>');
+  printWindow.document.write('</head><body>');
+  printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard - All Students</h2>');
+  printWindow.document.write('<button id="printBtn">Print Table</button>');
+  printWindow.document.write(popupContent);
+  printWindow.document.write('<script>document.getElementById("printBtn").onclick = function() { window.print(); }<\/script>');
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.focus();
+}
+
 
 
 function renderCards(students, status, showStatus = false) {
@@ -437,29 +586,80 @@ function closeSelectionModal() {
 
 function acceptStudent(id, key) {
   const [degreeType, degree, course] = key.split(" - ");
-  const courseName = course ? `${degree} ${course}` : degree; // combine degree + course if course exists, else degree alone
+  const courseName = course ? `${degree} - ${course}` : degree;
 
-  const fullCourseName = `${degreeType} - ${courseName}`;
+  const degreeSelect = document.getElementById("degreeTypeSelect");
+  const courseSelect = document.getElementById("courseSelect");
 
-  const branchSelect = document.getElementById("branchSelect");
-  branchSelect.innerHTML = "";
+  // Populate degree select with current degreeType selected
+  degreeSelect.innerHTML = `
+    <option value="">-- Select Degree Type --</option>
+    <option value="Aided" ${degreeType === "Aided" ? "selected" : ""}>Aided</option>
+    <option value="Self Finance" ${degreeType === "Self Finance" ? "selected" : ""}>Self Finance</option>
+  `;
 
-  const option = document.createElement("option");
-  option.value = fullCourseName;
-  option.textContent = fullCourseName;
-  option.disabled = false;
-  option.selected = true;
-  branchSelect.appendChild(option);
+  // Function to populate courses dropdown WITHOUT auto-selecting first course on degree change
+  // Only select if selectedCourse exists in the list
+  function populateCourses(degreeType, selectedCourse = "") {
+    courseSelect.disabled = false;
+    courseSelect.innerHTML = `<option value="">-- Select Course --</option>`;
 
-  // Store globally for confirmSelection
+    let courseList = [];
+    if (degreeType.trim().toLowerCase() === "aided") {
+      courseList = aidedUG;
+    } else if (degreeType.trim().toLowerCase() === "self finance") {
+      courseList = sfUG;
+    }
+
+    const courseExists = courseList.includes(selectedCourse);
+
+    courseList.forEach(c => {
+      const option = document.createElement("option");
+      option.value = c;
+      option.textContent = c;
+      if (courseExists && c === selectedCourse) {
+        option.selected = true;
+      }
+      courseSelect.appendChild(option);
+    });
+
+    if (!courseExists) {
+      // Keep default empty selection, no course selected
+      courseSelect.value = "";
+    }
+  }
+
+  // Initial population of courses with courseName preselected if it exists
+  populateCourses(degreeType, courseName);
+
+  // Save initial selected info
   window.selectedStudentInfo = {
     course_type: degreeType,
-    course_name: courseName,
+    course_name: courseSelect.value || ""
   };
   window.currentStudentId = id;
 
+  // On degree type change — repopulate courses, only select if courseName matches
+  degreeSelect.addEventListener("change", () => {
+    const selectedDegree = degreeSelect.value;
+    // Try to keep the original courseName preselected if exists in new list
+    populateCourses(selectedDegree, courseName);
+
+    // Update selectedStudentInfo after change
+    window.selectedStudentInfo.course_type = selectedDegree;
+    window.selectedStudentInfo.course_name = courseSelect.value || "";
+  });
+
+  // Update selectedStudentInfo when course changes manually
+  courseSelect.addEventListener("change", () => {
+    window.selectedStudentInfo.course_name = courseSelect.value || "";
+  });
+
+  // Show popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
+
+
 
 function confirmSelection() {
   const selectedStudentInfo = window.selectedStudentInfo;
