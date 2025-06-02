@@ -276,6 +276,8 @@ function renderCards(students, status, showStatus = false) {
       } else if (status === "APPROVED") {
         buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
         buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
+        buttonsHTML += `<button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>`;
+
       }
 
       const statusHTML = showStatus

@@ -440,6 +440,9 @@ button {
 .withdraw:hover {
   box-shadow: 0 0 10px brown;
 }
+.change_allotment:hover {
+  box-shadow: 0 0 10px rgb(221, 136, 52);
+}
 .accept:hover {
   background-color: green;
   color: white;
@@ -462,6 +465,12 @@ button {
   background-color: brown;
   color: black;
   border-color: brown;
+}
+
+.change_allotment:hover {
+  background-color: rgb(211, 152, 75);
+  color: black;
+  border-color: rgb(211, 152, 75);
 }
   .modal {
       position: fixed;
