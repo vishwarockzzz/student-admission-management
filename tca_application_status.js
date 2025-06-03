@@ -556,7 +556,7 @@ function printStudentTable() {
     printWindow.document.write('<html><head><title>TCA</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
-    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
+    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard TCA</h2>');
     printWindow.document.write(popupContent);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
