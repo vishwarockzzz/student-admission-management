@@ -224,7 +224,7 @@ hr {
 
 .card {
   width: 650px;      /* fixed card width */
-  height: 400px; 
+  height: auto; 
   flex: 0 1 400px;      /* width: about 400px fixed, but can shrink */
   min-height: 100px;          /* fixed card height */
   border: 1px solid #ccc;
