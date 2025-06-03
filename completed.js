@@ -276,6 +276,8 @@ function renderCards(students, status, showStatus = false) {
       } else if (status === "APPROVED") {
         buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
         buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
+        buttonsHTML += `<button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>`;
+
       }
 
       const statusHTML = showStatus
@@ -540,7 +542,7 @@ function printStudentTable() {
     printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
-    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
+    printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard TCE</h2>');
     printWindow.document.write(popupContent);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
