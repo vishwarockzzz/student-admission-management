@@ -430,6 +430,19 @@ button {
   font-weight: bold;
   width: 100px;
 }
+.action-buttons-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 260px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+.left-buttons,
+.right-buttons {
+  display: grid;
+  gap: 10px;
+}
 .accept:hover {
   box-shadow: 0 0 10px green;
 }
@@ -441,6 +454,9 @@ button {
 }
 .withdraw:hover {
   box-shadow: 0 0 10px brown;
+}
+.change_allotment:hover {
+  box-shadow: 0 0 10px rgb(221, 136, 52);
 }
 .accept:hover {
   background-color: green;
@@ -464,6 +480,11 @@ button {
   background-color: brown;
   color: black;
   border-color: brown;
+}
+.change_allotment:hover {
+  background-color: rgb(211, 152, 75);
+  color: black;
+  border-color: rgb(211, 152, 75);
 }
   .modal {
       position: fixed;
@@ -631,6 +652,12 @@ button {
   table-layout: fixed;
 }
 
+#studentPopup #seatsTableContainer table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  color: black;
+}
 #studentTable th, #studentTable td {
   padding: 10px;
   border: 1px solid #ccc;
