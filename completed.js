@@ -65,6 +65,34 @@ let currentStatus = 'APPROVED'; // Default status on initial load
 let result = [];
 let seats = {};
 
+function loadSeatTable() {
+  const seatTbody = document.querySelectorAll("#seatTable tbody");
+  seatTbody.forEach(tbody => tbody.innerHTML = "");
+
+  fetch(SEATS_URL)
+    .then(response => response.json())
+    .then(result => {
+      seatTbody.forEach(tbody => {
+        result.forEach((entry, index) => {
+          const courseWithType = `${entry.course} (${entry.course_type})`;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${courseWithType}</td>
+            <td>${entry.total_seats}</td>
+            <td>${entry.allocated_seats}</td>
+            <td>${entry.remaining_seats}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+    })
+    .catch(err => {
+      console.error("Error fetching seat data:", err);
+      alert("Failed to load seat status.");
+    });
+}
 fetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
@@ -274,10 +302,21 @@ function renderCards(students, status, showStatus = false) {
         buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>`;
         buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
       } else if (status === "APPROVED") {
-        buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
-        buttonsHTML += `<button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>`;
-        buttonsHTML += `<button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>`;
+       buttonsHTML += `
+  <div class="action-buttons-row">
+    <div class="left-buttons">
+      <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+      <button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>
+    </div>
+    <div class="right-buttons">
+      <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+      <button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>
+    </div>
+  </div>
+`;
 
+      }else if (status === "DECLINED") {
+        buttonsHTML += `<button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>`;
       }
 
       const statusHTML = showStatus
@@ -413,6 +452,8 @@ const degreeT = {
     });
     tableBody.appendChild(tr);
   });
+ 
+loadSeatTable();
 }
 
 function closeStudentPopup() {
@@ -475,6 +516,7 @@ function generateAllStudentTableView(allStudents) {
     });
     tbody.appendChild(tr);
   });
+  loadSeatTable();
 }
 
 function printAllWithUnallocated() {
@@ -519,21 +561,21 @@ function closeStudentPopup() {
 }
 
 
-function printAllStudentsTable() {
-  const popupContent = document.getElementById("allStudentTableContainer").innerHTML;
+// function printAllStudentsTable() {
+//   const popupContent = document.getElementById("allStudentTableContainer").innerHTML;
 
-  const printWindow = window.open('', '', 'height=600,width=800');
-  printWindow.document.write('<html><head><title>TCE - All Students</title>');
-  printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; } button { margin: 10px 0; padding: 6px 12px; font-size: 14px; cursor: pointer; }</style>');
-  printWindow.document.write('</head><body>');
-  printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard - All Students</h2>');
-  printWindow.document.write('<button id="printBtn">Print Table</button>');
-  printWindow.document.write(popupContent);
-  printWindow.document.write('<script>document.getElementById("printBtn").onclick = function() { window.print(); }<\/script>');
-  printWindow.document.write('</body></html>');
-  printWindow.document.close();
-  printWindow.focus();
-}
+//   const printWindow = window.open('', '', 'height=600,width=800');
+//   printWindow.document.write('<html><head><title>TCE - All Students</title>');
+//   printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; } button { margin: 10px 0; padding: 6px 12px; font-size: 14px; cursor: pointer; }</style>');
+//   printWindow.document.write('</head><body>');
+//   printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard - All Students</h2>');
+//   printWindow.document.write('<button id="printBtn">Print Table</button>');
+//   printWindow.document.write(popupContent);
+//   printWindow.document.write('<script>document.getElementById("printBtn").onclick = function() { window.print(); }<\/script>');
+//   printWindow.document.write('</body></html>');
+//   printWindow.document.close();
+//   printWindow.focus();
+// }
 
 
 function printStudentTable() {
@@ -818,6 +860,43 @@ if (card) {
       }
 }
 
+function onHoldStudent(onhold_id) {
+  const confirmHold = confirm("Are you sure you want to put this student on hold?");
+  if (!confirmHold) return;
+
+  const btn = document.querySelector(`#student-${onhold_id} .onhold`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Loading...";
+  }
+
+  fetch(UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: onhold_id,
+      status: "ONHOLD"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const card = document.getElementById(`student-${onhold_id}`);
+    if (card) {
+      card.classList.add("decline-shadow"); // or any class for visual effect
+      setTimeout(() => card.remove(), 500); // remove card after delay
+    }
+  })
+  .catch(err => {
+    console.error("Error putting student on hold:", err);
+    alert("Failed to put student on hold");
+  })
+  .finally(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = "On Hold";
+    }
+  });
+}
 
 function withdrawStudent(withdraw_id) {
   const confirmWithdraw = confirm("Are you sure you want to withdraw this student?");
@@ -976,6 +1055,7 @@ function removeCard(id) {
       console.error("Error fetching seat data:", err);
       alert("Failed to load seat status.");
     });
+    loadSeatTable();
 }
 
 
