@@ -428,6 +428,20 @@ button {
   font-weight: bold;
   width: 100px;
 }
+.action-buttons-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 260px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+.left-buttons,
+.right-buttons {
+  display: grid;
+  gap: 10px;
+}
+
 .accept:hover {
   box-shadow: 0 0 10px green;
 }
@@ -637,7 +651,12 @@ button {
   color: black;
   table-layout: fixed;
 }
-
+#studentPopup #seatsTableContainer table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  color: black;
+}
 #studentTable th, #studentTable td {
   padding: 10px;
   border: 1px solid #ccc;
