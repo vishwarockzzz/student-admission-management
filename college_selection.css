@@ -107,3 +107,34 @@ body {
   background-color: #b30000;
   color: white;
 }
+
+.download-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.download-section img {
+  width: 60px;
+  height: auto;
+}
+
+.download-btn {
+  background-color: white;
+  border: 2px solid maroon;
+  color: maroon;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.download-btn:hover {
+  background-color: maroon;
+  color: white;
+}
