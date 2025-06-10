@@ -7,36 +7,36 @@ let seats = {};
 
 // Aided UG Courses
   const aidedUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (Tamil Medium)",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Botany",
-    "B.Sc. - Zoology",
-    "B.Sc. - Computer Science",
+    "B.A. Tamil",
+    "B.A. English",
+    "B.A. Economics (Tamil Medium)",
+    "B.Sc. Mathematics",
+    "B.Sc. Physics",
+    "B.Sc. Chemistry",
+    "B.Sc. Botany",
+    "B.Sc. Zoology",
+    "B.Sc. Computer Science",
     "B.Com.",
     "B.B.A."
   ];
 
   // Self-Finance UG Courses
   const sfUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (English Medium)",
+    "B.A. Tamil",
+    "B.A. English",
+    "B.A. Economics (English Medium)",
     "B.Com. Professional Accounting",
     "B.Com. Computer Applications",
     "B.Com. Honours",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Biotechnology",
-    "B.Sc. - Microbiology",
-    "B.Sc. - Computer Science",
-    "B.Sc. - Information Technology",
-    "B.Sc. - Psychology",
-    "B.Sc. - Data Science",
+    "B.Sc. Mathematics",
+    "B.Sc. Physics",
+    "B.Sc. Chemistry",
+    "B.Sc. Biotechnology",
+    "B.Sc. Microbiology",
+    "B.Sc. Computer Science",
+    "B.Sc. Information Technology",
+    "B.Sc. Psychology",
+    "B.Sc. Data Science",
     "B.B.A.",
     "B.C.A.",
     "B.Com.",
@@ -467,9 +467,11 @@ function confirmSelection() {
   const currentStudentId = window.currentStudentId;
 
   if (!selectedStudentInfo || !currentStudentId) {
-    alert("Invalid student selection.");
-    return;
-  }
+  console.log("selectedStudentInfo:", selectedStudentInfo);
+  console.log("currentStudentId:", currentStudentId);
+  alert("Invalid student selection.");
+  return;
+}
 
   // Validate required fields: course_type and course_name must exist
   if (!selectedStudentInfo.course_type || !selectedStudentInfo.course_name) {
@@ -502,8 +504,8 @@ function confirmSelection() {
           if (proceed) return sendApprovalRequest(true);
           else throw new Error("User cancelled");
         } else if (!res.ok) {
-          throw new Error(data.error || "Unknown error");
-        }
+      throw new Error(data.error || "An unknown error occurred.");
+    }
         return data;
       })
       .then((data) => {
