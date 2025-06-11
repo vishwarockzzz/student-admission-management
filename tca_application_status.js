@@ -5,42 +5,43 @@ const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
 
 // Aided UG Courses
   const aidedUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (Tamil Medium)",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Botany",
-    "B.Sc. - Zoology",
-    "B.Sc. - Computer Science",
+    "B.A. Tamil",
+    "B.A. English",
+    "B.A. Economics (Tamil Medium)",
+    "B.Sc. Mathematics",
+    "B.Sc. Physics",
+    "B.Sc. Chemistry",
+    "B.Sc. Botany",
+    "B.Sc. Zoology",
+    "B.Sc. Computer Science",
     "B.Com.",
     "B.B.A."
   ];
 
   // Self-Finance UG Courses
   const sfUG = [
-    "B.A. - Tamil",
-    "B.A. - English",
-    "B.A. - Economics (English Medium)",
+    "B.A. Tamil",
+    "B.A. English",
+    "B.A. Economics (English Medium)",
     "B.Com. Professional Accounting",
     "B.Com. Computer Applications",
     "B.Com. Honours",
-    "B.Sc. - Mathematics",
-    "B.Sc. - Physics",
-    "B.Sc. - Chemistry",
-    "B.Sc. - Biotechnology",
-    "B.Sc. - Microbiology",
-    "B.Sc. - Computer Science",
-    "B.Sc. - Information Technology",
-    "B.Sc. - Psychology",
-    "B.Sc. - Data Science",
+    "B.Sc. Mathematics",
+    "B.Sc. Physics",
+    "B.Sc. Chemistry",
+    "B.Sc. Biotechnology",
+    "B.Sc. Microbiology",
+    "B.Sc. Computer Science",
+    "B.Sc. Information Technology",
+    "B.Sc. Psychology",
+    "B.Sc. Data Science",
     "B.B.A.",
     "B.C.A.",
     "B.Com.",
     "B.Com. (Fintech)",
     "B.Sc. Computer Science in AI"
   ];
+
 
 function goHome() {
     window.location.href = 'index.html'; 
@@ -458,7 +459,7 @@ orderedKeys.forEach(groupKey => {
     </div>
     <div class="right-buttons">
       <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-      <button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>
+      <button class="change_allotment" onclick="acceptStudent(${student.id}, '${groupKey}')">Change Allotment</button>
     </div>
   </div>
 `;
