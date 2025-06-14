@@ -21,7 +21,7 @@ const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
   // Self-Finance UG Courses
   const sfUG = [
     "B.A. Tamil",
-    "B.A. English",
+    "B.A. English (English Medium)",
     "B.A. Economics (English Medium)",
     "B.Com. Professional Accounting",
     "B.Com. Computer Applications",
@@ -386,11 +386,12 @@ function renderCards(students, status, showStatus = false) {
 
   const grouped = {};
   students.forEach(student => {
-    const type = student.degreeType?.trim() || "Unknown";
+    const type =  student.outcomes[0] ? student.outcomes[0].course_type : student.degreeType?.trim() || "Unknown";
     const degree = student.degree?.trim() || "Unknown";
-    const course = student.course?.trim();
+    const course = student.outcomes[0] ? student.outcomes[0].course_name.trim() : student.course.trim();
     const coursePart = course && course.toLowerCase() !== "unknown" ? ` - ${course}` : "";
-    const key = `${type} - ${degree}${coursePart}`;
+    const key = `${type} ${coursePart}`;
+    console.log("hello",coursePart)
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(student);
   });
@@ -466,14 +467,14 @@ orderedKeys.forEach(groupKey => {
     }else if (status === "DECLINED") {
         buttonsHTML += `<button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>`;
       }
-
+    const course = student.course ? `${student.degreeType} - ${student.degree} - ${student.course}` : `${student.degreeType} - ${student.degree}`
     card.innerHTML = `
       <div class="card-row">
         <div class="student-box">
           <p><strong>${student.application_number}</strong></p>
           <p><strong>Name:</strong> ${student.name}</p>
           <p><strong>DOA:</strong> ${student.date_of_application}</p>
-          <p><strong>Course:</strong> ${groupKey}</p>
+          <p><strong>Course:</strong> ${course} </p>
           <p><strong>Cut-Off:</strong> ${cutoff}</p>
           ${statusHTML}
         </div>

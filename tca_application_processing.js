@@ -23,7 +23,7 @@ let seats = {};
   // Self-Finance UG Courses
   const sfUG = [
     "B.A. Tamil",
-    "B.A. English",
+    "B.A. English (English Medium)",
     "B.A. Economics (English Medium)",
     "B.Com. Professional Accounting",
     "B.Com. Computer Applications",
