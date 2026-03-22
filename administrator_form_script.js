@@ -28,29 +28,113 @@ function goToUpdateRequestPage() {
   // Replace with your actual update request page URL
 }
    let selectedCollege = ''; // Variable to store selected college
+let selectedProgramType = ''; // UG / PG / Lateral
+
+function setDegreeOptions() {
+  const degreeDropdown = document.getElementById('degree');
+  if (!degreeDropdown) return;
+
+  const pgOptions = [
+    { value: 'me_mtech', text: 'M.E / M.Tech' },
+    { value: 'march', text: 'M.Arch' },
+    { value: 'mca', text: 'M.C.A' }
+  ];
+
+  const ugOptions = [
+    { value: 'btech', text: 'B.E./B.Tech' },
+    { value: 'msc', text: 'M.Sc.' },
+    { value: 'bdes', text: 'B.Des' },
+    { value: 'barch', text: 'B.Arch' }
+  ];
+
+  const options = selectedProgramType === 'pg' ? pgOptions : ugOptions;
+  degreeDropdown.innerHTML = '<option value="">-- Select --</option>';
+
+  options.forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.text;
+    degreeDropdown.appendChild(option);
+  });
+}
 
 function setCollege(college) {
   const tceForm = document.getElementById('tceForm');
   const tcaForm = document.getElementById('tcaForm');
-  const instruction = document.getElementById('instruction'); // reference to instruction div
+  const instruction = document.getElementById('instruction');
+  const programTypeSection = document.getElementById('programTypeSection');
   const msg = document.getElementById('collegeMessage');
-  selectedCollege = college
-  // Hide instruction when a college is selected
+  selectedCollege = college;
+  selectedProgramType = '';
+
+  // Hide current forms until program type selected
+  tceForm.style.display = 'none';
+  tcaForm.style.display = 'none';
+
+  // Show instruction section and program type options
   instruction.style.display = 'none';
+  programTypeSection.style.display = 'block';
+  setDegreeOptions();
 
   if (college === 'TCE') {
-    tceForm.style.display = 'block';
-    tcaForm.style.display = 'none';
     msg.textContent = "You have selected: Thiagarajar College of Engineering (TCE)";
   } else if (college === 'TCA') {
-    tcaForm.style.display = 'block';
-    tceForm.style.display = 'none';
     msg.textContent = "You have selected: Thiagarajar College (TCA)";
   } else {
-    tceForm.style.display = 'none';
-    tcaForm.style.display = 'none';
+    programTypeSection.style.display = 'none';
     msg.textContent = "";
   }
+}
+
+function selectProgramType(type) {
+  selectedProgramType = type.toLowerCase();
+  const tceForm = document.getElementById('tceForm');
+  const tcaForm = document.getElementById('tcaForm');
+  const programTypeSection = document.getElementById('programTypeSection');
+
+  document.querySelectorAll('.program-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === selectedProgramType);
+  });
+
+  programTypeSection.style.display = 'none';
+
+  const isPG = selectedProgramType === 'pg';
+
+  if (selectedCollege === 'TCE') {
+    tceForm.style.display = 'block';
+    setPgFieldsVisibility('tce', isPG);
+  } else if (selectedCollege === 'TCA') {
+    tcaForm.style.display = 'block';
+    setPgFieldsVisibility('tca', isPG);
+  }
+
+  setDegreeOptions();
+}
+
+function setPgFieldsVisibility(prefix, visible) {
+  const section = document.getElementById(`${prefix}PgSection`);
+  if (!section) return;
+  section.style.display = visible ? 'block' : 'none';
+
+  const fieldIds = [
+    `${prefix}UgConsolidatedMark`,
+    `${prefix}UgCourseName`,
+    `${prefix}UgInstitution`,
+    `${prefix}TancetGateScore`
+  ];
+
+  fieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id !== `${prefix}TancetGateScore`) {
+      el.required = visible;
+    } else {
+      el.required = false;
+    }
+    if (!visible) {
+      el.value = '';
+    }
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -110,13 +194,13 @@ window.addEventListener('DOMContentLoaded', () => {
   
   const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
 
-function populateDropdown(dropdownId, exclude = []) {
+function populateDropdown(dropdownId, exclude = [], branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch']) {
   const dropdown = document.getElementById(dropdownId);
   const currentValue = dropdown.value;
 
   dropdown.innerHTML = '<option value="">-- Select --</option>'; // Reset the dropdown
 
-  // Always include "All"
+  // Always include "Any Branch"
   const allOption = document.createElement('option');
   allOption.value = "Any Branch";
   allOption.text = "Any Branch";
@@ -140,12 +224,26 @@ function populateDropdown(dropdownId, exclude = []) {
 
 
 function updateOptions() {
-const pref1 = document.getElementById('pref1').value;
-const pref2 = document.getElementById('pref2').value;
-
-// Allow "All" to be selected multiple times in all preferences
-populateDropdown('pref2', [pref1]);
-populateDropdown('pref3', [pref1, pref2]);
+  const degree = document.getElementById("degree").value;
+  const degKey = (degree || '').toLowerCase();
+  let branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
+  if (degKey.includes('me') || degKey.includes('mtech')) {
+    branches = [
+      'M.E Structural Engineering',
+      'M.E Environmental Engineering',
+      'M.E Construction Engineering and Management',
+      'M.E Engineering Design',
+      'M.E Power System Engineering',
+      'M.E Communication Systems',
+      'M.E Computer Science and Engineering',
+      'Any Branch'
+    ];
+  }
+  const pref1 = document.getElementById('pref1').value;
+  const pref2 = document.getElementById('pref2').value;
+  // Allow "All" to be selected multiple times in all preferences
+  populateDropdown('pref2', [pref1], branches);
+  populateDropdown('pref3', [pref1, pref2], branches);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -191,6 +289,10 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
         preferences.style.display = "block";
       }
   
+      if (degree === "me_mtech") {
+        preferences.style.display = "block";
+      }
+  
       if (degree === "msc") {
         mscCutoff.style.display = "block";
       }
@@ -202,6 +304,23 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   
       if (degree === "bdes") {
         bdesCutoff.style.display = "block";
+      }
+  
+      // Populate preferences based on degree
+      if (degree === "btech" || degree === "me_mtech") {
+        const br = degree === "btech" ? ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'] : [
+          'M.E Structural Engineering',
+          'M.E Environmental Engineering',
+          'M.E Construction Engineering and Management',
+          'M.E Engineering Design',
+          'M.E Power System Engineering',
+          'M.E Communication Systems',
+          'M.E Computer Science and Engineering',
+          'Any Branch'
+        ];
+        populateDropdown('pref1', [], br);
+        populateDropdown('pref2', [], br);
+        populateDropdown('pref3', [], br);
       }
   
       calculateCutoff();
@@ -249,81 +368,6 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     document.getElementById('personalPhone').addEventListener('input', () => {
       validatePhone('personalPhone', 'personalPhone-error');
     });
-  async function handleSubmit(event) {
-  event.preventDefault();
-
-  const inputs = document.querySelectorAll('input, select, textarea');
-  let missingFields = [];
-
-  inputs.forEach(input => {
-    const isHidden = input.offsetParent === null;
-    const isIgnorableType = input.type === "button" || input.type === "submit";
-
-    if (!isHidden && !isIgnorableType && input.required) {
-      if (input.value.trim() === "") {
-        // Try to find label text
-        let labelText = "";
-
-        if (input.id) {
-          const label = document.querySelector(`label[for="${input.id}"]`);
-          if (label) labelText = label.textContent.trim();
-        }
-
-        if (!labelText) {
-          const parent = input.parentElement;
-          if (parent) {
-            const labelInParent = parent.querySelector('label');
-            if (labelInParent) labelText = labelInParent.textContent.trim();
-          }
-        }
-
-        if (!labelText) {
-          labelText = input.name || input.id || "Unnamed field";
-        }
-
-        labelText = labelText.replace(/\*/g, '').trim();
-        missingFields.push(labelText);
-      }
-    }
-  });
-
-  if (!selectedCollege) {
-    missingFields.push("College");
-  }
-
-  if (missingFields.length > 0) {
-    alert("Please fill out the following required fields:\n\n- " + missingFields.join("\n- "));
-    return;
-  }
-
-  const button = document.getElementById("submitBtn");
-  if (button.disabled) return; // prevent multiple clicks
-
-  const originalHTML = button.innerHTML;
-
-  // Show loading spinner and disable button
-  button.innerHTML = `<span class="spinner"></span>Loading...`;
-  button.disabled = true;
-
-  try {
-    // Replace this with your actual async submission code, e.g.:
-    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
-
-    await submitFormData();  // Dummy async function simulating a 2-second submission delay
-
-    // Optional: clear form or show success message here
-
-  } catch (error) {
-    alert("Submission failed: " + error.message);
-  } finally {
-    // Re-enable the button and restore original content
-    button.innerHTML = originalHTML;
-    button.disabled = false;
-  }
-
-
-// Dummy async function to simulate form submission delay — replace with your real submission logic
-
   // Utility function to clean values
   function clean(value, type = "string") {
     if (value === undefined || value === null || value.trim() === "") return null;
@@ -331,98 +375,163 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     return value.trim();
   }
 
-  const degree = document.getElementById("degree")?.value;
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-  const formData = {
-    application_number: clean(document.getElementById("applicationNumber")?.value),
-    name: clean(document.getElementById("nameInput")?.value),
-    email: clean(document.getElementById("email")?.value),
-    address: clean(document.getElementById("tceAddress")?.value),
-    parent_annual_income: clean(document.getElementById("parentsincome")?.value),
-    school: clean(document.getElementById("school")?.value),
-    district: clean(document.getElementById("district")?.value),
-    twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
-    date_of_application: clean(document.getElementById("applicationDate")?.value),
-    applicationstatus: clean(document.getElementById("applicationStatus")?.value),
-    stdcode: clean(document.getElementById("stucode")?.value),
-    phone_number: clean(document.getElementById("phone")?.value),
-    aadhar_number: clean(document.getElementById("aadhar")?.value),
-    community: clean(document.getElementById("community")?.value),
-    college: clean(selectedCollege),
-    board: clean(document.getElementById("boardSelect")?.value),
-    year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
-    degree: clean(degree),
-    maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
-    physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
-    chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
-    nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
-    engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
-    msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
-    barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
-    bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
-    branch_1: clean(document.getElementById("pref1")?.value),
-    branch_2: clean(document.getElementById("pref2")?.value),
-    branch_3: clean(document.getElementById("pref3")?.value),
-    recommender: {
-      name: clean(document.getElementById("nameInput2")?.value),
-      designation: clean(document.getElementById("recDes")?.value),
-      affiliation: clean(document.getElementById("affiliation")?.value),
-      office_address: clean(document.getElementById("recAddress")?.value),
-      office_phone_number: clean(document.getElementById("officePhone")?.value),
-      personal_phone_number: clean(document.getElementById("personalPhone")?.value),
-      email: clean(document.getElementById("recEmail")?.value),
-      offcode: clean(document.getElementById("offcode")?.value),
-      percode: clean(document.getElementById("percode")?.value),
-    }
-  };
-  function sendStudentDetails(isConfirm = false) {
-  fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({...formData, is_confirm: isConfirm})
-  })
-    .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendStudentDetails(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
+    const inputs = document.querySelectorAll('input, select, textarea');
+    let missingFields = [];
+
+    inputs.forEach(input => {
+      const isHidden = input.offsetParent === null;
+      const isIgnorableType = input.type === "button" || input.type === "submit";
+
+      if (!isHidden && !isIgnorableType && input.required) {
+        if (input.value.trim() === "") {
+          // Try to find label text
+          let labelText = "";
+
+          if (input.id) {
+            const label = document.querySelector(`label[for="${input.id}"]`);
+            if (label) labelText = label.textContent.trim();
+          }
+
+          if (!labelText) {
+            const parent = input.parentElement;
+            if (parent) {
+              const labelInParent = parent.querySelector('label');
+              if (labelInParent) labelText = labelInParent.textContent.trim();
+            }
+          }
+
+          if (!labelText) {
+            labelText = input.name || input.id || "Unnamed field";
+          }
+
+          labelText = labelText.replace(/\*/g, '').trim();
+          missingFields.push(labelText);
+        }
       }
-    } 
-    else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
+    });
+
+    if (!selectedCollege) {
+      missingFields.push("College");
     }
 
-    return data;
-  })
-    .then(data => {
-      alert("Application form is submitted successfully");
-      location.reload();
-    })
-    .catch(error => {
-      console.error("Submission error:", error.message);
-      alert("Failed to submit application. " + error.message);
-      button.innerHTML = originalHTML;
-      button.disabled = false;
-    });
-}
-sendStudentDetails();
-}
+    if (missingFields.length > 0) {
+      alert("Please fill out the following required fields:\n\n- " + missingFields.join("\n- "));
+      return;
+    }
+
+    const button = document.getElementById("submitBtn");
+    if (button.disabled) return; // prevent multiple clicks
+
+    const originalHTML = button.innerHTML;
+
+    // Show loading spinner and disable button
+    button.innerHTML = `<span class="spinner"></span>Loading...`;
+    button.disabled = true;
+
+    const degree = document.getElementById("degree")?.value;
+    
+    // Detect program type from degree
+    const degreeKey = (degree || '').toLowerCase();
+    let program_type = 'ug';
+    if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey === 'march' || degreeKey === 'mca') {
+      program_type = 'pg';
+    }
+
+    const formData = {
+      application_number: clean(document.getElementById("applicationNumber")?.value),
+      name: clean(document.getElementById("nameInput")?.value),
+      email: clean(document.getElementById("email")?.value),
+      address: clean(document.getElementById("tceAddress")?.value),
+      parent_annual_income: clean(document.getElementById("parentsincome")?.value),
+      school: clean(document.getElementById("school")?.value),
+      district: clean(document.getElementById("district")?.value),
+      twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
+      date_of_application: clean(document.getElementById("applicationDate")?.value),
+      applicationstatus: clean(document.getElementById("applicationStatus")?.value),
+      stdcode: clean(document.getElementById("stdcode")?.value),
+      phone_number: clean(document.getElementById("phone")?.value),
+      aadhar_number: clean(document.getElementById("aadhar")?.value),
+      community: clean(document.getElementById("community")?.value),
+      college: clean(selectedCollege),
+      board: clean(document.getElementById("boardSelect")?.value),
+      year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
+      degree: clean(degree),
+      program_type: program_type,
+      ug_consolidated_mark: program_type === 'pg' ? clean(document.getElementById("tceUgConsolidatedMark")?.value, "float") : null,
+      ug_course_name: program_type === 'pg' ? clean(document.getElementById("tceUgCourseName")?.value) : null,
+      ug_institution: program_type === 'pg' ? clean(document.getElementById("tceUgInstitution")?.value) : null,
+      tancet_gate_score: program_type === 'pg' ? clean(document.getElementById("tceTancetGateScore")?.value) : null,
+      maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
+      physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
+      chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
+      nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
+      engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
+      msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
+      barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
+      bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+      branch_1: clean(document.getElementById("pref1")?.value),
+      branch_2: clean(document.getElementById("pref2")?.value),
+      branch_3: clean(document.getElementById("pref3")?.value),
+      recommender: {
+        name: clean(document.getElementById("nameInput2")?.value),
+        designation: clean(document.getElementById("recDes")?.value),
+        affiliation: clean(document.getElementById("affiliation")?.value),
+        office_address: clean(document.getElementById("recAddress")?.value),
+        office_phone_number: clean(document.getElementById("officePhone")?.value),
+        personal_phone_number: clean(document.getElementById("personalPhone")?.value),
+        email: clean(document.getElementById("recEmail")?.value),
+        offcode: clean(document.getElementById("offcode")?.value),
+        percode: clean(document.getElementById("percode")?.value),
+      }
+    };
+
+    function sendStudentDetails(isConfirm = false) {
+      fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({...formData, is_confirm: isConfirm})
+      })
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({})); // protect against invalid JSON
+          if (res.status === 409) {
+            const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+            if (proceed) {
+              return sendStudentDetails(true); // Retry with confirmation
+            } else {
+              throw new Error("Operation cancelled by user.");
+            }
+          } else if (!res.ok) {
+            throw new Error(data.error || "An unknown error occurred.");
+          }
+          return data;
+        })
+        .then(data => {
+          alert("Application form is submitted successfully");
+          location.reload();
+        })
+        .catch(error => {
+          console.error("Submission error:", error.message);
+          alert("Failed to submit application. " + error.message);
+          button.innerHTML = originalHTML;
+          button.disabled = false;
+        });
+    }
+
+    sendStudentDetails();
+  }
 
 
-function submitFormData() {
-  return new Promise(resolve => setTimeout(resolve, 2000));
-}
-   
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
     window.location.reload(); // Reload if user returns via back/forward
   }
 });
+
 
 
 //FOR TCA //
@@ -511,6 +620,17 @@ async function handleSubmitTca(event) {
 }
 
   const degree = document.getElementById("tcaDegree")?.value;
+  let programType = selectedProgramType || '';
+  if (!programType) {
+    const degKey = (degree || '').toLowerCase();
+    if (['me_mtech', 'march', 'mca'].includes(degKey)) {
+      programType = 'pg';
+    } else if (['btech', 'msc', 'bdes', 'barch', 'be'].includes(degKey)) {
+      programType = 'ug';
+    } else {
+      programType = 'ug';
+    }
+  }
 
   const formData = {
   application_number: clean(document.getElementById("tcaAppNumber")?.value),
@@ -530,6 +650,11 @@ async function handleSubmitTca(event) {
   degreeType : clean(document.getElementById("tcaDegreeType")?.value),
   course: clean(document.getElementById("tcaCourse")?.value),
   degree: clean(degree),
+  program_type: programType,
+  ug_consolidated_mark: programType === 'pg' ? clean(document.getElementById("tcaUgConsolidatedMark")?.value, "float") : null,
+  ug_course_name: programType === 'pg' ? clean(document.getElementById("tcaUgCourseName")?.value) : null,
+  ug_institution: programType === 'pg' ? clean(document.getElementById("tcaUgInstitution")?.value) : null,
+  tancet_gate_score: programType === 'pg' ? clean(document.getElementById("tcaTancetGateScore")?.value) : null,
   subject1: clean(document.getElementById("sub1")?.value, "float"),
   subject2: clean(document.getElementById("sub2")?.value, "float"),
   subject3: clean(document.getElementById("sub3")?.value, "float"),
