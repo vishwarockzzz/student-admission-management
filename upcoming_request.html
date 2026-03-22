@@ -1,115 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thiagarajar Group of Institutions - MQ processing Dashboard</title>
+  <title>TCE Application Processing</title>
   <link rel="stylesheet" href="upcoming_request.css">
 </head>
-
 <body>
+
 <header>
   <div class="header-content">
-    <h1>TCE Application Processing</h1>
-    <div class="nav-bar">
-      <div class="left-buttons">
+    <div class="header-left">
+      <a href="college_selection.html" class="home-link" title="Home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </a>
+      <h1>TCE Application Processing</h1>
+    </div>
 
-        <button class="nav-btn" onclick="showSeatPopup()">Remaining Seats</button>
-        <!-- <button onclick="fetchAndRenderStudents('UNALLOCATED')">Requested</button> -->
-        <button onclick="window.location.href='completed.html'">Application Status</button>
-        <div class="filter-sort-wrapper">
-  <button class="filter-sort-toggle" onclick="toggleFilterSort()">Search Specific</button>
-  <div id="filterSortPanel" class="filter-sort-panel">
-    <select id="recommenderFilter" onchange="filterByRecommender()" class="filter-dropdown">
-      <option value="">-- Select Recommender --</option>
-      <!-- JS dynamically populates this -->
-    </select>
-
-    <select id="combinedFilter" onchange="filterByCombined()" class="filter-dropdown">
-      <option value="all">-- All Departments and Degrees --</option>
-      <option value="Clear">-- Clear Filter --</option>
-    </select>
-
-  </div>
-</div>
-      </div>
-      <div class="right-buttons">
-        <button class="nav-btn" onclick="goHome()">Logout</button>
-        <button class="nav-btn" onclick="goBack()">Back</button>
-        
-      </div>
-      
+    <div class="header-right">
+      <button class="icon-btn" onclick="goBack()" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <button class="icon-btn logout" onclick="goHome()" title="Logout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </button>
     </div>
   </div>
 </header>
-<div class="search-container">
-  <input id="searchInput" class="input-box" placeholder="Search for details..." />
-  <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Search</button>
-  <button class="clear-input" onclick="clearSearch()">Clear</button>
+
+<div class="main-controls">
+  <div class="left-nav-group">
+    <button class="modern-btn" onclick="showSeatPopup()">Remaining Seats</button>
+    <button class="modern-btn" onclick="showChangeSeatsPopup()">Change Seats</button>
+    <button class="modern-btn" onclick="window.location.href='completed.html'">Application Status</button>
+    
+    <div class="filter-sort-wrapper">
+      <button class="filter-sort-toggle" onclick="toggleFilterSort()">Search Specific</button>
+      <div id="filterSortPanel" class="filter-sort-panel">
+         <label>Recommender</label>
+         <select id="recommenderFilter" onchange="filterByRecommender()"></select>
+         <label>Dept & Degree</label>
+         <select id="combinedFilter" onchange="filterByCombined()"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-search-group">
+    <input id="searchInput" class="input-box" placeholder="Search for details..." />
+    <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Search</button>
+    <button class="maroon-btn clear-search" onclick="clearSearch()">Clear</button>
+  </div>
 </div>
 
-<div id="seatPopup">
-  <h3>Seat Status For TCE</h3>
-  <table border="1" width="100%" id="seatTable">
-    <thead>
-      <tr>
-        <th>S.No</th>
-        <th>Course Name</th>
-        <th>Total Seats</th>
-        <th>Allocated Seats</th>
-        <th>Remaining Seats</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <br>
-  <button onclick="closeSeatPopup()">Close</button>
+<div class="content">
+    <div class="student-grid" id="studentList">
+        </div>
 </div>
 
-
-  <div class="content" id="studentList">
-    <!-- Cards will be injected here -->
+<div id="seatPopup" class="popup-overlay">
+  <div class="popup wide-popup">
+    <h3 class="maroon-text">Remaining Seat Status</h3>
+    <table id="seatTable" class="neat-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Course Name</th>
+          <th>Total</th>
+          <th>Allocated</th>
+          <th>Remaining</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="maroon-btn" onclick="closeSeatPopup()">Close</button>
   </div>
-   <div id="declineModal" class="modal">
-    <div class="modal-content">
-      <h3>Decline Reason</h3>
-      <textarea id="declineComment" placeholder="Enter reason..." rows="4" style="width:100%;"></textarea>
-      <br/>
-      <button onclick="submitDecline()">Submit</button>
-      <button onclick="closeDeclineModal()">Cancel</button>
+</div>
+
+<div id="changeSeatPopup" class="popup-overlay">
+  <div class="popup wide-popup">
+    <h3 class="maroon-text">Change Seat Totals</h3>
+    <table id="changeSeatTable" class="neat-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Course Name</th>
+          <th>Total</th>
+          <th>Allocated</th>
+          <th>Remaining</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="maroon-btn" onclick="saveChangeSeats()">Save</button>
+    <button class="maroon-btn" onclick="closeChangeSeatPopup()">Close</button>
+  </div>
+</div>
+
+<div id="declineModal" class="popup-overlay">
+  <div class="popup standard-popup">
+    <h3 class="maroon-text">Decline Reason</h3>
+    <textarea id="declineComment" class="popup-input" placeholder="Enter reason..." rows="4"></textarea>
+    <div class="modal-footer">
+      <button class="maroon-btn" onclick="submitDecline()">Submit</button>
+      <button class="maroon-btn cancel-btn" onclick="closeDeclineModal()">Cancel</button>
     </div>
   </div>
+</div>
 
-  <div id="popup-overlay" class="popup-overlay" style="display:none">
-    <div class="popup">
-      <label for="branchSelect">Choose Branch:</label>
-      <select id="branchSelect">
-        <option value="CSE">CSE</option>
-        <option value="IT">IT</option>
-        <option value="ECE">ECE</option>
-      </select>
-
-      <label for="modeSelect">Select Mode:</label>
-      <select id="modeSelect">
-        <option value="Aided">Aided</option>
-        <option value="Self Finance">Self Finance</option>
-      </select>
-
-      <button onclick="confirmSelection()">Confirm</button>
-      <button onclick="closeSelectionModal()">Cancel</button>
+<div id="popup-overlay" class="popup-overlay">
+  <div class="popup standard-popup">
+    <h3 class="maroon-text">Allotment Details</h3>
+    <div class="select-group">
+        <label>Branch:</label>
+        <select id="branchSelect">
+          <option value="CSE">CSE</option>
+          <option value="IT">IT</option>
+          <option value="ECE">ECE</option>
+        </select>
+        <label>Mode:</label>
+        <select id="modeSelect">
+          <option value="Aided">Aided</option>
+          <option value="Self Finance">Self Finance</option>
+        </select>
+    </div>
+    <div class="modal-footer">
+      <button class="maroon-btn" onclick="confirmSelection()">Confirm</button>
+      <button class="maroon-btn cancel-btn" onclick="closeSelectionModal()">Cancel</button>
     </div>
   </div>
-<!-- View More Popup -->
-<div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
-    <div class="popup bordered-popup">
-      <h2 class="popup-title">Student Application Details</h2>
-      <div class="form-two-column" id="viewMoreContent"></div>
-      <button onclick="closeViewMore()" class="close-btn">Close</button>
+</div>
+
+<div id="viewMoreOverlay" class="popup-overlay">
+    <div class="popup wide-popup">
+      <h2 class="maroon-text">Application Details</h2>
+      <div id="viewMoreContent"></div>
+      <button onclick="closeViewMore()" class="maroon-btn view-more-btn">Close</button>
     </div>
-  </div>
+</div>
+
 <script src="env.js"></script>
-  <script src="student-fetch.js"></script>
+<script>
+  // Serve from http server, not file:
+  if (location.protocol === 'file:') {
+    console.warn('Running from file: protocol. Please use http-server.');
+  }
+</script>
+<script src="student-fetch.js"></script>
 </body>
-
 </html>

@@ -104,7 +104,7 @@ fetch(SEATS_URL)
   }
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
-  panel.style.display = panel.style.display === "block" ? "none" : "block";
+  panel.style.display = panel.style.display === "flex";
 }
 
 // Optional: hide on outside click
@@ -342,7 +342,7 @@ let isFirstGroup = true;
         <p><strong>Course:</strong> ${key}</p>
         <p><strong>Total Mark:</strong> ${student.twelfth_mark}</p>
         <p><strong>Cut-Off:</strong> ${student.cutoff || "N/A"}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        <button class="view-more view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
       `;
 
       const recommender = student.recommenders?.[0] || {
@@ -531,12 +531,13 @@ function confirmSelection() {
 
 
 
+
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -789,7 +790,7 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);

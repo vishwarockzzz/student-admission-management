@@ -14,6 +14,7 @@
   <div class="header-buttons">
     <div class="left">
       <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
+      <button class="nav-btn2" onclick="showChangeSeatsPopup()">Change Seats</button>
       <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
       <button class="nav-btn2"  onclick="printAllWithUnallocated()">Print All Status</button>
     </div>
@@ -141,6 +142,27 @@
   <br>
   <button onclick="closeSeatPopup()">Close</button>
 </div>
+
+<div id="changeSeatPopup" style="display: none;">
+  <div id="changeSeatsTableContainer">
+    <h3>Change Seat Totals</h3>
+    <table border="1" width="100%" id="changeSeatTable">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Course Name</th>
+          <th>Total</th>
+          <th>Allocated</th>
+          <th>Remaining</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button onclick="saveChangeSeats()">Save</button>
+  <button onclick="closeChangeSeatPopup()">Close</button>
+</div>
+
   <script src="env.js"></script>
   <script src="tca_application_status.js"></script>
 </body>

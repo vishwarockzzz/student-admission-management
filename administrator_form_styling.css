@@ -1,36 +1,325 @@
-.college-buttons-container {
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  width: 100%;
+/* =========================================
+   1. GLOBAL & RESET STYLES
+   ========================================= */
+:root {
+  --tce-maroon: #800000;
+  --tce-hover: #a00000;
+  --tca-gold: #b8860b;
+  --tca-navy: #1a2a6c;
+  --bg-light: #f8f9fa;
+  --text-dark: #2c3e50;
+  --border-color: #d1d1d1;
+  --shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
-.instruction {
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* =========================================
+   2. HEADER & NAVIGATION
+   ========================================= */
+header {
+  background-color: var(--tce-maroon);
+  color: white;
+  padding: 20px 40px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  background-color: white;
+  color: var(--tce-maroon);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   3. MODERN COLLEGE SELECTION CARDS
+   ========================================= */
+.college-selection-wrapper {
   display: flex;
   justify-content: center;
+  gap: 30px;
+  padding: 40px 20px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.college-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 380px;
+  display: flex;
   align-items: center;
-  height: 15vh; /* full screen height */
+  gap: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 2px solid #f0f0f0;
+  box-shadow: var(--shadow);
+}
+
+.college-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  border-color: #e0e0e0;
+}
+
+.card-icon {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.card-info h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.card-info p {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.college-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  color: var(--tce-maroon);
+  margin-bottom: 6px;
+}
+
+.tag-arts { color: var(--tca-gold); }
+
+/* Active States */
+.college-card.active {
+  border-color: var(--tce-maroon);
+  background: #fffcfc;
+}
+
+#tcaBtn.active {
+  border-color: var(--tca-gold);
+  background: #fffdf5;
+}
+
+.program-btn {
+  background-color: var(--tce-maroon);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin: 4px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.program-btn:hover {
+  background-color: #a00000;
+  transform: translateY(-1px);
+}
+
+.program-btn.active {
+  background-color: #ff6600;
+  color: #fff;
+  border-color: var(--tca-gold);
+  background: #fffdf5;
+}
+
+.selection-indicator {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.college-card.active .selection-indicator {
+  background: #27ae60;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.5);
+}
+
+/* =========================================
+   4. FORM CONTAINER & TYPOGRAPHY
+   ========================================= */
+.instruction {
   text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  background-color: #f0f0f0; /* light background */
-  color: #333;
+  padding: 40px;
+  font-size: 1.2rem;
+  color: #666;
+  background: #fdfdfd;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+h2 {
+  font-size: 22px;
+  color: var(--text-dark);
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+  margin-top: 40px;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.row {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.form-section {
+  flex: 1;
+  min-width: 350px;
+}
+
+/* =========================================
+   5. FORM ELEMENTS (INPUTS/SELECTS)
+   ========================================= */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #444;
+}
+
+input, select, textarea {
+  padding: 12px;
+  font-size: 15px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--tce-maroon);
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+}
+
+/* Special widths for large dropdowns */
+#degree, #tcaDegreeType, #tcaDegree, #tcaCourse {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* =========================================
+   6. BUTTONS & UTILITIES
+   ========================================= */
+.submit-btn {
+  background-color: var(--tce-maroon);
+  color: white;
+  padding: 15px 40px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(128, 0, 0, 0.3);
+  margin: 30px 0;
+}
+
+.submit-btn:hover {
+  background-color: var(--tce-hover);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(128, 0, 0, 0.4);
 }
 
 .submit-btn:disabled {
-  opacity: 0.7;
+  background-color: #ccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
+/* Status Indicators */
+small {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.subs {
+  display: flex;
+  gap: 10px;
+}
+
+.tcasubject input {
+  text-align: center;
+}
+
+/* Spinner Animation */
 .spinner {
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #3498db;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid white;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   animation: spin 0.8s linear infinite;
   display: inline-block;
-  vertical-align: middle;
-  margin-right: 8px;
 }
 
 @keyframes spin {
@@ -38,360 +327,22 @@
   100% { transform: rotate(360deg); }
 }
 
-
-
-.college-btn {
-  display: flex;
-  align-items: center;         /* Vertically center logo and text */
-  justify-content: center;  
-  gap: 10px; /* spacing between logo and text */
-  flex: 1;
-  padding: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  color: rgb(44, 41, 41);
-  background-color: #d4af7f; /* warm tan/gold */
-/* soft reddish-maroon */
-  /* default color */
-
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}                  /* Space between logo and text */
-  
-.college-logo {
-  width: 50px; /* adjust size as needed */
-  height: 50px;
-  object-fit: contain;
-}
-/* No gap between buttons */
-.college-btn:not(:last-child) {
-  margin-right: 0px;
-}
-
-/* Hover effect on the inactive button */
-.college-btn:not(.active):hover {
-  background-color: #720907;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Active button stays red */
-.college-btn.active {
-  background-color: #920505;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Prevent hover from changing active button */
-.college-btn.active:hover {
-  background-color: #920505;
-}
-
-header {
-  background-color: #800000; /* dark maroon */
-  color: white;
-  padding: 30px;
-  position: relative;
-}
-
-.header-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.header-content h1 {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-  font-size: 24px;
-}
-
-.nav-buttons {
-  position: absolute;
-  right: 20px;
-  display: flex;
-  gap: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Unified button style */
-.nav-btn {
-  background-color: white;
-  color: maroon;
-  border: 2px solid maroon;
-  border-radius: 6px;
-  margin-left: 10px;
-  padding: 6px 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.nav-btn:hover {
-  background-color: #b30000;
-  color: white;
-}
-
-
-
-   /* Global Styles */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #fdfaf6;
-  color: black;
-}
-
-.preference-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.preference-row .form-group {
-  flex: 1;
-  min-width: 300px;
-}
-/* Container Styles */
-.container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 20px;
-
-  display: flex;
-  flex-direction: column; /* or 'row' for horizontal */
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem;
-
-}
-
-/* Form Styles */
-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two columns */
-  gap: 24px 40px;
-  align-items: start;
-  width: 100%;
-}
-
-/* Heading Styles */
-h2 {
-  font-size: 24px;
-  color: black;
-  margin-bottom: 20px;
-  font-weight: bold;
-  grid-column: span 2; /* Span both columns */
-  text-align: center;
-}
-.row {
-  display: flex;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-
-.form-section {
-  flex: 1;
-  min-width: 400px;
-}
-/* Form Group Styles */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  max-width: 400px; /* Control width for both label and input/select */
-  margin-bottom: 15px;
-}
-
-
-/* Flex for layout */
-#degree {
-  display: inline-block;
-  width: 926px;
-  margin-right: 15px;
-}
-
-#subject-fields .form-group,
-#nata-fields .form-group {
-  display: inline-block;
-  width: 30%; /* Three columns */
-  margin-right: 10px;
-}
-
-/* Ensure that the "cutoff" section is displayed in a block */
-#nata-fields .form-group,
-#subject-fields .form-group {
-  margin-bottom: 10px;
-}
-
-/* To break lines and ensure space */
-#subject-fields, #nata-fields {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 15px;
-}
-label {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 16px;
-}
-
-/* Input and Select Styles */
-input,
-select {
-  padding: 10px;
-  font-size: 16px;
-  border: 1.5px solid black;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Hover Effects */
-input:hover,
-select:hover {
-  background-color: #f0f0f0;
-  cursor: pointer;
-}
-
-
-/* Cutoff Visibility */
-#engg-cutoff-group,
-#msc-cutoff-group,
-#barch-cutoff-group,
-#bdes-cutoff-group {
-  display: none;
-}
-
-.submit-btn {
-  background-color: #800000;
-  color: white;
-  padding: 12px 25px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.submit-btn:hover {
-  background-color: #ba0202;
-}
-/* Responsive Design */
-@media (max-width: 768px) {
-  form {
-    grid-template-columns: 1fr; /* Single column for small screens */
-  }
-
-  h2 {
-    grid-column: span 1;
-    
-  }
-}
-  @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: center;
-  }
-
-  .header-content h1 {
-    font-size: 20px;
-  }
-
-  .nav-buttons {
-    position: static;
-    transform: none;
-    margin-top: 10px;
-    justify-content: center;
-    width: 100%;
-  }
-}
-
-/* Responsive College Buttons */
-@media (max-width: 768px) {
-  .college-buttons-container {
+/* =========================================
+   7. RESPONSIVE DESIGN
+   ========================================= */
+@media (max-width: 900px) {
+  .college-selection-wrapper {
     flex-direction: column;
     align-items: center;
   }
-
-  .college-btn {
-    width: 100%;
-    max-width: 300px;
-    margin-bottom: 10px;
+  
+  .college-card {
+    width: 90%;
   }
 
-  .college-btn:not(:last-child) {
-    margin-right: 0;
-  }
-}
-
-/* Responsive Form Adjustments */
-@media (max-width: 768px) {
-  .preference-row {
+  .header-content {
     flex-direction: column;
+    text-align: center;
+    gap: 15px;
   }
-
-  .form-group {
-    min-width: unset;
-    width: 100%;
-  }
-
-  #degree {
-    width: 100%;
-  }
-
-  #subject-fields .form-group,
-  #nata-fields .form-group {
-    width: 100%;
-    margin-right: 0;
-  }
-
-  .form-section {
-    min-width: unset;
-    width: 100%;
-  }
-}
-
-/* Instruction Responsive */
-@media (max-width: 768px) {
-  .instruction {
-    font-size: 1.2rem;
-    height: auto;
-    padding: 1rem;
-  }
-}
-
-
-
-
-.hidden {
-      display: none;
-    }
-    input[type="number"] {
-      width: 100%;
-      
-    }
-
-
-.subs {
-  display: flex;
-  gap: 15px;
-  flex-wrap: nowrap; /* prevent wrapping */
-}
-
-.tcasubject input {
-  width: 220px; /* adjust width as needed */
-  padding: 10px;
-  gap: 15px;
-}#tcaDegreeType,
-#tcaDegree,
-#tcaCourse {
- 
-  width: 925px;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }

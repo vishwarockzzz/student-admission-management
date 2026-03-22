@@ -353,7 +353,7 @@ function printAllWithUnallocated() {
 
 function openStudentPopup() {
   const popup = document.getElementById("studentPopup");
-  if (popup) popup.style.display = "block";
+  if (popup) popup.style.display = "flex";
 }
 
 function closeStudentPopup() {
@@ -530,7 +530,7 @@ function generateTableView(status) {
   } // Toggle button visibility
   updateButtonVisibility(status);
   // Show popup
-  document.getElementById("studentPopup").style.display = "block";
+  document.getElementById("studentPopup").style.display = "flex";
   document.getElementById("popupTitle").textContent =
     status === "APPROVED" ? "Allotted Students" : "Declined Students";
 
@@ -769,15 +769,12 @@ function confirmSelection() {
   sendApprovalRequest();
 }
 
-
-
-
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -1021,7 +1018,7 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);

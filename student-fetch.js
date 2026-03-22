@@ -1,9 +1,12 @@
 
-const API_URL = `${window.env.BASE_URL}/students`;
-console.log(API_URL);
-const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
+const BASE_URL = window.env.BASE_URL.replace(/\/$/, '');
+const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/students` : `${BASE_URL}/api/students`;
+console.log('API_URL', API_URL);
+const UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updatestatus` : `${BASE_URL}/api/updatestatus`;
 
-const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+const SEATS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/statusdetails` : `${BASE_URL}/api/statusdetails`;
+
+const SEATS_UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updateseats` : `${BASE_URL}/api/updateseats`;
 
 let result = [];
 let seats = {};
@@ -106,7 +109,7 @@ function populateFilters() {
 
   // Options for departments and degrees
   const options = [
-    "Any Branch","CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+    "Any Branch","CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.E/M.TECH", "M.ARCH", "M.C.A", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
   ];
 
   // Populate the dropdown
@@ -132,6 +135,9 @@ const filteredStudents = allStudents.filter(student => {
 
   const degreeMatches = {
     "BE/BTECH": ["btech"],
+    "M.E/M.TECH": ["me_mtech", "me", "mtech"],
+    "M.ARCH": ["march"],
+    "M.C.A": ["mca"],
     "M.SC DATA SCIENCE": ["msc"],
     "B.DES": ["bdes"],
     "B.ARCH": ["barch"]
@@ -247,14 +253,16 @@ function renderStudents(students) {
     "b.e": "B.E. / B.Tech.",
     "btech": "B.E. / B.Tech.",
     "engineering": "B.E. / B.Tech.",
-    "msc": "M.Sc. DS ",
+    "me_mtech": "M.E. / M.Tech.",
+    "march": "M.Arch.",
+    "mca": "M.C.A.",
+    "msc": "M.Sc. DS",
     "bdes": "B.Des",
     "barch": "B.Arch."
   };
 
-  const orderedDegreeKeys = ["b.e", "btech", "engineering", "msc", "bdes", "barch"];
+  const orderedDegreeKeys = ["me_mtech", "march", "mca", "b.e", "btech", "engineering", "msc", "bdes", "barch"];
 
-  // Group students by normalized degree key
   const grouped = {};
   students.forEach(student => {
     const degreeKey = student.degree?.toLowerCase();
@@ -262,74 +270,58 @@ function renderStudents(students) {
     grouped[degreeKey].push(student);
   });
 
-  let isFirstGroup = true;
-
   for (const key of orderedDegreeKeys) {
     const studentsList = grouped[key];
     if (!studentsList || studentsList.length === 0) continue;
 
-    if (!isFirstGroup) {
-  const divider = document.createElement("hr");
-  divider.className = "degree-divider"; // ✅ Add this line
-  container.appendChild(divider);
-}
+    // Create a wrapper for this degree section to keep heading separate from grid
+    const sectionWrapper = document.createElement("div");
+    sectionWrapper.style.width = "100%";
 
-const title = document.createElement("h2");
-title.className = "degree-section-header";
-title.textContent = degreeMap[key] || key.toUpperCase();
-container.appendChild(title);
+    // Centered Degree Heading
+    const title = document.createElement("h2");
+    title.className = "degree-label"; 
+    title.textContent = degreeMap[key] || key.toUpperCase();
+    sectionWrapper.appendChild(title);
 
+    // Flex Grid for side-by-side cards
+    const grid = document.createElement("div");
+    grid.className = "student-grid"; 
+    sectionWrapper.appendChild(grid);
 
     studentsList.forEach(student => {
       const row = document.createElement("div");
       row.className = "student-row";
       row.id = `student-${student.id}`;
 
-      const card = document.createElement("div");
-      card.className = "student-card";
-
       let cutoff = "";
-      let deg = "";
-      switch (student.degree.toLowerCase()) {
-        case "b.e":
-        case "btech":
-        case "engineering":
-          cutoff = student.engineering_cutoff;
-          deg = degreeMap["b.e"];
-          break;
-        case "msc":
-          cutoff = student.msc_cutoff;
-          deg = degreeMap["msc"];
-          break;
-        case "bdes":
-          cutoff = student.bdes_cutoff;
-          deg = degreeMap["bdes"];
-          break;
-        case "barch":
-          cutoff = student.barch_cutoff;
-          deg = degreeMap["barch"];
-          break;
-        default:
-          cutoff = "N/A";
-      }
+      let deg = degreeMap[key] || student.degree;
+      
+      // Determine cutoff based on key
+      if (["b.e", "btech", "engineering"].includes(key)) cutoff = student.engineering_cutoff;
+      else if (key === "msc") cutoff = student.msc_cutoff;
+      else if (key === "bdes") cutoff = student.bdes_cutoff;
+      else if (key === "barch") cutoff = student.barch_cutoff;
 
-      card.innerHTML = `
-        <p><strong>Name:</strong> ${student.name}</p>
-        <p><strong>Application No:</strong> ${student.application_number}</p>
-        <p><strong>DOA:</strong> ${student.date_of_application}</p>
-        <p><strong>Degree:</strong> ${deg}</p>
-        <p><strong>Cut-Off:</strong> ${cutoff}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+      const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
+      const degreedisplay = degreeDisplayMap[key] || deg;
+      const isPG = ['me_mtech', 'march', 'mca', 'msc', 'bdes', 'barch'].includes(key);
+      const cutoffDisplay = isPG ? '' : `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
+
+      row.innerHTML = `
+        <div class="student-info">
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Application No:</strong> ${student.application_number}</p>
+          <p><strong>DOA:</strong> ${student.date_of_application}</p>
+          <p><strong>Degree:</strong> ${degreedisplay}</p>
+          ${cutoffDisplay}
+          <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        </div>
       `;
 
-      const recommender = student.recommenders?.[0] || {
-        name: "-",
-        affiliation: "-",
-        designation: "-"
-      };
-
+      const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
       const recommenderBox = document.createElement("div");
-      recommenderBox.className = "recommender-box";
+      recommenderBox.style.flex = "1";
       recommenderBox.innerHTML = `
         <p><strong>Recommender:</strong> ${recommender.name}</p>
         <p><strong>Designation:</strong> ${recommender.designation}</p>
@@ -338,25 +330,21 @@ container.appendChild(title);
 
       const actions = document.createElement("div");
       actions.className = "action-buttons";
-      let withdrawOrDeleteBtn = "";
-      if (!isAdmin) {
-        withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
-      }
+      let deleteBtn = !isAdmin ? `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>` : "";
 
       actions.innerHTML = `
-        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+        <button class="accept allot" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
         <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
         <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-        ${withdrawOrDeleteBtn}
+        ${deleteBtn}
       `;
 
-      row.appendChild(card);
       row.appendChild(recommenderBox);
       row.appendChild(actions);
-      container.appendChild(row);
+      grid.appendChild(row);
     });
 
-    isFirstGroup = false;
+    container.appendChild(sectionWrapper);
   }
 }
 
@@ -374,7 +362,14 @@ const courseMap = {
   "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
+  "B.ARCH": "B.Arch. Architecture",
+  "M.E Structural Engineering": "M.E Structural Engineering",
+  "M.E Environmental Engineering": "M.E Environmental Engineering",
+  "M.E Construction Engineering and Management": "M.E Construction Engineering and Management",
+  "M.E Engineering Design": "M.E Engineering Design",
+  "M.E Power System Engineering": "M.E Power System Engineering",
+  "M.E Communication Systems": "M.E Communication Systems",
+  "M.E Computer Science and Engineering": "M.E Computer Science and Engineering"
 };
 function acceptStudent(id, branch) {
   currentStudentId = id;
@@ -439,6 +434,36 @@ function acceptStudent(id, branch) {
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
+  }
+
+  // M.E/M.Tech degree
+  else if (degree === "ME_MTECH") {
+    const meCourses = [
+      "M.E Structural Engineering",
+      "M.E Environmental Engineering",
+      "M.E Construction Engineering and Management",
+      "M.E Engineering Design",
+      "M.E Power System Engineering",
+      "M.E Communication Systems",
+      "M.E Computer Science and Engineering"
+    ];
+
+    // Add a default option
+    const defaultOption = document.createElement("option");
+    defaultOption.textContent = "Select Branch";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    branchSelect.appendChild(defaultOption);
+
+    meCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchSelect.appendChild(option);
+    });
+
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.disabled = true;
   }
 
   // General case: BE courses
@@ -576,7 +601,7 @@ let currentDeclineId = null;
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -719,85 +744,101 @@ function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
 }
+
 function showViewMore(student) {
-      const container = document.getElementById("viewMoreContent");
-      container.innerHTML = "";
+  const container = document.getElementById("viewMoreContent");
+  container.innerHTML = "";
 
-      const r = student.recommender || student.recommenders?.[0] || {};
+  const r = student.recommender || student.recommenders?.[0] || {};
 
-      const studentFields = [
-        ["Application Number", student.application_number],
-        ["Name", student.name],
-        ["DOA", student.date_of_application],
-        ["School", student.school],
-        ["City", student.district],
-        ["Std Code", student.stdcode],
-        ["Phone", student.phone_number],
-        ["Email", student.email],
-        ["Address", student.address],
-        ["Aadhar Number", student.aadhar_number],
-        ["Parent Annual Income", student.parent_annual_income],
-        ["Community", student.community],
-        ["Board", student.board],
-        ["Year of Passing", student.year_of_passing],
-        ["College", student.college],
-        ["Degree", student.degree],
-        ["Branch 1", student.branch_1],
-        ["Branch 2", student.branch_2],
-        ["Branch 3", student.branch_3],
-        ["Maths", student.maths],
-        ["Physics", student.physics],
-        ["Chemistry", student.chemistry],
-        ["Total Marks", student.twelfth_mark],
-        ["Mark %", student.markpercentage],
-        ["Engineering Cutoff", student.engineering_cutoff, true],
-        ["MSC Cutoff", student.msc_cutoff, true],
-        ["BArch Cutoff", student.barch_cutoff, true],
-        ["BDes Cutoff", student.bdes_cutoff, true]
-      ];
+  const makeSection = (title, fields) => {
+    const section = document.createElement("div");
+    // Bold Section Heading
+    section.innerHTML = `
+      <h3 style="color: #800000; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px; font-weight: 800;">
+        ${title.toUpperCase()}
+      </h3>
+      <table class="neat-table"></table>
+    `;
+    const table = section.querySelector("table");
 
-      const recommenderFields = [
-        ["Name", r.name],
-        ["Designation", r.designation],
-        ["Affiliation", r.affiliation],
-        ["Office Address", r.office_address],
-        ["Offcode", r.offcode],
-        ["Office Phone", r.office_phone_number],
-        ["Personal Phone", r.personal_phone_number],
-        ["Email", r.email]
-      ];
+    fields.forEach(([label, value]) => {
+      if (value) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td style="font-weight: bold; width: 45%;">${label}:</td>
+          <td>${value}</td>
+        `;
+        table.appendChild(row);
+      }
+    });
+    return section;
+  };
 
-      const makeSection = (title, fields) => {
-        const section = document.createElement("div");
-        section.className = "detail-section";
-        section.innerHTML = `<h3>${title}</h3><table class="detail-table"></table>`;
-        const table = section.querySelector("table");
+  const studentProgramType = student.program_type ? student.program_type.toUpperCase() : 'UG';
+  const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
+  const degreeDisplay = degreeDisplayMap[(student.degree || '').toLowerCase()] || student.degree;
 
-        let hasData = false;
-        fields.forEach(([label, value, highlight]) => {
-          if (value !== null && value !== undefined && value !== "") {
-            hasData = true;
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${label}:</td>
-              <td class="${highlight ? "highlight" : ""}">${value}</td>
-            `;
-            table.appendChild(row);
-          }
-        });
+  let studentFields = [
+    ["Application Number", student.application_number],
+    ["Name", student.name],
+    ["Program Type", studentProgramType],
+    ["Degree", degreeDisplay],
+    ["DOA", student.date_of_application],
+    ["School", student.school],
+    ["City", student.district],
+    ["Std Code", student.stdcode],
+    ["Phone", student.phone_number],
+    ["Email", student.email],
+    ["Address", student.address],
+    ["Aadhar Number", student.aadhar_number],
+    ["Parent Annual Income", student.parent_annual_income],
+    ["Community", student.community],
+    ["Board", student.board],
+    ["Year of Passing", student.year_of_passing],
+    ["College", student.college],
+    ["Branch 1", student.branch_1],
+    ["Branch 2", student.branch_2],
+    ["Branch 3", student.branch_3]
+  ];
 
-        return hasData ? section : null;
-      };
+  if (studentProgramType === 'PG') {
+    studentFields.push(
+      ["UG Consolidated Mark", student.ug_consolidated_mark],
+      ["UG Course Name", student.ug_course_name],
+      ["UG Institution", student.ug_institution],
+      ["Tancet/GATE Score", student.tancet_gate_score]
+    );
+  } else {
+    studentFields.push(
+      ["Maths", student.maths],
+      ["Physics", student.physics],
+      ["Chemistry", student.chemistry],
+      ["Total Marks", student.twelfth_mark],
+      ["Mark %", student.markpercentage],
+      ["Engineering Cutoff", student.engineering_cutoff],
+      ["MSC Cutoff", student.msc_cutoff],
+      ["BArch Cutoff", student.barch_cutoff],
+      ["BDes Cutoff", student.bdes_cutoff]
+    );
+  }
 
-      const studentSection = makeSection("STUDENT DETAILS", studentFields);
-      const recommenderSection = makeSection("RECOMMENDER DETAILS", recommenderFields);
+  container.appendChild(makeSection("Student Details", studentFields));
 
-      if (studentSection) container.appendChild(studentSection);
-      if (recommenderSection) container.appendChild(recommenderSection);
+container.appendChild(makeSection("Recommender Details", [
+  ["Name", r.name],
+  ["Designation", r.designation],
+  ["Affiliation", r.affiliation],
+  ["Office Address", r.office_address],
+  ["Offcode", r.offcode],
+  ["Office Phone", r.office_phone_number],
+  ["Personal Phone", r.personal_phone_number],
+  ["Email", r.email]
+]));
 
-      document.getElementById("viewMoreOverlay").style.display = "flex";
-
-    }
+  // Opens in center using flex
+  document.getElementById("viewMoreOverlay").style.display = "flex"; 
+}
 
     function closeViewMore() {
       document.getElementById("viewMoreOverlay").style.display = "none";
@@ -813,13 +854,32 @@ function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
+      // Add PG courses if not present
+      const pgCourses = [
+        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
+      ];
+      pgCourses.forEach(pg => {
+        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
+          result.push(pg);
+        }
+      });
+
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      let sfTotal = 0, totalApps = 0;
       result.forEach((entry, index) => {
-
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -828,11 +888,10 @@ function showSeatPopup() {
           <td>${entry.allocated_seats}</td>
           <td>${entry.remaining_seats}</td>
         `;
-
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
@@ -845,6 +904,181 @@ function showSeatPopup() {
 function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
+
+function closeChangeSeatPopup() {
+  document.getElementById("changeSeatPopup").style.display = "none";
+}
+
+let currentSeatData = [];
+
+function showChangeSeatsPopup() {
+  fetch(SEATS_URL)
+    .then(response => response.json())
+    .then(result => {
+      // Add PG courses if not present
+      const pgCourses = [
+        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
+      ];
+      pgCourses.forEach(pg => {
+        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
+          result.push(pg);
+        }
+      });
+
+      currentSeatData = result;
+      const aided = result.filter(entry => entry.course_type.toLowerCase() === 'aided');
+      const sf = result.filter(entry => entry.course_type.toLowerCase() === 'self finance');
+      const grouped = [...aided, ...sf];
+
+      const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      grouped.forEach((entry, index) => {
+        const courseWithType = `${entry.course} (${entry.course_type})`;
+        const row = document.createElement("tr");
+        row.dataset.courseType = entry.course_type.toLowerCase();
+        row.dataset.courseName = entry.course;
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${courseWithType}</td>
+          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0"></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0"></td>
+          <td><input type="number" value="${entry.remaining_seats}" id="remaining-${index}" min="0"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Show Self Finance total count row (from API totals row)
+      const sfSummary = result.find(r => r.course_type === 'Total Count' && r.course === 'Self Finance');
+      if (sfSummary) {
+        const summaryRow = document.createElement("tr");
+        summaryRow.classList.add("summary-row");
+        summaryRow.innerHTML = `
+          <td colspan="2"><strong>Self Finance (Total Count)</strong></td>
+          <td><input type="number" value="${sfSummary.total_seats}" id="sf-total-summary" readonly></td>
+          <td><input type="number" value="${sfSummary.allocated_seats}" id="sf-allocated-summary" readonly></td>
+          <td><input type="number" value="${sfSummary.remaining_seats}" id="sf-remaining-summary" readonly></td>
+        `;
+        tableBody.appendChild(summaryRow);
+      }
+
+      document.getElementById("changeSeatPopup").style.display = "flex";
+    })
+    .catch(err => {
+      console.error("Error fetching seat data:", err);
+      alert("Failed to load seat status.");
+    });
+}
+
+function saveChangeSeats() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr");
+  const updatedData = [];
+  const aided = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'aided');
+  const sf = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'self finance');
+  const grouped = [...aided, ...sf];
+
+  rows.forEach((row, index) => {
+    if (index < grouped.length) {
+      const totalInput = row.querySelector(`#total-${index}`);
+      const allocatedInput = row.querySelector(`#allocated-${index}`);
+      const remainingInput = row.querySelector(`#remaining-${index}`);
+      if (totalInput && allocatedInput && remainingInput) {
+        updatedData.push({
+          course: grouped[index].course,
+          course_type: grouped[index].course_type,
+          total_seats: parseInt(totalInput.value) || 0,
+          allocated_seats: parseInt(allocatedInput.value) || 0,
+          remaining_seats: parseInt(remainingInput.value) || 0
+        });
+      }
+    }
+  });
+
+  // Validate SF and total separately for UG and PG
+  const aidedCourses = updatedData.filter(d => d.course_type.toLowerCase() === 'aided');
+  const sfCourses = updatedData.filter(d => d.course_type.toLowerCase() === 'self finance');
+  
+  const sfTotal = sfCourses.reduce((sum, d) => sum + d.total_seats, 0);
+  const sfAllocated = sfCourses.reduce((sum, d) => sum + d.allocated_seats, 0);
+  const sfRemaining = sfCourses.reduce((sum, d) => sum + d.remaining_seats, 0);
+  
+  // Check against summary row values from UI
+  const sfTotalSummary = parseInt(document.getElementById('sf-total-summary')?.value || 0);
+  const sfAllocatedSummary = parseInt(document.getElementById('sf-allocated-summary')?.value || 0);
+  const sfRemainingSummary = parseInt(document.getElementById('sf-remaining-summary')?.value || 0);
+
+  if (sfTotalSummary && sfTotal !== sfTotalSummary) {
+    alert(`Self Finance total mismatch: Computed ${sfTotal}, summary row ${sfTotalSummary}`);
+    return;
+  }
+  if (sfAllocatedSummary && sfAllocated !== sfAllocatedSummary) {
+    alert(`Self Finance allocated mismatch: Computed ${sfAllocated}, summary row ${sfAllocatedSummary}`);
+    return;
+  }
+  if (sfRemainingSummary && sfRemaining !== sfRemainingSummary) {
+    alert(`Self Finance remaining mismatch: Computed ${sfRemaining}, summary row ${sfRemainingSummary}`);
+    return;
+  }
+  
+  if (sfTotal !== (sfAllocated + sfRemaining)) {
+    alert(`Self Finance validation failed: Total (${sfTotal}) should equal Allocated (${sfAllocated}) + Remaining (${sfRemaining})`);
+    return;
+  }
+  
+  if (aidedCourses.length > 0) {
+    const aidedTotal = aidedCourses.reduce((sum, d) => sum + d.total_seats, 0);
+    const aidedAllocated = aidedCourses.reduce((sum, d) => sum + d.allocated_seats, 0);
+    const aidedRemaining = aidedCourses.reduce((sum, d) => sum + d.remaining_seats, 0);
+    
+    if (aidedTotal !== (aidedAllocated + aidedRemaining)) {
+      alert(`Aided validation failed: Total (${aidedTotal}) should equal Allocated (${aidedAllocated}) + Remaining (${aidedRemaining})`);
+      return;
+    }
+  }
+
+  function doSeatUpdate(url) {
+    return fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData)
+    });
+  }
+
+  const fallbackUrl = `${window.env.BASE_URL.replace(/\/api\/?$/, '')}/updateseats`; // supports missing prefix
+
+  doSeatUpdate(SEATS_UPDATE_URL)
+    .then(res => {
+      if (res.status === 404) {
+        console.warn('Primary update URL returned 404, retrying with fallback URL', fallbackUrl);
+        return doSeatUpdate(fallbackUrl);
+      }
+      return res;
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+      alert("Seats updated successfully");
+      location.reload();
+    })
+    .catch(err => {
+      console.error("Error updating seats:", err);
+      alert("Failed to update seats: " + err.message);
+    });
+}
+
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
     window.location.reload(); // Reload if user returns via back/forward
