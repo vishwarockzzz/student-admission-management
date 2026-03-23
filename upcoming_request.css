@@ -139,7 +139,7 @@ h1 {
 
 .left-nav-group, .right-search-group {
   display: flex;
-  gap: 15px;
+  gap: 5px;
   align-items: center;
 }
 
@@ -202,6 +202,7 @@ h1 {
   padding: 25px;
   display: flex;
   justify-content: space-between;
+  gap: 50px;
   width: calc(50% - 20px); /* Side by side calculation */
   min-width: 480px;
   box-shadow: var(--shadow);

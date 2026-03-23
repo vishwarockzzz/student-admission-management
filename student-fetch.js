@@ -312,7 +312,6 @@ function renderStudents(students) {
         <div class="student-info">
           <p><strong>Name:</strong> ${student.name}</p>
           <p><strong>Application No:</strong> ${student.application_number}</p>
-          <p><strong>DOA:</strong> ${student.date_of_application}</p>
           <p><strong>Degree:</strong> ${degreedisplay}</p>
           ${cutoffDisplay}
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>

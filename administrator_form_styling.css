@@ -168,9 +168,9 @@ header {
 
 .program-btn.active {
   background-color: #ff6600;
-  color: #fff;
+  color: white;
   border-color: var(--tca-gold);
-  background: #fffdf5;
+  background: var(--tce-maroon);
 }
 
 .selection-indicator {
