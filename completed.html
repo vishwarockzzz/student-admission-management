@@ -9,44 +9,58 @@
 
 <body>
 <header>
-  <h1 class="header-title">TCE Application Status</h1>
-  
-  <div class="header-buttons">
-    <div class="left">
-  <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
-  <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application Status</button>
-  <button class="nav-btn2"  onclick="printAllWithUnallocated()">Print All Status</button>
-</div>
+  <div class="header-content">
+    <div class="header-left">
+      <a href="college_selection.html" class="home-link" title="Home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </a>
+      <h1>TCE Application Status</h1>
+    </div>
 
-    <div class="right">
-      
-      <button class="nav-btn" onclick="goHome()">Logout</button>
-      <button class="nav-btn" onclick="goBack()">Back to Application process</button>
+    <div class="header-right">
+      <button class="icon-btn" onclick="goBack()" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <button class="icon-btn logout" onclick="goHome()" title="Logout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </button>
     </div>
   </div>
 </header>
-  
- <div class="search-container">
 
-<div class="status-buttons">
-  <button class="active" onclick="loadStatus('APPROVED', this)">Alloted Application</button>
-  <button onclick="loadStatus('ONHOLD', this)">OnHold Application</button>
-  <button onclick="loadStatus('DECLINED', this)">Declined Application</button>
-  <button onclick="loadStatus('WITHDRAWN', this)">Withdrawn Application</button>
+<div class="top-actions">
+  <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
+  <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application Status</button>
+  <button class="nav-btn2" onclick="printAllWithUnallocated()">Print All Status</button>
 </div>
-<div class="export-buttons">
-  <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted Students</button>
-  <button id="declinedBtn" onclick="generateTableView('DECLINED')" >Print Declined Students</button>
+
+<div class="status-search-row">
+  <div class="status-buttons">
+    <button class="status-btn active" onclick="loadStatus('APPROVED', this)">Alloted <br>Application</button>
+    <button class="status-btn" onclick="loadStatus('ONHOLD', this)">OnHold <br>Application</button>
+    <button class="status-btn" onclick="loadStatus('DECLINED', this)">Declined<br> Application</button>
+    <button class="status-btn" onclick="loadStatus('WITHDRAWN', this)">Withdrawn <br>Application</button>
+    <div class="export-buttons">
+      <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted </button>
+      <button id="declinedBtn" onclick="generateTableView('DECLINED')">Print Declined </button>
+    </div>
+    </div>
+    <div class="right-search-group"> 
+    <input id="searchInput" class="input-box" placeholder="Search for details" />
+    <button class="submit-input" onclick="handleSearch()">Search</button>
+    <button class="clear-input" onclick="clearSearch()">Clear</button>
+  </div>
 </div>
+
 
 <!-- Popup Modal -->
-<div id="studentPopup">
-  <div id="studentTableContainer">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<div id="studentPopup" class="popup-overlay">
+  <div id="studentTableContainer" class="popup">
+    <div class="popup-header">
       <h3 id="popupTitle">Student Status</h3>
-      <button onclick="printStudentTable()">🖨️ Print</button>
+      <button onclick="printStudentTable()" class="print-btn">Print</button>
     </div>
-    
+
     <table id="studentTable">
       <thead><tr id="studentTableHead"></tr></thead>
       <tbody id="studentTableBody"></tbody>
@@ -68,19 +82,15 @@
   </div>
     
 
-    <button onclick="closeStudentPopup()">Close</button>
+    <div class="popup-footer">
+      <button onclick="closeStudentPopup()" class="close-btn">Close</button>
+    </div>
   </div>
 </div>
 
 
 
 
-  <div class="search-group">
-    <input id="searchInput" class="input-box" placeholder="Search for details..." />
-    <button class="submit-input" onclick="handleSearch()">Search</button>
-     <button class="clear-input" onclick="clearSearch()">Clear</button>
-  </div>
-</div>
 <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
 <div id="tableViewContainer"></div>
 
@@ -125,9 +135,12 @@
       <button onclick="closeViewMore()" class="close-btn">Close</button>
     </div>
   </div>
-<div id="seatPopup" style="display: none;">
-  <div id="seatsTableContainer">
-    <h3>Seat Status</h3>
+<div id="seatPopup" class="popup-overlay" style="display: none;">
+  <div id="seatsTableContainer" class="popup">
+    <div class="popup-header">
+      <h3>Seat Status</h3>
+      <button onclick="printSeatsTable()" class="print-btn">Print Table</button>
+    </div>
     <table border="1" width="100%" id="seatTable">
       <thead>
         <tr>
@@ -140,11 +153,10 @@
       </thead>
       <tbody></tbody>
     </table>
+    <div class="popup-footer">
+      <button onclick="closeSeatPopup()" class="close-btn">Close</button>
+    </div>
   </div>
-  <button onclick="printSeatsTable()">🖨️ Print Table</button>
-  <div id="tableViewContainer"></div>
-  <br>
-  <button onclick="closeSeatPopup()">Close</button>
 </div>
   <script src="env.js"></script>
   <script src="completed.js"></script>
