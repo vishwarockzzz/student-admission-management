@@ -933,26 +933,6 @@ function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
-      // Add PG courses if not present
-      const pgCourses = [
-        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
-      ];
-      pgCourses.forEach(pg => {
-        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
-          result.push(pg);
-        }
-      });
-
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
@@ -1038,26 +1018,6 @@ function showChangeSeatsPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
-      // Add PG courses if not present
-      const pgCourses = [
-        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
-      ];
-      pgCourses.forEach(pg => {
-        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
-          result.push(pg);
-        }
-      });
-
       currentSeatData = result;
       const aided = result.filter(entry => entry.course_type.toLowerCase() === 'aided');
       const sf = result.filter(entry => entry.course_type.toLowerCase() === 'self finance');
