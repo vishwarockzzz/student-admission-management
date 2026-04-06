@@ -853,26 +853,6 @@ function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
-      // Add PG courses if not present
-      const pgCourses = [
-        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
-      ];
-      pgCourses.forEach(pg => {
-        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
-          result.push(pg);
-        }
-      });
-
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
@@ -910,30 +890,57 @@ function closeChangeSeatPopup() {
 
 let currentSeatData = [];
 
+function updateRemaining(index) {
+  const totalInput = document.getElementById(`total-${index}`);
+  const allocatedInput = document.getElementById(`allocated-${index}`);
+  const remainingInput = document.getElementById(`remaining-${index}`);
+
+  const total = parseInt(totalInput.value) || 0;
+  const allocated = parseInt(allocatedInput.value) || 0;
+  const remaining = Math.max(0, total - allocated); // Ensure remaining is not negative
+
+  remainingInput.value = remaining;
+  updateSummaryTotals();
+}
+
+function updateSummaryTotals() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr");
+
+  let sfTotal = 0;
+  let sfAllocated = 0;
+  let sfRemaining = 0;
+
+  rows.forEach(row => {
+    if (row.classList.contains("summary-row")) return;
+
+    const type = row.dataset.courseType;
+
+    const totalInput = row.querySelector("input[id^='total-']");
+    const allocatedInput = row.querySelector("input[id^='allocated-']");
+    const remainingInput = row.querySelector("input[id^='remaining-']");
+
+    const total = parseInt(totalInput?.value) || 0;
+    const allocated = parseInt(allocatedInput?.value) || 0;
+    const remaining = parseInt(remainingInput?.value) || 0;
+
+    if (type === "self finance") {
+      sfTotal += total;
+      sfAllocated += allocated;
+      sfRemaining += remaining;
+    }
+  });
+
+  // Update summary row
+  document.getElementById("sf-total-summary").value = sfTotal;
+  document.getElementById("sf-allocated-summary").value = sfAllocated;
+  document.getElementById("sf-remaining-summary").value = sfRemaining;
+}
+
 function showChangeSeatsPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
-      // Add PG courses if not present
-      const pgCourses = [
-        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
-        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
-      ];
-      pgCourses.forEach(pg => {
-        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
-          result.push(pg);
-        }
-      });
-
       currentSeatData = result;
       const aided = result.filter(entry => entry.course_type.toLowerCase() === 'aided');
       const sf = result.filter(entry => entry.course_type.toLowerCase() === 'self finance');
@@ -950,9 +957,9 @@ function showChangeSeatsPopup() {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
-          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0"></td>
-          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0"></td>
-          <td><input type="number" value="${entry.remaining_seats}" id="remaining-${index}" min="0"></td>
+          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0" onchange="updateRemaining(${index})"></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly></td>
+          <td><input type="number" value="${entry.remaining_seats}" id="remaining-${index}" min="0" readonly></td>
         `;
         tableBody.appendChild(row);
       });
@@ -970,14 +977,15 @@ function showChangeSeatsPopup() {
         `;
         tableBody.appendChild(summaryRow);
       }
-
       document.getElementById("changeSeatPopup").style.display = "flex";
+      updateSummaryTotals();
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
       alert("Failed to load seat status.");
     });
 }
+
 
 function saveChangeSeats() {
   const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
@@ -988,62 +996,30 @@ function saveChangeSeats() {
   const grouped = [...aided, ...sf];
 
   rows.forEach((row, index) => {
-    if (index < grouped.length) {
+    if (index < grouped.length && !row.classList.contains("summary-row")) {
       const totalInput = row.querySelector(`#total-${index}`);
-      const allocatedInput = row.querySelector(`#allocated-${index}`);
-      const remainingInput = row.querySelector(`#remaining-${index}`);
-      if (totalInput && allocatedInput && remainingInput) {
+      if (totalInput) {
+        const newTotal = parseInt(totalInput.value) || 0;
+        const originalAllocated = grouped[index].allocated_seats;
+        const newRemaining = Math.max(0, newTotal - originalAllocated);
+
         updatedData.push({
           course: grouped[index].course,
           course_type: grouped[index].course_type,
-          total_seats: parseInt(totalInput.value) || 0,
-          allocated_seats: parseInt(allocatedInput.value) || 0,
-          remaining_seats: parseInt(remainingInput.value) || 0
+          total_seats: newTotal,
+          allocated_seats: originalAllocated, // Keep original allocated seats
+          remaining_seats: newRemaining // Recalculate remaining
         });
       }
     }
   });
 
-  // Validate SF and total separately for UG and PG
-  const aidedCourses = updatedData.filter(d => d.course_type.toLowerCase() === 'aided');
-  const sfCourses = updatedData.filter(d => d.course_type.toLowerCase() === 'self finance');
-  
-  const sfTotal = sfCourses.reduce((sum, d) => sum + d.total_seats, 0);
-  const sfAllocated = sfCourses.reduce((sum, d) => sum + d.allocated_seats, 0);
-  const sfRemaining = sfCourses.reduce((sum, d) => sum + d.remaining_seats, 0);
-  
-  // Check against summary row values from UI
-  const sfTotalSummary = parseInt(document.getElementById('sf-total-summary')?.value || 0);
-  const sfAllocatedSummary = parseInt(document.getElementById('sf-allocated-summary')?.value || 0);
-  const sfRemainingSummary = parseInt(document.getElementById('sf-remaining-summary')?.value || 0);
-
-  if (sfTotalSummary && sfTotal !== sfTotalSummary) {
-    alert(`Self Finance total mismatch: Computed ${sfTotal}, summary row ${sfTotalSummary}`);
+  // Validate that totals are not less than allocated
+  const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
+  if (invalidEntries.length > 0) {
+    const courses = invalidEntries.map(d => d.course).join(", ");
+    alert(`Cannot set total seats less than allocated seats for: ${courses}`);
     return;
-  }
-  if (sfAllocatedSummary && sfAllocated !== sfAllocatedSummary) {
-    alert(`Self Finance allocated mismatch: Computed ${sfAllocated}, summary row ${sfAllocatedSummary}`);
-    return;
-  }
-  if (sfRemainingSummary && sfRemaining !== sfRemainingSummary) {
-    alert(`Self Finance remaining mismatch: Computed ${sfRemaining}, summary row ${sfRemainingSummary}`);
-    return;
-  }
-  
-  if (sfTotal !== (sfAllocated + sfRemaining)) {
-    alert(`Self Finance validation failed: Total (${sfTotal}) should equal Allocated (${sfAllocated}) + Remaining (${sfRemaining})`);
-    return;
-  }
-  
-  if (aidedCourses.length > 0) {
-    const aidedTotal = aidedCourses.reduce((sum, d) => sum + d.total_seats, 0);
-    const aidedAllocated = aidedCourses.reduce((sum, d) => sum + d.allocated_seats, 0);
-    const aidedRemaining = aidedCourses.reduce((sum, d) => sum + d.remaining_seats, 0);
-    
-    if (aidedTotal !== (aidedAllocated + aidedRemaining)) {
-      alert(`Aided validation failed: Total (${aidedTotal}) should equal Allocated (${aidedAllocated}) + Remaining (${aidedRemaining})`);
-      return;
-    }
   }
 
   function doSeatUpdate(url) {
