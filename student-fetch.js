@@ -86,11 +86,6 @@ document.addEventListener("click", function (event) {
 
 let currentStudentId = null;
 
-window.onload = () => {
-  loadStatus('UNALLOCATED');
-  populateFilters(); // default
-};
-
 function handleSearch(status) {
   const query = document.getElementById("searchInput").value.trim();
 
@@ -256,12 +251,20 @@ function renderStudents(students) {
     "me_mtech": "M.E. / M.Tech.",
     "march": "M.Arch.",
     "mca": "M.C.A.",
-    "msc": "M.Sc. DS",
+    "msc": "M.Sc. Data Science",
     "bdes": "B.Des",
     "barch": "B.Arch."
   };
 
-  const orderedDegreeKeys = ["me_mtech", "march", "mca", "b.e", "btech", "engineering", "msc", "bdes", "barch"];
+  const degreeConfig = [
+    { key: "btech", displayName: "BE / B.Tech", isPG: false },
+    { key: "msc", displayName: "M.Sc. Data Science", isPG: false },
+    { key: "bdes", displayName: "B.Des", isPG: false },
+    { key: "barch", displayName: "B.Arch", isPG: false },
+    { key: "me_mtech", displayName: "ME / M.Tech", isPG: true },
+    { key: "march", displayName: "M.Arch", isPG: true },
+    { key: "mca", displayName: "MCA", isPG: true }
+  ];
 
   const grouped = {};
   students.forEach(student => {
@@ -270,24 +273,66 @@ function renderStudents(students) {
     grouped[degreeKey].push(student);
   });
 
-  for (const key of orderedDegreeKeys) {
-    const studentsList = grouped[key];
-    if (!studentsList || studentsList.length === 0) continue;
+  // Create main container
+  const mainContainer = document.createElement("div");
+  mainContainer.className = "degree-sections-container";
 
-    // Create a wrapper for this degree section to keep heading separate from grid
-    const sectionWrapper = document.createElement("div");
-    sectionWrapper.style.width = "100%";
+  let ugGroup = null;
+  let pgGroup = null;
 
-    // Centered Degree Heading
-    const title = document.createElement("h2");
-    title.className = "degree-label"; 
-    title.textContent = degreeMap[key] || key.toUpperCase();
-    sectionWrapper.appendChild(title);
+  degreeConfig.forEach(degreeItem => {
+    const { key, displayName, isPG } = degreeItem;
+    const studentsList = grouped[key] || [];
+    const count = studentsList.length;
 
-    // Flex Grid for side-by-side cards
+    // Create degree group separator if needed
+    if (isPG && !pgGroup) {
+      pgGroup = document.createElement("div");
+      pgGroup.className = "degree-group";
+      
+      const pgLabel = document.createElement("div");
+      pgLabel.className = "degree-group-title";
+      pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
+      pgGroup.appendChild(pgLabel);
+      mainContainer.appendChild(pgGroup);
+    } else if (!isPG && !ugGroup) {
+      ugGroup = document.createElement("div");
+      ugGroup.className = "degree-group";
+      
+      const ugLabel = document.createElement("div");
+      ugLabel.className = "degree-group-title";
+      ugLabel.textContent = "UNDER GRADUATE (UG) DEGREES";
+      ugGroup.appendChild(ugLabel);
+      mainContainer.appendChild(ugGroup);
+    }
+
+    const targetGroup = isPG ? pgGroup : ugGroup;
+
+    // Create dropdown
+    const dropdown = document.createElement("div");
+    dropdown.className = "degree-dropdown";
+    dropdown.id = `degree-${key}`;
+
+    // Create header
+    const header = document.createElement("div");
+    header.className = "degree-dropdown-header";
+    header.onclick = () => toggleDegreeDropdown(key);
+
+    header.innerHTML = `
+      <div class="degree-header-left">
+        <span class="degree-name">${displayName}</span>
+        <span class="degree-count">${count} Student${count !== 1 ? 's' : ''}</span>
+      </div>
+      <span class="toggle-icon">▼</span>
+    `;
+
+    // Create content area
+    const content = document.createElement("div");
+    content.className = "degree-content";
+
+    // Create grid
     const grid = document.createElement("div");
-    grid.className = "student-grid"; 
-    sectionWrapper.appendChild(grid);
+    grid.className = "student-grid";
 
     studentsList.forEach(student => {
       const row = document.createElement("div");
@@ -295,7 +340,6 @@ function renderStudents(students) {
       row.id = `student-${student.id}`;
 
       let cutoff = "";
-      let deg = degreeMap[key] || student.degree;
       
       // Determine cutoff based on key
       if (["b.e", "btech", "engineering"].includes(key)) cutoff = student.engineering_cutoff;
@@ -304,46 +348,73 @@ function renderStudents(students) {
       else if (key === "barch") cutoff = student.barch_cutoff;
 
       const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
-      const degreedisplay = degreeDisplayMap[key] || deg;
-      const isPG = ['me_mtech', 'march', 'mca', 'msc', 'bdes', 'barch'].includes(key);
-      const cutoffDisplay = isPG ? '' : `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
+      
+      let cutoffDisplay = '';
+      let ugDetailsDisplay = '';
+      
+      if (!isPG) {
+        cutoffDisplay = `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
+      } else {
+        // For PG students, show UG details
+        const ugCourse = student.ug_course_name ? `${student.ug_course_name}` : '-';
+        const ugInstitution = student.ug_institution ? `${student.ug_institution}` : '-';
+        const ugCutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || '-';
+        
+        ugDetailsDisplay = `
+          <p><strong>UG Course:</strong> ${ugCourse}</p>
+          <p><strong>UG Institute:</strong> ${ugInstitution}</p>
+          <p><strong>UG Cut-Off:</strong> ${ugCutoff}</p>
+        `;
+      }
+
+      const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
+      let deleteBtn = !isAdmin ? `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>` : "";
 
       row.innerHTML = `
         <div class="student-info">
           <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>Application No:</strong> ${student.application_number}</p>
-          <p><strong>Degree:</strong> ${degreedisplay}</p>
+          <p><strong>App No:</strong> ${student.application_number}</p>
+          <p><strong>Recommender:</strong> ${recommender.name}</p>
+          <p><strong>Designation:</strong> ${recommender.designation}</p>
           ${cutoffDisplay}
+          ${ugDetailsDisplay}
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        </div>
+        <div class="action-buttons">
+          <button class="accept allot" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          ${deleteBtn}
         </div>
       `;
 
-      const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
-      const recommenderBox = document.createElement("div");
-      recommenderBox.style.flex = "1";
-      recommenderBox.innerHTML = `
-        <p><strong>Recommender:</strong> ${recommender.name}</p>
-        <p><strong>Designation:</strong> ${recommender.designation}</p>
-        <p><strong>Company:</strong> ${recommender.affiliation}</p>
-      `;
-
-      const actions = document.createElement("div");
-      actions.className = "action-buttons";
-      let deleteBtn = !isAdmin ? `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>` : "";
-
-      actions.innerHTML = `
-        <button class="accept allot" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
-        <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-        <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-        ${deleteBtn}
-      `;
-
-      row.appendChild(recommenderBox);
-      row.appendChild(actions);
       grid.appendChild(row);
     });
 
-    container.appendChild(sectionWrapper);
+    // Add empty state if no students
+    if (studentsList.length === 0) {
+      const emptyMsg = document.createElement("div");
+      emptyMsg.style.padding = "30px 20px";
+      emptyMsg.style.textAlign = "center";
+      emptyMsg.style.color = "#999";
+      emptyMsg.style.fontSize = "14px";
+      emptyMsg.innerHTML = "<p>No students in this category</p>";
+      grid.appendChild(emptyMsg);
+    }
+
+    content.appendChild(grid);
+    dropdown.appendChild(header);
+    dropdown.appendChild(content);
+    targetGroup.appendChild(dropdown);
+  });
+
+  container.appendChild(mainContainer);
+}
+
+function toggleDegreeDropdown(degreeKey) {
+  const dropdown = document.getElementById(`degree-${degreeKey}`);
+  if (dropdown) {
+    dropdown.classList.toggle("active");
   }
 }
 
@@ -806,7 +877,16 @@ function showViewMore(student) {
       ["UG Consolidated Mark", student.ug_consolidated_mark],
       ["UG Course Name", student.ug_course_name],
       ["UG Institution", student.ug_institution],
-      ["Tancet/GATE Score", student.tancet_gate_score]
+      ["Tancet/GATE Score", student.tancet_gate_score],
+      ["Maths", student.maths],
+      ["Physics", student.physics],
+      ["Chemistry", student.chemistry],
+      ["Total Marks", student.twelfth_mark],
+      ["Mark %", student.markpercentage],
+      ["Engineering Cutoff", student.engineering_cutoff],
+      ["MSC Cutoff", student.msc_cutoff],
+      ["BArch Cutoff", student.barch_cutoff],
+      ["BDes Cutoff", student.bdes_cutoff]
     );
   } else {
     studentFields.push(
@@ -853,6 +933,26 @@ function showSeatPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
+      // Add PG courses if not present
+      const pgCourses = [
+        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
+      ];
+      pgCourses.forEach(pg => {
+        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
+          result.push(pg);
+        }
+      });
+
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
@@ -891,56 +991,73 @@ function closeChangeSeatPopup() {
 let currentSeatData = [];
 
 function updateRemaining(index) {
-  const totalInput = document.getElementById(`total-${index}`);
-  const allocatedInput = document.getElementById(`allocated-${index}`);
-  const remainingInput = document.getElementById(`remaining-${index}`);
+  const row = document.querySelector(`#changeSeatTable tbody tr:nth-child(${index + 1})`);
+  if (!row) return;
+
+  const totalInput = row.querySelector(`#total-${index}`);
+  const allocatedInput = row.querySelector(`#allocated-${index}`);
+  const remainingInput = row.querySelector(`#remaining-${index}`);
+  if (!totalInput || !allocatedInput || !remainingInput) return;
 
   const total = parseInt(totalInput.value) || 0;
   const allocated = parseInt(allocatedInput.value) || 0;
-  const remaining = Math.max(0, total - allocated); // Ensure remaining is not negative
-
+  const remaining = Math.max(0, total - allocated);
   remainingInput.value = remaining;
+
   updateSummaryTotals();
 }
 
 function updateSummaryTotals() {
   const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
-  const rows = tableBody.querySelectorAll("tr");
-
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
   let sfTotal = 0;
   let sfAllocated = 0;
   let sfRemaining = 0;
 
   rows.forEach(row => {
-    if (row.classList.contains("summary-row")) return;
+    if (row.dataset.courseType !== 'self finance') return;
 
-    const type = row.dataset.courseType;
+    const total = parseInt(row.querySelector("input[id^='total-']")?.value) || 0;
+    const allocated = parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
+    const remaining = parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
 
-    const totalInput = row.querySelector("input[id^='total-']");
-    const allocatedInput = row.querySelector("input[id^='allocated-']");
-    const remainingInput = row.querySelector("input[id^='remaining-']");
-
-    const total = parseInt(totalInput?.value) || 0;
-    const allocated = parseInt(allocatedInput?.value) || 0;
-    const remaining = parseInt(remainingInput?.value) || 0;
-
-    if (type === "self finance") {
-      sfTotal += total;
-      sfAllocated += allocated;
-      sfRemaining += remaining;
-    }
+    sfTotal += total;
+    sfAllocated += allocated;
+    sfRemaining += remaining;
   });
 
-  // Update summary row
-  document.getElementById("sf-total-summary").value = sfTotal;
-  document.getElementById("sf-allocated-summary").value = sfAllocated;
-  document.getElementById("sf-remaining-summary").value = sfRemaining;
+  const totalSummary = document.getElementById("sf-total-summary");
+  const allocatedSummary = document.getElementById("sf-allocated-summary");
+  const remainingSummary = document.getElementById("sf-remaining-summary");
+  if (totalSummary) totalSummary.value = sfTotal;
+  if (allocatedSummary) allocatedSummary.value = sfAllocated;
+  if (remainingSummary) remainingSummary.value = sfRemaining;
 }
 
 function showChangeSeatsPopup() {
   fetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
+      // Add PG courses if not present
+      const pgCourses = [
+        { course: "M.E Structural Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Environmental Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Construction Engineering and Management", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Engineering Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Power System Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Communication Systems", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "M.E Computer Science and Engineering", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "Msc. Data Science", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Des. Interior Design", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Self Finance", total_seats: 10, allocated_seats: 0, remaining_seats: 10 },
+        { course: "B.Arch. Architecture", course_type: "Aided", total_seats: 10, allocated_seats: 0, remaining_seats: 10 }
+      ];
+      pgCourses.forEach(pg => {
+        if (!result.some(r => r.course === pg.course && r.course_type === pg.course_type)) {
+          result.push(pg);
+        }
+      });
+
       currentSeatData = result;
       const aided = result.filter(entry => entry.course_type.toLowerCase() === 'aided');
       const sf = result.filter(entry => entry.course_type.toLowerCase() === 'self finance');
@@ -954,29 +1071,44 @@ function showChangeSeatsPopup() {
         const row = document.createElement("tr");
         row.dataset.courseType = entry.course_type.toLowerCase();
         row.dataset.courseName = entry.course;
+        const remainingSeats = Math.max(0, (parseInt(entry.total_seats) || 0) - (parseInt(entry.allocated_seats) || 0));
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
           <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0" onchange="updateRemaining(${index})"></td>
-          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly></td>
-          <td><input type="number" value="${entry.remaining_seats}" id="remaining-${index}" min="0" readonly></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly disabled></td>
+          <td><input type="number" value="${remainingSeats}" id="remaining-${index}" min="0" readonly disabled></td>
         `;
         tableBody.appendChild(row);
       });
 
-      // Show Self Finance total count row (from API totals row)
       const sfSummary = result.find(r => r.course_type === 'Total Count' && r.course === 'Self Finance');
+      let summaryTotal = 0;
+      let summaryAllocated = 0;
+      let summaryRemaining = 0;
+
+      const sfEntries = grouped.filter(entry => entry.course_type.toLowerCase() === 'self finance');
+      sfEntries.forEach(entry => {
+        summaryTotal += parseInt(entry.total_seats) || 0;
+        summaryAllocated += parseInt(entry.allocated_seats) || 0;
+        summaryRemaining += Math.max(0, (parseInt(entry.total_seats) || 0) - (parseInt(entry.allocated_seats) || 0));
+      });
+
       if (sfSummary) {
-        const summaryRow = document.createElement("tr");
-        summaryRow.classList.add("summary-row");
-        summaryRow.innerHTML = `
-          <td colspan="2"><strong>Self Finance (Total Count)</strong></td>
-          <td><input type="number" value="${sfSummary.total_seats}" id="sf-total-summary" readonly></td>
-          <td><input type="number" value="${sfSummary.allocated_seats}" id="sf-allocated-summary" readonly></td>
-          <td><input type="number" value="${sfSummary.remaining_seats}" id="sf-remaining-summary" readonly></td>
-        `;
-        tableBody.appendChild(summaryRow);
+        summaryTotal = parseInt(sfSummary.total_seats) || summaryTotal;
+        summaryAllocated = parseInt(sfSummary.allocated_seats) || summaryAllocated;
+        summaryRemaining = parseInt(sfSummary.remaining_seats) || summaryRemaining;
       }
+
+      const summaryRow = document.createElement("tr");
+      summaryRow.classList.add("summary-row");
+      summaryRow.innerHTML = `
+        <td colspan="2"><strong>Self Finance (Total Count)</strong></td>
+        <td><input type="number" value="${summaryTotal}" id="sf-total-summary" readonly disabled></td>
+        <td><input type="number" value="${summaryAllocated}" id="sf-allocated-summary" readonly disabled></td>
+        <td><input type="number" value="${summaryRemaining}" id="sf-remaining-summary" readonly disabled></td>
+      `;
+      tableBody.appendChild(summaryRow);
       document.getElementById("changeSeatPopup").style.display = "flex";
       updateSummaryTotals();
     })
@@ -986,35 +1118,33 @@ function showChangeSeatsPopup() {
     });
 }
 
-
 function saveChangeSeats() {
   const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
-  const rows = tableBody.querySelectorAll("tr");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
   const updatedData = [];
   const aided = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'aided');
   const sf = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'self finance');
   const grouped = [...aided, ...sf];
 
   rows.forEach((row, index) => {
-    if (index < grouped.length && !row.classList.contains("summary-row")) {
+    if (index < grouped.length) {
       const totalInput = row.querySelector(`#total-${index}`);
+      const originalAllocated = grouped[index].allocated_seats || 0;
       if (totalInput) {
         const newTotal = parseInt(totalInput.value) || 0;
-        const originalAllocated = grouped[index].allocated_seats;
         const newRemaining = Math.max(0, newTotal - originalAllocated);
 
         updatedData.push({
           course: grouped[index].course,
           course_type: grouped[index].course_type,
           total_seats: newTotal,
-          allocated_seats: originalAllocated, // Keep original allocated seats
-          remaining_seats: newRemaining // Recalculate remaining
+          allocated_seats: originalAllocated,
+          remaining_seats: newRemaining
         });
       }
     }
   });
 
-  // Validate that totals are not less than allocated
   const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
   if (invalidEntries.length > 0) {
     const courses = invalidEntries.map(d => d.course).join(", ");
