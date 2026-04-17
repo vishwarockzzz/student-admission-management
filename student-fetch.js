@@ -17,7 +17,7 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
-  currentStatus="UNALLOCATED"
+  currentStatus = "UNALLOCATED"
   fetch(`${API_URL}?status=${currentStatus}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
@@ -60,14 +60,14 @@ fetch(SEATS_URL)
     console.error("Failed to fetch data:", error);
   });
 
-   function goHome() {
-    window.location.href = 'index.html';  // Change to your actual login route
-  }
+function goHome() {
+  window.location.href = 'index.html';  // Change to your actual login route
+}
 
-  function goBack() {
-    window.history.back(); 
-     // Goes to the previous page
-  }
+function goBack() {
+  window.history.back();
+  // Goes to the previous page
+}
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
   panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -94,7 +94,7 @@ function handleSearch(status) {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
+  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
@@ -104,7 +104,7 @@ function populateFilters() {
 
   // Options for departments and degrees
   const options = [
-    "Any Branch","CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.E/M.TECH", "M.ARCH", "M.C.A", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+    "Any Branch", "CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.E/M.TECH", "M.ARCH", "M.C.A", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
   ];
 
   // Populate the dropdown
@@ -118,49 +118,49 @@ function populateFilters() {
 
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
-      document.getElementById("recommenderFilter").value = "all";
+  document.getElementById("recommenderFilter").value = "all";
 
   if (selectedFilter === "Clear" || selectedFilter === "all") {
     renderStudents(allStudents);
     return;
   }
-const filteredStudents = allStudents.filter(student => {
-  const departments = [student.branch_1, student.branch_2, student.branch_3];
-  const degree = student.degree;
+  const filteredStudents = allStudents.filter(student => {
+    const departments = [student.branch_1, student.branch_2, student.branch_3];
+    const degree = student.degree;
 
-  const degreeMatches = {
-    "BE/BTECH": ["btech"],
-    "M.E/M.TECH": ["me_mtech", "me", "mtech"],
-    "M.ARCH": ["march"],
-    "M.C.A": ["mca"],
-    "M.SC DATA SCIENCE": ["msc"],
-    "B.DES": ["bdes"],
-    "B.ARCH": ["barch"]
-  };
+    const degreeMatches = {
+      "BE/BTECH": ["btech"],
+      "M.E/M.TECH": ["me_mtech", "me", "mtech"],
+      "M.ARCH": ["march"],
+      "M.C.A": ["mca"],
+      "M.SC DATA SCIENCE": ["msc"],
+      "B.DES": ["bdes"],
+      "B.ARCH": ["barch"]
+    };
 
- if (selectedFilter === "Any Branch") {
-  // Only allow students with degree exactly "BE/BTECH"
-  if (degree !== "btech") return false;
+    if (selectedFilter === "Any Branch") {
+      // Only allow students with degree exactly "BE/BTECH"
+      if (degree !== "btech") return false;
 
-  return (
-    departments.includes("Any Branch") ||
-    departments.every(branch => !branch || branch.trim() === "")
-  );
-}
-  // Match specific departments
-  if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil"].includes(selectedFilter)) {
-    return departments.includes(selectedFilter);
-  }
+      return (
+        departments.includes("Any Branch") ||
+        departments.every(branch => !branch || branch.trim() === "")
+      );
+    }
+    // Match specific departments
+    if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil"].includes(selectedFilter)) {
+      return departments.includes(selectedFilter);
+    }
 
-  // Match by degree type
-  if (Object.keys(degreeMatches).includes(selectedFilter)) {
-    return degreeMatches[selectedFilter].includes(degree?.toLowerCase());
-  }
+    // Match by degree type
+    if (Object.keys(degreeMatches).includes(selectedFilter)) {
+      return degreeMatches[selectedFilter].includes(degree?.toLowerCase());
+    }
 
-  return false;
-});
+    return false;
+  });
 
-renderStudents(filteredStudents);
+  renderStudents(filteredStudents);
 }
 
 
@@ -210,7 +210,7 @@ function populateRecommenderFilter(students) {
     dropdown.appendChild(option);
   });
 
-  
+
 }
 
 
@@ -229,7 +229,7 @@ function filterByRecommender() {
   const filtered = allStudents.filter(student => {
     const rec = student.recommenders?.[0];
     const designation = rec?.designation || "-";
-     const affiliation = rec?.affiliation || "-";
+    const affiliation = rec?.affiliation || "-";
     const label = `${rec?.name} - ${designation} - ${affiliation}`;
     return label === selected;
   });
@@ -289,7 +289,7 @@ function renderStudents(students) {
     if (isPG && !pgGroup) {
       pgGroup = document.createElement("div");
       pgGroup.className = "degree-group";
-      
+
       const pgLabel = document.createElement("div");
       pgLabel.className = "degree-group-title";
       pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
@@ -298,7 +298,7 @@ function renderStudents(students) {
     } else if (!isPG && !ugGroup) {
       ugGroup = document.createElement("div");
       ugGroup.className = "degree-group";
-      
+
       const ugLabel = document.createElement("div");
       ugLabel.className = "degree-group-title";
       ugLabel.textContent = "UNDER GRADUATE (UG) DEGREES";
@@ -340,7 +340,7 @@ function renderStudents(students) {
       row.id = `student-${student.id}`;
 
       let cutoff = "";
-      
+
       // Determine cutoff based on key
       if (["b.e", "btech", "engineering"].includes(key)) cutoff = student.engineering_cutoff;
       else if (key === "msc") cutoff = student.msc_cutoff;
@@ -348,10 +348,10 @@ function renderStudents(students) {
       else if (key === "barch") cutoff = student.barch_cutoff;
 
       const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
-      
+
       let cutoffDisplay = '';
       let ugDetailsDisplay = '';
-      
+
       if (!isPG) {
         cutoffDisplay = `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
       } else {
@@ -359,7 +359,7 @@ function renderStudents(students) {
         const ugCourse = student.ug_course_name ? `${student.ug_course_name}` : '-';
         const ugInstitution = student.ug_institution ? `${student.ug_institution}` : '-';
         const ugCutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || '-';
-        
+
         ugDetailsDisplay = `
           <p><strong>UG Course:</strong> ${ugCourse}</p>
           <p><strong>UG Institute:</strong> ${ugInstitution}</p>
@@ -433,13 +433,13 @@ const courseMap = {
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
   "B.ARCH": "B.Arch. Architecture",
-  "M.E Structural Engineering": "M.E Structural Engineering",
-  "M.E Environmental Engineering": "M.E Environmental Engineering",
-  "M.E Construction Engineering and Management": "M.E Construction Engineering and Management",
-  "M.E Engineering Design": "M.E Engineering Design",
-  "M.E Power System Engineering": "M.E Power System Engineering",
-  "M.E Communication Systems": "M.E Communication Systems",
-  "M.E Computer Science and Engineering": "M.E Computer Science and Engineering"
+  "M.E. STRUCTURAL ENGINEERING": "M.E. Structural Engineering",
+  "M.E. ENVIRONMENTAL ENGINEERING": "M.E. Environmental Engineering",
+  "M.E. CONSTRUCTION ENGINEERING AND MANAGEMENT": "M.E. Construction Engineering and Management",
+  "M.E. ENGINEERING DESIGN": "M.E. Engineering Design",
+  "M.E. POWER SYSTEM ENGINEERING": "M.E. Power System Engineering",
+  "M.E. COMMUNICATION SYSTEMS": "M.E. Communication Systems",
+  "M.E. COMPUTER SCIENCE AND ENGINEERING": "M.E. Computer Science and Engineering"
 };
 function acceptStudent(id, branch) {
   currentStudentId = id;
@@ -509,13 +509,13 @@ function acceptStudent(id, branch) {
   // M.E/M.Tech degree
   else if (degree === "ME_MTECH") {
     const meCourses = [
-      "M.E Structural Engineering",
-      "M.E Environmental Engineering",
-      "M.E Construction Engineering and Management",
-      "M.E Engineering Design",
-      "M.E Power System Engineering",
-      "M.E Communication Systems",
-      "M.E Computer Science and Engineering"
+      "M.E. Structural Engineering",
+      "M.E. Environmental Engineering",
+      "M.E. Construction Engineering and Management",
+      "M.E. Engineering Design",
+      "M.E. Power System Engineering",
+      "M.E. Communication Systems",
+      "M.E. Computer Science and Engineering"
     ];
 
     // Add a default option
@@ -562,13 +562,13 @@ function acceptStudent(id, branch) {
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
       } else if (["it", "mechatronic"].includes(selected)) {
-    // These branches don't support Aided
-    modeSelect.innerHTML = `
+        // These branches don't support Aided
+        modeSelect.innerHTML = `
       <option value="">-- Select Mode --</option>
       <option value="self-finance">Self-Finance</option>
     `;
-    modeSelect.disabled = false;
-  } else {
+        modeSelect.disabled = false;
+      } else {
         modeSelect.innerHTML = `
           <option value="">-- Select Mode --</option>
           <option value="aided">Aided</option>
@@ -599,8 +599,8 @@ function confirmSelection() {
   }
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
- const confirmButton = document.querySelector("#popup-overlay button.accept");
+    selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
+  const confirmButton = document.querySelector("#popup-overlay button.accept");
   if (confirmButton) {
     confirmButton.disabled = true;
     confirmButton.innerText = "Loading...";
@@ -612,55 +612,55 @@ function confirmSelection() {
   }
 
   function sendApprovalRequest(isConfirm = false) {
-  fetch(UPDATE_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      student_id: currentStudentId,
-      status: "APPROVED",
-      course: fullCourseName,
-      course_type: modeFormatted,
-      is_confirm: isConfirm
+    fetch(UPDATE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_id: currentStudentId,
+        status: "APPROVED",
+        course: fullCourseName,
+        course_type: modeFormatted,
+        is_confirm: isConfirm
+      })
     })
-  })
-  .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      console.log("hello")
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendApprovalRequest(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
-      }
-    } else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
-    }
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({})); // protect against invalid JSON
+        if (res.status === 409) {
+          console.log("hello")
+          const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+          if (proceed) {
+            return sendApprovalRequest(true); // Retry with confirmation
+          } else {
+            throw new Error("Operation cancelled by user.");
+          }
+        } else if (!res.ok) {
+          throw new Error(data.error || "An unknown error occurred.");
+        }
 
-    return data;
-  })
-  .then((data) => {
-    if (data && data.message) {
-      alert(data.message);
-      document.getElementById("popup-overlay").style.display = "none";
-      removeCard(currentStudentId);
-      location.reload();
-    }
-  })
-  .catch((err) => {
-    console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
-  })
-  .finally(() => {
-    if (confirmButton) {
-      confirmButton.disabled = false;
-      confirmButton.innerText = "Allot";
-    }
-  });
-}
+        return data;
+      })
+      .then((data) => {
+        if (data && data.message) {
+          alert(data.message);
+          document.getElementById("popup-overlay").style.display = "none";
+          removeCard(currentStudentId);
+          location.reload();
+        }
+      })
+      .catch((err) => {
+        console.error("Error approving student:", err);
+        alert(`Failed to approve student: ${err.message}`);
+      })
+      .finally(() => {
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.innerText = "Allot";
+        }
+      });
+  }
 
-// Call it initially
-sendApprovalRequest();
+  // Call it initially
+  sendApprovalRequest();
 
 }
 
@@ -712,10 +712,10 @@ function submitDecline() {
       console.error("Error declining student:", err);
       alert("Failed to decline student");
     });
-     if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit";
-      }
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Submit";
+  }
 }
 
 
@@ -737,19 +737,19 @@ function onHoldStudent(id) {
       status: "ONHOLD",
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    alert(`Student ${studentName} is on hold.`);
-    removeCard(id);
-  })
-  .catch(err => {
-    console.error("Error putting student on hold:", err);
-    alert("Failed to put student on hold");
+    .then(res => res.json())
+    .then(data => {
+      alert(`Student ${studentName} is on hold.`);
+      removeCard(id);
+    })
+    .catch(err => {
+      console.error("Error putting student on hold:", err);
+      alert("Failed to put student on hold");
       if (btn) {
-      btn.disabled = false;
-      btn.innerText = "Put On Hold";
-    }
-  });
+        btn.disabled = false;
+        btn.innerText = "Put On Hold";
+      }
+    });
 }
 function withdrawStudent(id) {
   // Show confirmation dialog before proceeding
@@ -770,22 +770,22 @@ function withdrawStudent(id) {
       status: "WITHDRAWN"
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
-  })
-  .catch(err => {
-    console.error("Error withdrawing student:", err);
-    alert("Failed to withdraw student");
-  })
-  .finally(() => {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerText = "Withdraw";
-    }
-  });
+    .then(res => res.json())
+    .then(data => {
+      const card = document.getElementById(`student-${id}`);
+      card.classList.add("decline-shadow");
+      setTimeout(() => removeCard(id), 500);
+    })
+    .catch(err => {
+      console.error("Error withdrawing student:", err);
+      alert("Failed to withdraw student");
+    })
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "Withdraw";
+      }
+    });
 }
 
 function deleteStudent(id) {
@@ -799,16 +799,16 @@ function deleteStudent(id) {
       status: "DELETE"
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
-  })
-  .catch(err => {
-    console.error("Error Deleting student:", err);
-    alert("Failed to delete student");
-  });
+    .then(res => res.json())
+    .then(data => {
+      const card = document.getElementById(`student-${id}`);
+      card.classList.add("decline-shadow");
+      setTimeout(() => removeCard(id), 500);
+    })
+    .catch(err => {
+      console.error("Error Deleting student:", err);
+      alert("Failed to delete student");
+    });
 }
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
@@ -904,26 +904,26 @@ function showViewMore(student) {
 
   container.appendChild(makeSection("Student Details", studentFields));
 
-container.appendChild(makeSection("Recommender Details", [
-  ["Name", r.name],
-  ["Designation", r.designation],
-  ["Affiliation", r.affiliation],
-  ["Office Address", r.office_address],
-  ["Offcode", r.offcode],
-  ["Office Phone", r.office_phone_number],
-  ["Personal Phone", r.personal_phone_number],
-  ["Email", r.email]
-]));
+  container.appendChild(makeSection("Recommender Details", [
+    ["Name", r.name],
+    ["Designation", r.designation],
+    ["Affiliation", r.affiliation],
+    ["Office Address", r.office_address],
+    ["Offcode", r.offcode],
+    ["Office Phone", r.office_phone_number],
+    ["Personal Phone", r.personal_phone_number],
+    ["Email", r.email]
+  ]));
 
   // Opens in center using flex
-  document.getElementById("viewMoreOverlay").style.display = "flex"; 
+  document.getElementById("viewMoreOverlay").style.display = "flex";
 }
 
-    function closeViewMore() {
-      document.getElementById("viewMoreOverlay").style.display = "none";
-    }
-    
-    
+function closeViewMore() {
+  document.getElementById("viewMoreOverlay").style.display = "none";
+}
+
+
 window.onload = () => {
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
