@@ -18,12 +18,12 @@ const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   currentStatus = "UNALLOCATED"
-  fetch(`${API_URL}?status=${currentStatus}`)
+  authFetch(`${API_URL}?status=${currentStatus}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error loading students:", error));
 }
-fetch(SEATS_URL)
+authFetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -94,7 +94,7 @@ function handleSearch(status) {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`)
+  authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
@@ -168,7 +168,7 @@ function filterByCombined() {
 
 
 function fetchAndRenderStudents(status) {
-  fetch(`${API_URL}?status=${status}`)
+  authFetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
     .then(data => {
       allStudents = data.students || [];
@@ -612,7 +612,7 @@ function confirmSelection() {
   }
 
   function sendApprovalRequest(isConfirm = false) {
-    fetch(UPDATE_URL, {
+    authFetch(UPDATE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -690,7 +690,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -729,7 +729,7 @@ function onHoldStudent(id) {
   }
   const student = allStudents.find(s => s.id === id);
   const studentName = student?.name || `ID ${id}`;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -762,7 +762,7 @@ function withdrawStudent(id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -791,7 +791,7 @@ function withdrawStudent(id) {
 function deleteStudent(id) {
   const confirmed = confirm("Are you sure you want to delete this student's application?");
   if (!confirmed) return;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -930,7 +930,7 @@ window.onload = () => {
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
@@ -1015,7 +1015,7 @@ function updateSummaryTotals() {
 }
 
 function showChangeSeatsPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       currentSeatData = result;
@@ -1113,7 +1113,7 @@ function saveChangeSeats() {
   }
 
   function doSeatUpdate(url) {
-    return fetch(url, {
+    return authFetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedData)

@@ -489,7 +489,7 @@ async function handleSubmit(event) {
   };
 
   function sendStudentDetails(isConfirm = false) {
-    fetch(API_URL, {
+    authFetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -595,7 +595,7 @@ async function handleSubmitTca(event) {
 
   try {
     // Replace this with your actual async submission code, e.g.:
-    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
+    // await authFetch('/your-api-endpoint', { method: 'POST', body: formData })
 
     await submitFormData();  // Dummy async function simulating a 2-second submission delay
 
@@ -677,7 +677,7 @@ async function handleSubmitTca(event) {
   };
 
 
-  fetch(API_URL_TCA, {
+  authFetch(API_URL_TCA, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
