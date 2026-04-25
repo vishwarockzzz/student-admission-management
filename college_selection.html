@@ -13,46 +13,65 @@
 
   <!-- Title Bar -->
   <div class="title-bar">
-    <img class="side-image" src="static/images/TCE LOGIN.png" alt="TCE Image" />
-    
-    <div class="title-text">
-      Thiagarajar Group of Institutions:<br>
-      Management Quota Application Dashboard
-    </div>
-    
-    <img class="side-image" src="static/images/TCA LOGIN.png" alt="TCA Image" />
-    <button class="nav-btn" onclick="goHome()">Logout</button>
-      <button class="nav-btn" onclick="goBack()"> Back</button>
+  <img class="side-image" src="static/images/TCE LOGIN.png" alt="TCE Image" />
+  
+  <div class="title-text">
+    Thiagarajar Group of Institutions:<br>
+    Management Quota Application Dashboard
   </div>
+  
+  <img class="side-image" src="static/images/TCA LOGIN.png" alt="TCA Image" />
+
+  <div class="header-actions">
+    <button class="icon-btn" onclick="goBack()" title="Go Back">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+      </svg>
+    </button>
+    <button class="icon-btn logout" onclick="goHome()" title="Logout">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+      </svg>
+    </button>
+  </div>
+</div>
 
   <!-- Instruction -->
   <div class="instruction-text">
     CHOOSE ONE TO PROCEED FURTHER
   </div>
 
-  <!-- Buttons Section -->
-  <div class="button-container">
-    <div class="button-card">
-      <a href="upcoming_request.html" class="institution-button">
-        <img src="static/images/Thiagarajar_College_of_Engineering_logo.png" alt="TCE Logo">
-      </a>
-      <div class="button-label">TCE</div>
+  <div class="selection-dashboard">
+  <div class="selection-card" onclick="window.location.href='upcoming_request.html'">
+    <div class="card-tag">Engineering</div>
+    <div class="card-body">
+      <img src="static/images/Thiagarajar_College_of_Engineering_logo.png" alt="TCE Logo" class="institution-logo">
+      <div class="institution-info">
+        <h3>Thiagarajar College of Engineering</h3>
+        <p>TCE - Management Quota</p>
+      </div>
     </div>
-  
-
-
-    <div class="button-card">
-      <a href="tca_application_processing.html" class="institution-button">
-        <img src="static/images/Thiagarajar_College_Arts_and_Science_logo.png" alt="TCA Logo">
-      </a>
-      <div class="button-label">TCA</div>
-    </div>
+    <div class="card-footer">Select Institution &rarr;</div>
   </div>
 
-  <!-- Download Excel Button -->
- <div class="download-section">
-  <img src="static/images/excel.png" alt="Excel Icon" />
-  <button class="download-btn" onclick="downloadExcel()">Download Excel</button>
+  <div class="selection-card card-tca" onclick="window.location.href='tca_application_processing.html'">
+    <div class="card-tag tag-gold">Arts & Science</div>
+    <div class="card-body">
+      <img src="static/images/Thiagarajar_College_Arts_and_Science_logo.png" alt="TCA Logo" class="institution-logo">
+      <div class="institution-info">
+        <h3>Thiagarajar College</h3>
+        <p>TCA - Management Quota</p>
+      </div>
+    </div>
+    <div class="card-footer">Select Institution &rarr;</div>
+  </div>
+</div>
+
+<div class="download-section">
+  <button class="download-btn-modern" onclick="downloadExcel()">
+    <img src="static/images/excel.png" alt="Excel Logo">
+    <span>Export Management Quota Data to Excel</span>
+  </button>
 </div>
 
 

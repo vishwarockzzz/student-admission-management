@@ -1,692 +1,568 @@
+/* ===== Modern Reset & Global Styles ===== */
+:root {
+  --maroon: #800000;
+  --maroon-hover: #a52a2a;
+  --bg-light: #f8f9fa;
+  --white: #ffffff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+}
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background:#f3d0a3; /* light maroon gradient */
-}
-.filter-sort-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.filter-sort-toggle {
-  background-color: #800000;
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-
-
-.filter-sort-panel {
-  display: none; /* hidden by default */
-  position: absolute;
-  top: 45px;
-  left: 0;
-  background-color: #f8f8f8;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  z-index: 1000;
-}
-
-.filter-sort-panel select {
-  display: block;
-  margin-bottom: 10px;
-  padding: 8px;
-  width: 250px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: #333;
 }
 
 /* ===== Header Styling ===== */
-/* Header Styling */
 header {
-  background-color: #800000; /* dark maroon */
-  color: white;
-  width: 100%;
-  padding: 20px 15px;
-  box-sizing: border-box;
-}
-.header-title {
-  flex-grow: 1;
-  text-align: center;
-  margin: 0;
-  font-weight: bold;
+  background-color: var(--white);
+  padding: 10px 40px;
+  border-bottom: 3px solid var(--maroon);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-
-/* Container for header content */
 .header-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Horizontal alignment for back/logout */
+.header-right {
+  display: flex;
+  gap: 15px;
+}
+
+h1 {
+  font-size: 20px;
+  color: var(--maroon);
+  margin: 0;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.home-link {
+  color: var(--maroon);
+  padding: 8px;
+  border-radius: 50%;
+  background: #fdf2f2;
+  display: flex;
+  transition: 0.3s;
+}
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  color: #555;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  flex-direction: column;
-  flex-wrap: wrap;  /* allow wrapping on small widths or zoom */
-  gap: 10px;        /* add some spacing between elements */
-}
-
-.header-content h1 {
-  flex: 1 1 auto;     /* allow flex-grow and shrink */
-  min-width: 100%;   /* prevent it from shrinking too small */
-  text-align: center;
-  margin: 0;
-  font-size: 26px;
-  word-break: break-word; /* break long titles if needed */
-}
-
-.left-buttons button,
-.right-buttons button {
-  min-width: 120px;   /* reduce min-width */
-  flex-shrink: 1;     /* allow buttons to shrink a bit */
-  white-space: nowrap;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Optional: if buttons wrap on smaller screens */
-.nav-bar {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px 0 0 0;
-}
-/* Left buttons (Remaining Seats, Requested, Completed) */
-.left-buttons button {
-  background-color: white; /* blend with maroon */
-  color: rgb(168, 47, 47);
-  padding: 10px 14px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
   cursor: pointer;
-  min-width: 200px; /* Adjust width as needed */
-  padding: 10px 20px;
-  margin-right: 10px;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.left-buttons button:hover {
-  background-color: #cb4d42;
-  color:white;
+.icon-btn:hover {
+  border-color: var(--maroon);
+  color: var(--maroon);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 
-/* Right buttons (Home, Back) */
-.right-buttons button{
-  background-color:white; /* dark brownish-maroon */
-  color: rgb(168, 47, 47);
-  padding: 10px 14px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: background-color 0.3s ease;
+/* Dropdown Panel alignment below button */
+.filter-sort-panel {
+  display: none;
+  position: absolute;
+  top: 120px;
+  left: 310px; /* Positioned relative to Search Specific button */
+  background: white;
+  width: 280px;
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  z-index: 1100;
+  border: 1px solid #eee;
+  border-top: 4px solid var(--maroon);
 }
 
-.right-buttons button:hover {
-  background-color: #cb4d42;
-  color:white;
-
-}
-@media (max-width: 699px) {
-  .nav-bar {
-    position: static !important;
-    transform: none !important;
-    flex-direction: column !important;
-    align-items: center !important;
-  }
-
-  .left-buttons button,
-  .right-buttons button {
-    min-width: 150px;
-    font-size: 10px;
-    margin: 5px 5px 0 0;
-    padding: 8px 12px;
-  }
-
-
-  .header-content {
-    flex-direction: column !important;
-    align-items: center !important;
-  }
-
-  .header-content h1 {
-    margin: 10px 0 0 0 !important;
-    font-size: 20px !important;
-    flex-grow: 0 !important;
-  }
-}
-
-/* Right-side nav buttons (Home, Back) */
-.search-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 10px 20px;
-   background-color: #FFFDD0; /* or same as your page background */
-    gap: 5px;
-}
-.clear-input {
-  padding: 8px 14px;
-  background-color: #800000;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-
-}
-
-.clear-input:hover {
- background-color: #a52a2a;
+.filter-sort-panel label {
+  color: var(--maroon);
+  font-weight: bold;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .input-box {
-  width: 300px;          /* Increased width */
-       /* Increased height */
-  padding: 10px 14px;    /* Inner spacing */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;       /* Slightly larger text */
-  margin-right: 10px;
+  width: 350px;
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  outline: none;
 }
 
 .submit-input {
-  padding: 8px 14px;
-  background-color: #800000;
+  background: var(--maroon);
   color: white;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.submit-input:hover {
-  background-color: #a52a2a;
-}
-
-
-#seatPopup {
-  display: none;
-  position: fixed;
-  top: 10%;
-  left: 20%;
-  width: 60%;
-  max-height: 80vh;
-  background: rgb(45, 42, 42);
-  border: 1px solid #ccc;
-  padding: 20px;
-  box-shadow: 0px 0px 10px rgba(137, 126, 126, 0.3);
-  z-index: 1000;
-  overflow-y: auto;
-  color: white;
-  border-radius: 8px;
-}
-
-#seatPopup h3 {
-  margin-top: 0;
-  text-align: center;
-  font-size: 20px;
-  color: #edc59f;
-}
-
-#seatPopup table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  color: black;
-}
-
-#seatPopup th {
-  padding: 10px;
-  border: 1px solid #ccc;
-  text-align: center;
-}
-
-
-#seatPopup td {
-  padding: 10px;
-  border: 1px solid #ccc;
-  text-align: left;
-}
-
-#seatPopup button {
-  display: block;
-  margin: 20px auto 0;
-  padding: 10px 20px;
-  background-color: #a52a2a;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  padding: 10px 25px;
+  border-radius: 30px;
+  font-weight: bold;
   cursor: pointer;
 }
 
-#seatPopup button:hover {
-  background-color: #b33a3a;
-}
-
-
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+/* ===== Main Horizontal Controls ===== */
+.main-controls {
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 0 40px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  z-index: 1000;
 }
 
-.popup.bordered-popup {
-  background-color: #faf7f7;
-  padding: 25px;
-  width: 90%;
+.left-nav-group, .right-search-group {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.modern-btn, .filter-sort-toggle {
+  background: white;
+  color: var(--maroon);
+  border: 1.5px solid var(--maroon);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.modern-btn:hover, .filter-sort-toggle:hover {
+  background: var(--maroon);
+  color: white;
+}
+
+.input-box {
+  width: 300px;
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  outline: none;
+}
+
+.submit-input {
+  background: var(--maroon);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ===== Student Card Grid & Alignment ===== */
+.degree-sections-container {
+  width: 100%;
   max-width: 1000px;
-  height: 90vh;
-  overflow-y: auto;
-  border-radius: 12px;
-  border: 2px solid #800000;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  margin: 20px auto;
+  margin-left: 350px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.popup-title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 22px;
+.degree-group {
+  margin-bottom: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.degree-group-title {
+  color: var(--maroon);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 20px 0 10px;
+  letter-spacing: 1px;
+  align-self: flex-start;
+  width: 100%;
+}
+
+.degree-dropdown {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 300%;
+  max-width: 900px;
+}
+
+.degree-dropdown:hover {
+  border-color: var(--maroon);
+  box-shadow: 0 4px 12px rgba(128, 0, 0, 0.1);
+}
+
+.degree-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 2px solid #eee;
+  transition: background 0.2s ease;
+}
+
+.degree-dropdown-header:hover {
+  background: linear-gradient(135deg, #f0f1f3 0%, #f8f9fa 100%);
+}
+
+.degree-dropdown.active .degree-dropdown-header {
+  background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-hover) 100%);
+  color: white;
+  border-bottom: 2px solid var(--maroon);
+}
+
+.degree-dropdown.active .degree-dropdown-header .toggle-icon {
+  color: white;
+  transform: rotate(180deg);
+}
+
+.degree-header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.degree-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+.degree-dropdown.active .degree-name {
+  color: white;
+}
+
+.degree-count {
+  background: #f0f0f0;
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.form-two-column {
-  display: flex;
-  gap: 30px;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.detail-section {
-  flex: 1;
-  min-width: 45%;
-  border: 1.5px solid #ccc;
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.detail-section h3 {
-  display: inline-block;
-  padding: 6px 14px;
-  border: 2px solid #000;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 16px;
-  font-family: monospace;
-  background: white;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.detail-table td {
-  padding: 6px 10px;
-  vertical-align: top;
-}
-
-.detail-table td:first-child {
-  font-weight: bold;
-  color: #222;
-  width: 45%;
-}
-
-.highlight {
-  color: #a10041;
-  font-weight: bold;
-}
-
-.close-btn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #800000;
+.degree-dropdown.active .degree-count {
+  background: rgba(255, 255, 255, 0.3);
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
 }
 
-
-.menu-btn {
-  background-color: white;
-  color: maroon;
-  border: none;
-  padding: 8px 12px;
-  font-size: 18px;
-  cursor: pointer;
-  border-radius: 4px;
+.toggle-icon {
+  font-size: 20px;
+  color: var(--maroon);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
-.side-menu {
-  width: 200px;
-  background-color: #f0f0f0;
-  padding: 10px;
+.degree-content {
   display: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
 }
 
-.container {
-  display: flex;
+.degree-dropdown.active .degree-content {
+  display: block;
+  max-height: 10000px;
+  opacity: 1;
 }
 
-.content {
-  flex: 1;
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
   padding: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 30px;
 }
 
+/* Handle odd number of cards - center the last card if odd */
+.student-grid .student-row:nth-child(odd):last-child {
+  grid-column: 1 / -1;
+  max-width: calc(50% - 10px);
+  margin: 0 auto;
+}
 
+.student-row {
+  background: white;
+  border-radius: var(--radius);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  border-left: 5px solid var(--maroon);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-/* One card takes ~48% width so two fit per row with some gap */
+/* Hovering effect for entire card */
+.student-row:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
 
-
-/* Set a consistent fixed height & proportional layout */
-.student-card, .recommender-box, .action-buttons {
+.student-info {
   flex: 1;
-  margin: 0 10px;
-}
-
-
-/* Add right padding only for student content */
-.student-card {
-  display: flex;
-  flex-shrink: 1;
-  flex-wrap: wrap;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100% !important; /* override fixed width */
-  min-width: 0; /* allow flexbox to shrink */
-  box-sizing: border-box; /* include padding in width */
-  overflow-wrap: break-word; /* break long words if any */
-}
-.student-card, .recommender-box, .action-buttons {
-  flex: 1 1 300px; /* allow wrapping with a reasonable min width */
   min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-  word-break: break-word;
 }
 
-
-.student-card p,
-.recommender-box p {
+.student-info p {
   margin: 6px 0;
-  color: #333;
-  
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-.student-card button.view-more {
-  background: transparent;
-  border: 1px solid orange;
-  color: orange;
-  align-self: flex-end;
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 4px 8px;
-}
-
-.recommender-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: 10px;
-   min-width: 0; /* allow shrinking inside flex */
-   max-width: 100%;
-  flex-shrink: 1;
-  box-sizing: border-box;
-}
-
-.recommender-box p {
-  font-weight: 500;
+.student-info strong {
+  color: var(--maroon);
+  font-weight: 600;
 }
 
 .action-buttons {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 12px;
-   min-width: 0; /* allow shrinking inside flex */
-   max-width: 100%;
-  flex-shrink: 1;
-  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-button {
-  padding: 8px 12px;
-  border: 1px solid #333;
-  background-color: white;
+.action-buttons button {
+  flex: 1;
+  min-width: 85px;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  border: 1.5px solid;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
-  font-weight: bold;
-  width: 100px;
+  transition: 0.2s;
 }
-.accept:hover {
-  box-shadow: 0 0 10px green;
-}
-.decline:hover {
-  box-shadow: 0 0 10px red;
-}
-.onhold:hover {
-  box-shadow: 0 0 10px yellow;
-}
-.delete:hover {
-  box-shadow: 0 0 10px brown;
-}
-.accept:hover {
-  background-color: green;
+/* Button Hovers */
+.allot, .accept { color: #27ae60; border-color: #27ae60; background: #f0fff4; }
+.allot:hover, .accept:hover { background: #27ae60; color: white; }
+
+.decline { color: #e74c3c; border-color: #e74c3c; background: #fff5f5; }
+.decline:hover { background: #e74c3c; color: white; }
+
+.onhold { color: #f39c12; border-color: #f39c12; background: #fffdf0; }
+.onhold:hover { background: #f39c12; color: white; }
+
+.delete { color: #7f8c8d; border-color: #7f8c8d; background: #f4f4f4; }
+.delete:hover { background: #7f8c8d; color: white; }
+
+/* View More Button (Maroon Style) */
+.view-more-btn {
+  background: var(--maroon);
   color: white;
-  border-color: green;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.3s;
+  width: 100%;
 }
 
-.decline:hover {
-  background-color: red;
-  color: white;
-  border-color: red;
+.view-more-btn:hover {
+  background: var(--maroon-hover);
 }
 
-.onhold:hover {
-  background-color: gold;
-  color: black;
-  border-color: gold;
-}
-
-.delete:hover {
-  background-color: brown;
-  color: black;
-  border-color: brown;
-}
-@media (max-width: 598px) {
-  .student-row {
-    min-width: 100%; /* For mobile, allow full width */
-    flex-direction: column;
-    width: 100%;
-    min-height: auto; /* Let height adapt */
-    padding: 15px;
-  }
-
-  .student-card, .recommender-box, .action-buttons {
-    flex: none;
-    width: 100%;
-    margin: 8px 0; /* vertical spacing */
-  }
-
-  .action-buttons {
-    flex-direction: row;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    min-width: 100%; /* For mobile, allow full width */
-
-    gap: 8px;
-  }
-
-  .action-buttons button {
-    width: auto;   /* buttons can shrink */
-    flex: 1 1 120px; /* flexible width with a min of 120px */
-    padding: 10px;
-  }
-
-  .student-card {
-    width: 100%; /* full width */
-  }
-}
-
-  .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      z-index: 999;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      width: 300px;
-      margin: 100px auto;
-      border-radius: 8px;
-    }
-    
-/* Popup styles */
+/* ===== Centered Popups & Overlays ===== */
 .popup-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none; /* Controlled by JS */
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 .popup {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
   text-align: center;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-top: 5px solid var(--maroon);
 }
 
-.popup label {
-  display: block;
-  margin-top: 10px;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
-}
+.standard-popup { width: 450px; }
+.wide-popup { width: 85%; max-width: 850px; }
 
-.popup select {
+/* Table Alignment inside Popup */
+.neat-table {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 13px;
 }
 
-.popup button {
-  padding: 8px 16px;
-  background-color: maroon;
+.neat-table th, .neat-table td {
+  padding: 10px;
+  border: 1px solid #eee;
+  text-align: center; /* Balanced data alignment */
+}
+
+.neat-table th {
+  background: var(--maroon);
   color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.popup button:hover {
-  background-color: darkred;
-}
-
-
-.student-row {
-  width: 48%;
-  min-height: 250px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  background-color: white;
-  border: 2px solid black;
+/* Form elements in Popups */
+.popup select, .popup textarea, .popup-input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  padding: 20px;
   box-sizing: border-box;
-  flex-wrap: nowrap;
+  font-family: inherit;
+  font-size: 13px;
 }
 
-  #seatPopup table {
-    border-collapse: collapse;
-  }
-
-
-  #seatPopup th {
-    background-color: #8d0303;
-  }
-#seatTable thead th {
-  position: sticky;
-  top: 0;
-  background: #433939; /* match popup bg */
-  color: white;
-  z-index: 10;
+.popup select:focus, .popup textarea:focus, .popup-input:focus {
+  border-color: var(--maroon);
+  outline: none;
 }
-.decline-shadow {
-  transition: opacity 0.5s ease;
-  opacity: 0;
-  box-shadow: 0 0 10px red;
-}
-.modal-content button {
-  padding: 8px 16px;
-  background-color: maroon;
+
+/* Standard Maroon Button for UI */
+.maroon-btn {
+  background: var(--maroon);
   color: white;
   border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
-  font-weight: bold;
+  transition: 0.3s;
+  margin: 10px 5px;
 }
 
-.modal-content button:hover {
-  background-color: darkred;
+.maroon-btn:hover {
+  background: var(--maroon-hover);
+  transform: scale(1.02);
 }
-.degree-title-container {
-  width: 100%;       /* full width */
-  font-size: 15px;
-  text-align: center; /* center the degree title */
+
+.cancel-btn {
+  background: #6c757d;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.select-group {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.select-group label {
+  color: var(--maroon);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.select-group select {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.select-group select:focus {
+  border-color: var(--maroon);
+  outline: none;
+}
+
+.maroon-text {
+  color: var(--maroon);
   margin-bottom: 15px;
-  color:#800000;
 }
-.degree-section-header {
-  font-size: 22px;
-  font-weight: bold;
-  color: #222;
-  text-align: center;
-  margin: 40px 0 20px 0; /* space above and below */
-  width: 100%; /* force full width so next line starts below */
-  display: block;
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+  .student-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .student-grid .student-row:nth-child(odd):last-child {
+    grid-column: 1;
+    max-width: 100%;
+  }
 }
-.degree-divider {
-  border: none;
-  border-top: 2px solid #555;
-  margin: 40px 0 20px;
-  width: 100%;
+
+@media (max-width: 768px) {
+  .student-grid {
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .degree-dropdown-header {
+    padding: 12px 15px;
+  }
+  
+  .degree-count {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  
+  .action-buttons button {
+    min-width: 70px;
+    font-size: 11px;
+    padding: 6px;
+  }
 }
+

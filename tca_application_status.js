@@ -60,7 +60,7 @@ function goHome() {
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
     );
 
     Promise.all(fetches)
@@ -74,7 +74,7 @@ function goHome() {
       })
       .catch(error => console.error("Error restoring all statuses:", error));
   } else {
-    fetch(`${API_URL}?status=${currentStatus}`)
+    authFetch(`${API_URL}?status=${currentStatus}`)
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -111,7 +111,7 @@ function loadSeatTable() {
   const seatTbody = document.querySelectorAll("#seatTable tbody");
   seatTbody.forEach(tbody => tbody.innerHTML = "");
 
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       seatTbody.forEach(tbody => {
@@ -135,7 +135,7 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-fetch(SEATS_URL)
+authFetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -202,7 +202,7 @@ function loadStatus(status, buttonElement) {
   if (status === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
     );
 
     Promise.all(fetches)
@@ -217,7 +217,7 @@ function loadStatus(status, buttonElement) {
       })
       .catch(err => console.error("Error fetching all statuses:", err));
   } else {
-    fetch(`${API_URL}?status=${status}`)
+    authFetch(`${API_URL}?status=${status}`)
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -243,7 +243,7 @@ function handleSearch() {
     // Fetch search results across all statuses
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${s}`)
+      authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${s}`)
         .then(res => res.json())
     );
 
@@ -259,7 +259,7 @@ function handleSearch() {
       .catch(error => console.error("Error during multi-status search:", error));
   } else {
     // Single-status search
-    fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${currentStatus}`) 
+    authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${currentStatus}`) 
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -323,10 +323,10 @@ function generateAllStudentTableView(allStudents) {
 function printAllWithUnallocated() {
   const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD", "UNALLOCATED"];
   const fetchStatus = statuses.map(status =>
-    fetch(`${API_URL}?status=${status}`).then(res => res.json())
+    authFetch(`${API_URL}?status=${status}`).then(res => res.json())
   );
 
-  const fetchAll = fetch(`${API_URL}?status=ALL`).then(res => res.json());
+  const fetchAll = authFetch(`${API_URL}?status=ALL`).then(res => res.json());
 
   Promise.all([...fetchStatus, fetchAll])
     .then(results => {
@@ -353,7 +353,7 @@ function printAllWithUnallocated() {
 
 function openStudentPopup() {
   const popup = document.getElementById("studentPopup");
-  if (popup) popup.style.display = "block";
+  if (popup) popup.style.display = "flex";
 }
 
 function closeStudentPopup() {
@@ -530,7 +530,7 @@ function generateTableView(status) {
   } // Toggle button visibility
   updateButtonVisibility(status);
   // Show popup
-  document.getElementById("studentPopup").style.display = "block";
+  document.getElementById("studentPopup").style.display = "flex";
   document.getElementById("popupTitle").textContent =
     status === "APPROVED" ? "Allotted Students" : "Declined Students";
 
@@ -725,7 +725,7 @@ function confirmSelection() {
   confirmButton.innerText = "Loading...";
 
   function sendApprovalRequest(isConfirm = false) {
-    fetch(UPDATE_URL, {
+    authFetch(UPDATE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -769,15 +769,12 @@ function confirmSelection() {
   sendApprovalRequest();
 }
 
-
-
-
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -796,7 +793,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -834,7 +831,7 @@ function onHoldStudent(onhold_id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -874,7 +871,7 @@ function withdrawStudent(withdraw_id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -999,7 +996,7 @@ window.onload = () => {
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
@@ -1021,7 +1018,7 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);

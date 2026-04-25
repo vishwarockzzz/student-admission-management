@@ -8,108 +8,111 @@
 </head>
 
 <body>
-<header>
-  <h1 class="header-title">TCA Application Status </h1>
-  
-  <div class="header-buttons">
-    <div class="left">
-      <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
-      <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
-      <button class="nav-btn2"  onclick="printAllWithUnallocated()">Print All Status</button>
+  <header>
+    <h1 class="header-title">TCA Application Status </h1>
+
+    <div class="header-buttons">
+      <div class="left">
+        <button class="nav-btn2" onclick="showSeatPopup()">Remaining Seats</button>
+        <button class="nav-btn2" onclick="showChangeSeatsPopup()">Change Seats</button>
+        <button class="nav-btn2" id="allStatusBtn" onclick="loadStatus('ALL', this)">All Application status</button>
+        <button class="nav-btn2" onclick="printAllWithUnallocated()">Print All Status</button>
+      </div>
+      <div class="right">
+
+        <button class="nav-btn" onclick="goHome()">Logout</button>
+        <button class="nav-btn" onclick="goBack()">Back to Application process</button>
+      </div>
     </div>
-    <div class="right">
-      
-      <button class="nav-btn" onclick="goHome()">Logout</button>
-      <button class="nav-btn" onclick="goBack()">Back to Application process</button>
+  </header>
+
+  <div class="search-container">
+
+    <div class="status-buttons">
+      <button class="active" onclick="loadStatus('APPROVED', this)">Alloted Application</button>
+      <button onclick="loadStatus('ONHOLD', this)">OnHold Application</button>
+      <button onclick="loadStatus('DECLINED', this)">Declined Application</button>
+      <button onclick="loadStatus('WITHDRAWN', this)">Withdrawn Application</button>
+    </div>
+    <div class="export-buttons">
+      <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted Students</button>
+      <button id="declinedBtn" onclick="generateTableView('DECLINED')">Print Declined Students</button>
+    </div>
+
+    <!-- Popup Modal -->
+    <div id="studentPopup">
+      <div id="studentTableContainer">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 id="popupTitle">Student Status</h3>
+          <button onclick="printStudentTable()">🖨️ Print</button>
+        </div>
+
+        <table id="studentTable">
+          <thead>
+            <tr id="studentTableHead"></tr>
+          </thead>
+          <tbody id="studentTableBody"></tbody>
+        </table>
+        <div id="seatsTableContainer">
+          <h3>Seat Status For TCA</h3>
+          <table border="1" width="100%" id="seatTable">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Course Name</th>
+                <th>Total Seats</th>
+                <th>Allocated Seats</th>
+                <th>Remaining Seats</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <button onclick="closeStudentPopup()">Close</button>
+      </div>
+    </div>
+
+
+
+
+    <div class="search-group">
+      <input id="searchInput" class="input-box" placeholder="Search for details..." />
+      <button class="submit-input" onclick="handleSearch()">Search</button>
+      <button class="clear-input" onclick="clearSearch()">Clear</button>
     </div>
   </div>
-</header>
-  
- <div class="search-container">
-
-<div class="status-buttons">
-  <button class="active" onclick="loadStatus('APPROVED', this)">Alloted Application</button>
-  <button onclick="loadStatus('ONHOLD', this)">OnHold Application</button>
-  <button onclick="loadStatus('DECLINED', this)">Declined Application</button>
-  <button onclick="loadStatus('WITHDRAWN', this)">Withdrawn Application</button>
-</div>
-<div class="export-buttons">
-  <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted Students</button>
-  <button id="declinedBtn" onclick="generateTableView('DECLINED')" >Print Declined Students</button>
-</div>
-
-<!-- Popup Modal -->
-<div id="studentPopup">
-  <div id="studentTableContainer">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3 id="popupTitle">Student Status</h3>
-      <button onclick="printStudentTable()">🖨️ Print</button>
-    </div>
-    
-    <table id="studentTable">
-      <thead><tr id="studentTableHead"></tr></thead>
-      <tbody id="studentTableBody"></tbody>
-    </table>
-    <div id="seatsTableContainer">
-    <h3>Seat Status For TCA</h3>
-    <table border="1" width="100%" id="seatTable">
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Course Name</th>
-          <th>Total Seats</th>
-          <th>Allocated Seats</th>
-          <th>Remaining Seats</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-    <button onclick="closeStudentPopup()">Close</button>
-  </div>
-</div>
-
-
-
-
-  <div class="search-group">
-    <input id="searchInput" class="input-box" placeholder="Search for details..." />
-    <button class="submit-input" onclick="handleSearch()">Search</button>
-     <button class="clear-input" onclick="clearSearch()">Clear</button>
-  </div>
-</div>
-<div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
-<div id="tableViewContainer"></div>
+  <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
+  <div id="tableViewContainer"></div>
 
   <div class="content" id="studentCards">
     <!-- Student cards will be inserted here -->
   </div>
-</div>
-   <div id="declineModal" class="modal">
+  </div>
+  <div id="declineModal" class="modal">
     <div class="modal-content">
       <h3>Decline Reason</h3>
       <textarea id="declineComment" placeholder="Enter reason..." rows="4" style="width:100%;"></textarea>
-      <br/>
+      <br />
       <button onclick="submitDecline()">Submit</button>
       <button onclick="closeDeclineModal()">Cancel</button>
     </div>
   </div>
 
-<div id="popup-overlay" class="popup-overlay" style="display:none">
-  <div class="popup">
-    <label for="degreeTypeSelect">Choose Degree Type:</label>
-    <select id="degreeTypeSelect">
-    </select>
+  <div id="popup-overlay" class="popup-overlay" style="display:none">
+    <div class="popup">
+      <label for="degreeTypeSelect">Choose Degree Type:</label>
+      <select id="degreeTypeSelect">
+      </select>
 
-    <label for="courseSelect">Choose Course:</label>
-    <select id="courseSelect">
-    </select>
+      <label for="courseSelect">Choose Course:</label>
+      <select id="courseSelect">
+      </select>
 
-    <button id="confirmBtn" onclick="confirmSelection()">Confirm</button>
-    <button onclick="closeSelectionModal()">Cancel</button>
+      <button id="confirmBtn" onclick="confirmSelection()">Confirm</button>
+      <button onclick="closeSelectionModal()">Cancel</button>
+    </div>
   </div>
-</div>
   <!-- View More Popup -->
   <div id="viewMoreOverlay" class="popup-overlay" style="display: none;">
     <div class="popup bordered-popup">
@@ -118,30 +121,52 @@
       <button onclick="closeViewMore()" class="close-btn">Close</button>
     </div>
   </div>
-    <div id="seatPopup">
-  <div id="seatsTableContainer">
-  <h3>Seat Status</h3>
-  
-  <table border="1" width="100%" id="seatTable">
-    <thead>
-      <tr>
-        <th>S.No</th>
-        <th>Course Name</th>
-        <th>Total Seats</th>
-        <th>Allocated Seats</th>
-        <th>Remaining Seats</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  </div>
-  <button onclick="printSeatsTable()">🖨️ Print Table</button>
-<div id="tableViewContainer"></div>
+  <div id="seatPopup">
+    <div id="seatsTableContainer">
+      <h3>Seat Status</h3>
 
-  <br>
-  <button onclick="closeSeatPopup()">Close</button>
-</div>
+      <table border="1" width="100%" id="seatTable">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Course Name</th>
+            <th>Total Seats</th>
+            <th>Allocated Seats</th>
+            <th>Remaining Seats</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button onclick="printSeatsTable()">🖨️ Print Table</button>
+    <div id="tableViewContainer"></div>
+
+    <br>
+    <button onclick="closeSeatPopup()">Close</button>
+  </div>
+
+  <div id="changeSeatPopup" style="display: none;">
+    <div id="changeSeatsTableContainer">
+      <h3>Change Seat Totals</h3>
+      <table border="1" width="100%" id="changeSeatTable">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Course Name</th>
+            <th>Total</th>
+            <th>Allocated</th>
+            <th>Remaining</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button onclick="saveChangeSeats()">Save</button>
+    <button onclick="closeChangeSeatPopup()">Close</button>
+  </div>
+
   <script src="env.js"></script>
+  <script src="auth.js"></script>
   <script src="tca_application_status.js"></script>
 </body>
 

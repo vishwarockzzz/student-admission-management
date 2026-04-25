@@ -1,18 +1,18 @@
 const API_URL = `${window.env.BASE_URL}/students`;
-const API_URL_TCA =`${window.env.BASE_URL}/tcarts/students`
-  function goHome() {
-    window.location.href = 'index.html'; 
-   // Change to your actual login route
-  }
+const API_URL_TCA = `${window.env.BASE_URL}/tcarts/students`
+function goHome() {
+  window.location.href = 'index.html';
+  // Change to your actual login route
+}
 
-  function goBack() {
+function goBack() {
 
-    window.history.back(); 
-    
-// Goes to the previous page
-  }
+  window.history.back();
 
-  const buttons = document.querySelectorAll('.college-btn');
+  // Goes to the previous page
+}
+
+const buttons = document.querySelectorAll('.college-btn');
 
 buttons.forEach(button => {
   button.addEventListener('click', () => {
@@ -27,30 +27,114 @@ function goToUpdateRequestPage() {
   window.location.href = "college_selection.html";
   // Replace with your actual update request page URL
 }
-   let selectedCollege = ''; // Variable to store selected college
+let selectedCollege = ''; // Variable to store selected college
+let selectedProgramType = ''; // UG / PG / Lateral
+
+function setDegreeOptions() {
+  const degreeDropdown = document.getElementById('degree');
+  if (!degreeDropdown) return;
+
+  const pgOptions = [
+    { value: 'me_mtech', text: 'M.E / M.Tech' },
+    { value: 'march', text: 'M.Arch' },
+    { value: 'mca', text: 'M.C.A' }
+  ];
+
+  const ugOptions = [
+    { value: 'btech', text: 'B.E./B.Tech' },
+    { value: 'msc', text: 'M.Sc.' },
+    { value: 'bdes', text: 'B.Des' },
+    { value: 'barch', text: 'B.Arch' }
+  ];
+
+  const options = selectedProgramType === 'pg' ? pgOptions : ugOptions;
+  degreeDropdown.innerHTML = '<option value="">-- Select --</option>';
+
+  options.forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.text;
+    degreeDropdown.appendChild(option);
+  });
+}
 
 function setCollege(college) {
   const tceForm = document.getElementById('tceForm');
   const tcaForm = document.getElementById('tcaForm');
-  const instruction = document.getElementById('instruction'); // reference to instruction div
+  const instruction = document.getElementById('instruction');
+  const programTypeSection = document.getElementById('programTypeSection');
   const msg = document.getElementById('collegeMessage');
-  selectedCollege = college
-  // Hide instruction when a college is selected
+  selectedCollege = college;
+  selectedProgramType = '';
+
+  // Hide current forms until program type selected
+  tceForm.style.display = 'none';
+  tcaForm.style.display = 'none';
+
+  // Show instruction section and program type options
   instruction.style.display = 'none';
+  programTypeSection.style.display = 'block';
+  setDegreeOptions();
 
   if (college === 'TCE') {
-    tceForm.style.display = 'block';
-    tcaForm.style.display = 'none';
     msg.textContent = "You have selected: Thiagarajar College of Engineering (TCE)";
   } else if (college === 'TCA') {
-    tcaForm.style.display = 'block';
-    tceForm.style.display = 'none';
     msg.textContent = "You have selected: Thiagarajar College (TCA)";
   } else {
-    tceForm.style.display = 'none';
-    tcaForm.style.display = 'none';
+    programTypeSection.style.display = 'none';
     msg.textContent = "";
   }
+}
+
+function selectProgramType(type) {
+  selectedProgramType = type.toLowerCase();
+  const tceForm = document.getElementById('tceForm');
+  const tcaForm = document.getElementById('tcaForm');
+  const programTypeSection = document.getElementById('programTypeSection');
+
+  document.querySelectorAll('.program-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === selectedProgramType);
+  });
+
+  programTypeSection.style.display = 'none';
+
+  const isPG = selectedProgramType === 'pg';
+
+  if (selectedCollege === 'TCE') {
+    tceForm.style.display = 'block';
+    setPgFieldsVisibility('tce', isPG);
+  } else if (selectedCollege === 'TCA') {
+    tcaForm.style.display = 'block';
+    setPgFieldsVisibility('tca', isPG);
+  }
+
+  setDegreeOptions();
+}
+
+function setPgFieldsVisibility(prefix, visible) {
+  const section = document.getElementById(`${prefix}PgSection`);
+  if (!section) return;
+  section.style.display = visible ? 'block' : 'none';
+
+  const fieldIds = [
+    `${prefix}UgConsolidatedMark`,
+    `${prefix}UgCourseName`,
+    `${prefix}UgInstitution`,
+    `${prefix}TancetGateScore`
+  ];
+
+  fieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id !== `${prefix}TancetGateScore`) {
+      el.required = visible;
+    } else {
+      el.required = false;
+    }
+    if (!visible) {
+      el.value = '';
+    }
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -66,57 +150,57 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-  document.getElementById('yearOfPassing').addEventListener('input', function () {
-    const year = parseInt(this.value, 10);
-    const isValid = year >= 2000 && year <= 2025;
-    document.getElementById('year-error').style.display = isValid ? 'none' : 'block';
-  });
+document.getElementById('yearOfPassing').addEventListener('input', function () {
+  const year = parseInt(this.value, 10);
+  const isValid = year >= 2000 && year <= 2025;
+  document.getElementById('year-error').style.display = isValid ? 'none' : 'block';
+});
 
-  document.getElementById('phone').addEventListener('input', function () {
-    const phone = this.value;
-    const isValid = /^[0-9]{10}$/.test(phone);
-    document.getElementById('phone-error').style.display = isValid ? 'none' : 'block';
-  });
+document.getElementById('phone').addEventListener('input', function () {
+  const phone = this.value;
+  const isValid = /^[0-9]{10}$/.test(phone);
+  document.getElementById('phone-error').style.display = isValid ? 'none' : 'block';
+});
 
-  document.getElementById('twelfthMark').addEventListener('input', function () {
-    const value = parseInt(this.value);
-    const error = document.getElementById('twelthMark-error');
+document.getElementById('twelfthMark').addEventListener('input', function () {
+  const value = parseInt(this.value);
+  const error = document.getElementById('twelthMark-error');
 
-    if (isNaN(value) || value < 0 || value > 600) {
-      error.style.display = 'block';
-    } else {
-      error.style.display = 'none';
-    }
-  });
+  if (isNaN(value) || value < 0 || value > 600) {
+    error.style.display = 'block';
+  } else {
+    error.style.display = 'none';
+  }
+});
 
-  document.getElementById('aadhar').addEventListener('input', function () {
-    let input = this.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-    if (input.length > 12) input = input.slice(0, 12);
-    const formatted = input.replace(/(\d{4})(?=\d)/g, '$1 ');
-    this.value = formatted;
+document.getElementById('aadhar').addEventListener('input', function () {
+  let input = this.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+  if (input.length > 12) input = input.slice(0, 12);
+  const formatted = input.replace(/(\d{4})(?=\d)/g, '$1 ');
+  this.value = formatted;
 
-    document.getElementById('aadhar-error').style.display = input.length === 12 ? 'none' : 'block';
-  });
-  document.getElementById('twelfthMarkInput').addEventListener('input', function () {
-    const value = parseFloat(this.value);
-    const error = document.getElementById('mark-error');
+  document.getElementById('aadhar-error').style.display = input.length === 12 ? 'none' : 'block';
+});
+document.getElementById('twelfthMarkInput').addEventListener('input', function () {
+  const value = parseFloat(this.value);
+  const error = document.getElementById('mark-error');
 
-    if (isNaN(value) || value < 0 || value > 100) {
-      error.style.display = 'block';
-    } else {
-      error.style.display = 'none';
-    }
-  });
-  
-  const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
+  if (isNaN(value) || value < 0 || value > 100) {
+    error.style.display = 'block';
+  } else {
+    error.style.display = 'none';
+  }
+});
 
-function populateDropdown(dropdownId, exclude = []) {
+const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
+
+function populateDropdown(dropdownId, exclude = [], branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch']) {
   const dropdown = document.getElementById(dropdownId);
   const currentValue = dropdown.value;
 
   dropdown.innerHTML = '<option value="">-- Select --</option>'; // Reset the dropdown
 
-  // Always include "All"
+  // Always include "Any Branch"
   const allOption = document.createElement('option');
   allOption.value = "Any Branch";
   allOption.text = "Any Branch";
@@ -140,12 +224,26 @@ function populateDropdown(dropdownId, exclude = []) {
 
 
 function updateOptions() {
-const pref1 = document.getElementById('pref1').value;
-const pref2 = document.getElementById('pref2').value;
-
-// Allow "All" to be selected multiple times in all preferences
-populateDropdown('pref2', [pref1]);
-populateDropdown('pref3', [pref1, pref2]);
+  const degree = document.getElementById("degree").value;
+  const degKey = (degree || '').toLowerCase();
+  let branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
+  if (degKey.includes('me') || degKey.includes('mtech')) {
+    branches = [
+      'M.E. Structural Engineering',
+      'M.E. Environmental Engineering',
+      'M.E. Construction Engineering and Management',
+      'M.E. Engineering Design',
+      'M.E. Power System Engineering',
+      'M.E. Communication Systems',
+      'M.E. Computer Science and Engineering',
+      'Any Branch'
+    ];
+  }
+  const pref1 = document.getElementById('pref1').value;
+  const pref2 = document.getElementById('pref2').value;
+  // Allow "All" to be selected multiple times in all preferences
+  populateDropdown('pref2', [pref1], branches);
+  populateDropdown('pref3', [pref1, pref2], branches);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -153,103 +251,131 @@ document.addEventListener("DOMContentLoaded", () => {
   populateDropdown('pref2');
   populateDropdown('pref3');
 
-// Add listeners for updates when preferences are changed
-document.getElementById('pref1').addEventListener('change', updateOptions);
-document.getElementById('pref2').addEventListener('change', updateOptions);
+  // Add listeners for updates when preferences are changed
+  document.getElementById('pref1').addEventListener('change', updateOptions);
+  document.getElementById('pref2').addEventListener('change', updateOptions);
 
-const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
-inputs.forEach(input => input.addEventListener("input", calculateCutoff));
-inputs.forEach(input => input.addEventListener("change", calculateCutoff));
+  const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
+  inputs.forEach(input => input.addEventListener("input", calculateCutoff));
+  inputs.forEach(input => input.addEventListener("change", calculateCutoff));
 });
 
-  
-    function togglePreferences() {
-      const degree = document.getElementById("degree").value;
-      const subjectFields = document.getElementById("subject-fields");
-      const nataFields = document.getElementById("nata-fields");
-  
-      const enggCutoff = document.getElementById("engg-cutoff-group");
-      const mscCutoff = document.getElementById("msc-cutoff-group");
-      const barchCutoff = document.getElementById("barch-cutoff-group");
-      const bdesCutoff = document.getElementById("bdes-cutoff-group");
-      const preferences = document.getElementById("preferences");
-  
-      subjectFields.style.display = "none";
-      nataFields.style.display = "none";
-      enggCutoff.style.display = "none";
-      mscCutoff.style.display = "none";
-      barchCutoff.style.display = "none";
-      bdesCutoff.style.display = "none";
-      preferences.style.display = "none";
-  
-      if (degree === "btech" || degree === "msc" || degree === "bdes") {
-        subjectFields.style.display = "block";
-      }
-  
-      if (degree === "btech") {
-        enggCutoff.style.display = "block";
-        preferences.style.display = "block";
-      }
-  
-      if (degree === "msc") {
-        mscCutoff.style.display = "block";
-      }
-  
-      if (degree === "barch") {
-        nataFields.style.display = "block";
-        barchCutoff.style.display = "block";
-      }
-  
-      if (degree === "bdes") {
-        bdesCutoff.style.display = "block";
-      }
-  
-      calculateCutoff();
-    }
-  
-    function calculateCutoff() {
-      const degree = document.getElementById("degree").value;
-      document.getElementById("barch-cutoff-group").style.display = "none";
-    
-      if (degree === "barch") {
-        const nata = parseFloat(document.getElementById("nata").value) || 0;
-        const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
-        const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
-    
-        const converted12th = (twelve / totalOutOf) * 200;
-        const barchCutoff = nata + converted12th;
-    
-        if (nata > 0 && twelve > 0) {
-          document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
-        } 
-    
-        document.getElementById("barch-cutoff-group").style.display = "block";
-      }
-    }
-    
 
-    document.getElementById('nameInput2').addEventListener('input', function () {
-        const value = this.value.trim();
-        const isAllCaps = value === value.toUpperCase();
-        const isValid = isAllCaps;
+function togglePreferences() {
+  const degree = document.getElementById("degree").value;
+  const subjectFields = document.getElementById("subject-fields");
+  const nataFields = document.getElementById("nata-fields");
 
-      });
-  
-    // Phone number validation
-    function validatePhone(inputId, errorId) {
-      const phone = document.getElementById(inputId).value;
-      const isValid = /^\d{10}$/.test(phone);
-      document.getElementById(errorId).style.display = isValid ? 'none' : 'block';
+  const enggCutoff = document.getElementById("engg-cutoff-group");
+  const mscCutoff = document.getElementById("msc-cutoff-group");
+  const barchCutoff = document.getElementById("barch-cutoff-group");
+  const bdesCutoff = document.getElementById("bdes-cutoff-group");
+  const preferences = document.getElementById("preferences");
+
+  subjectFields.style.display = "none";
+  nataFields.style.display = "none";
+  enggCutoff.style.display = "none";
+  mscCutoff.style.display = "none";
+  barchCutoff.style.display = "none";
+  bdesCutoff.style.display = "none";
+  preferences.style.display = "none";
+
+  if (degree === "btech" || degree === "msc" || degree === "bdes") {
+    subjectFields.style.display = "block";
+  }
+
+  if (degree === "btech") {
+    enggCutoff.style.display = "block";
+    preferences.style.display = "block";
+  }
+
+  if (degree === "me_mtech") {
+    preferences.style.display = "block";
+  }
+
+  if (degree === "msc") {
+    mscCutoff.style.display = "block";
+  }
+
+  if (degree === "barch") {
+    nataFields.style.display = "block";
+    barchCutoff.style.display = "block";
+  }
+
+  if (degree === "bdes") {
+    bdesCutoff.style.display = "block";
+  }
+
+  // Populate preferences based on degree
+  if (degree === "btech" || degree === "me_mtech") {
+    const br = degree === "btech" ? ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'] : [
+      'M.E. Structural Engineering',
+      'M.E. Environmental Engineering',
+      'M.E. Construction Engineering and Management',
+      'M.E. Engineering Design',
+      'M.E. Power System Engineering',
+      'M.E. Communication Systems',
+      'M.E. Computer Science and Engineering',
+      'Any Branch'
+    ];
+    populateDropdown('pref1', [], br);
+    populateDropdown('pref2', [], br);
+    populateDropdown('pref3', [], br);
+  }
+
+  calculateCutoff();
+}
+
+function calculateCutoff() {
+  const degree = document.getElementById("degree").value;
+  document.getElementById("barch-cutoff-group").style.display = "none";
+
+  if (degree === "barch") {
+    const nata = parseFloat(document.getElementById("nata").value) || 0;
+    const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
+    const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
+
+    const converted12th = (twelve / totalOutOf) * 200;
+    const barchCutoff = nata + converted12th;
+
+    if (nata > 0 && twelve > 0) {
+      document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
     }
-  
-    document.getElementById('officePhone').addEventListener('input', () => {
-      validatePhone('officePhone', 'officePhone-error');
-    });
-  
-    document.getElementById('personalPhone').addEventListener('input', () => {
-      validatePhone('personalPhone', 'personalPhone-error');
-    });
-  async function handleSubmit(event) {
+
+    document.getElementById("barch-cutoff-group").style.display = "block";
+  }
+}
+
+
+document.getElementById('nameInput2').addEventListener('input', function () {
+  const value = this.value.trim();
+  const isAllCaps = value === value.toUpperCase();
+  const isValid = isAllCaps;
+
+});
+
+// Phone number validation
+function validatePhone(inputId, errorId) {
+  const phone = document.getElementById(inputId).value;
+  const isValid = /^\d{10}$/.test(phone);
+  document.getElementById(errorId).style.display = isValid ? 'none' : 'block';
+}
+
+document.getElementById('officePhone').addEventListener('input', () => {
+  validatePhone('officePhone', 'officePhone-error');
+});
+
+document.getElementById('personalPhone').addEventListener('input', () => {
+  validatePhone('personalPhone', 'personalPhone-error');
+});
+// Utility function to clean values
+function clean(value, type = "string") {
+  if (value === undefined || value === null || value.trim() === "") return null;
+  if (type === "float") return parseFloat(value);
+  return value.trim();
+}
+
+async function handleSubmit(event) {
   event.preventDefault();
 
   const inputs = document.querySelectorAll('input, select, textarea');
@@ -305,33 +431,14 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
   button.innerHTML = `<span class="spinner"></span>Loading...`;
   button.disabled = true;
 
-  try {
-    // Replace this with your actual async submission code, e.g.:
-    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
-
-    await submitFormData();  // Dummy async function simulating a 2-second submission delay
-
-    // Optional: clear form or show success message here
-
-  } catch (error) {
-    alert("Submission failed: " + error.message);
-  } finally {
-    // Re-enable the button and restore original content
-    button.innerHTML = originalHTML;
-    button.disabled = false;
-  }
-
-
-// Dummy async function to simulate form submission delay — replace with your real submission logic
-
-  // Utility function to clean values
-  function clean(value, type = "string") {
-    if (value === undefined || value === null || value.trim() === "") return null;
-    if (type === "float") return parseFloat(value);
-    return value.trim();
-  }
-
   const degree = document.getElementById("degree")?.value;
+
+  // Detect program type from degree
+  const degreeKey = (degree || '').toLowerCase();
+  let program_type = 'ug';
+  if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey === 'march' || degreeKey === 'mca') {
+    program_type = 'pg';
+  }
 
   const formData = {
     application_number: clean(document.getElementById("applicationNumber")?.value),
@@ -344,7 +451,7 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
     date_of_application: clean(document.getElementById("applicationDate")?.value),
     applicationstatus: clean(document.getElementById("applicationStatus")?.value),
-    stdcode: clean(document.getElementById("stucode")?.value),
+    stdcode: clean(document.getElementById("stdcode")?.value),
     phone_number: clean(document.getElementById("phone")?.value),
     aadhar_number: clean(document.getElementById("aadhar")?.value),
     community: clean(document.getElementById("community")?.value),
@@ -352,6 +459,11 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
     board: clean(document.getElementById("boardSelect")?.value),
     year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
     degree: clean(degree),
+    program_type: program_type,
+    ug_consolidated_mark: program_type === 'pg' ? clean(document.getElementById("tceUgConsolidatedMark")?.value, "float") : null,
+    ug_course_name: program_type === 'pg' ? clean(document.getElementById("tceUgCourseName")?.value) : null,
+    ug_institution: program_type === 'pg' ? clean(document.getElementById("tceUgInstitution")?.value) : null,
+    tancet_gate_score: program_type === 'pg' ? clean(document.getElementById("tceTancetGateScore")?.value) : null,
     maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
     physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
     chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
@@ -375,54 +487,51 @@ inputs.forEach(input => input.addEventListener("change", calculateCutoff));
       percode: clean(document.getElementById("percode")?.value),
     }
   };
+
   function sendStudentDetails(isConfirm = false) {
-  fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({...formData, is_confirm: isConfirm})
-  })
-    .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendStudentDetails(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
-      }
-    } 
-    else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
-    }
-
-    return data;
-  })
-    .then(data => {
-      alert("Application form is submitted successfully");
-      location.reload();
+    authFetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ...formData, is_confirm: isConfirm })
     })
-    .catch(error => {
-      console.error("Submission error:", error.message);
-      alert("Failed to submit application. " + error.message);
-      button.innerHTML = originalHTML;
-      button.disabled = false;
-    });
-}
-sendStudentDetails();
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({})); // protect against invalid JSON
+        if (res.status === 409) {
+          const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+          if (proceed) {
+            return sendStudentDetails(true); // Retry with confirmation
+          } else {
+            throw new Error("Operation cancelled by user.");
+          }
+        } else if (!res.ok) {
+          throw new Error(data.error || "An unknown error occurred.");
+        }
+        return data;
+      })
+      .then(data => {
+        alert("Application form is submitted successfully");
+        location.reload();
+      })
+      .catch(error => {
+        console.error("Submission error:", error.message);
+        alert("Failed to submit application. " + error.message);
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+      });
+  }
+
+  sendStudentDetails();
 }
 
 
-function submitFormData() {
-  return new Promise(resolve => setTimeout(resolve, 2000));
-}
-   
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
     window.location.reload(); // Reload if user returns via back/forward
   }
 });
+
 
 
 //FOR TCA //
@@ -486,7 +595,7 @@ async function handleSubmitTca(event) {
 
   try {
     // Replace this with your actual async submission code, e.g.:
-    // await fetch('/your-api-endpoint', { method: 'POST', body: formData })
+    // await authFetch('/your-api-endpoint', { method: 'POST', body: formData })
 
     await submitFormData();  // Dummy async function simulating a 2-second submission delay
 
@@ -502,57 +611,73 @@ async function handleSubmitTca(event) {
 
   // Utility function to clean values
   function clean(value, type = "string") {
-  if (value === null || value === undefined || value === "") return null;
-  if (type === "float") {
-    const floatVal = parseFloat(value);
-    return isNaN(floatVal) ? null : floatVal;
+    if (value === null || value === undefined || value === "") return null;
+    if (type === "float") {
+      const floatVal = parseFloat(value);
+      return isNaN(floatVal) ? null : floatVal;
+    }
+    return value.trim();
   }
-  return value.trim();
-}
 
   const degree = document.getElementById("tcaDegree")?.value;
+  let programType = selectedProgramType || '';
+  if (!programType) {
+    const degKey = (degree || '').toLowerCase();
+    if (['me_mtech', 'march', 'mca'].includes(degKey)) {
+      programType = 'pg';
+    } else if (['btech', 'msc', 'bdes', 'barch', 'be'].includes(degKey)) {
+      programType = 'ug';
+    } else {
+      programType = 'ug';
+    }
+  }
 
   const formData = {
-  application_number: clean(document.getElementById("tcaAppNumber")?.value),
-  name: clean(document.getElementById("tcaName")?.value),
-  date_of_birth: clean(document.getElementById("tcaDOB")?.value), // Added for DOB
-  gender :clean(document.getElementById("tcaSex")?.value),
-  school: clean(document.getElementById("tcaSchool")?.value),
-  address: clean(document.getElementById("tcaAddress")?.value),
-  email: clean(document.getElementById("tcaEmail")?.value),
-  phone_number: clean(document.getElementById("tcaMobile")?.value),
-  alternate_number: clean(document.getElementById("tcaMobile2")?.value),
-  community: clean(document.getElementById("tcaCommunity")?.value),
-  college: clean(selectedCollege),
-  board: clean(document.getElementById("tcaBoard")?.value),
-  year: clean(document.getElementById("tcayear")?.value),
-  applicationstatus: clean(document.getElementById("tcaapplicationStatus")?.value),
-  degreeType : clean(document.getElementById("tcaDegreeType")?.value),
-  course: clean(document.getElementById("tcaCourse")?.value),
-  degree: clean(degree),
-  subject1: clean(document.getElementById("sub1")?.value, "float"),
-  subject2: clean(document.getElementById("sub2")?.value, "float"),
-  subject3: clean(document.getElementById("sub3")?.value, "float"),
-  subject4: clean(document.getElementById("sub4")?.value, "float"),
-  twelfth_mark: clean(document.getElementById("tcaTotalMarks")?.value, "float"),
-  date_of_application: clean(document.getElementById("tcaAppDate")?.value),
-  aadhar_number: clean(document.getElementById("tcaAadhar")?.value),
-  cutoff: clean(document.getElementById("tcacutoff")?.value),
-  recommender: {
-    name: clean(document.getElementById("tcarecName")?.value),
-    designation: clean(document.getElementById("tcarecDes")?.value),
-    affiliation: clean(document.getElementById("tcaaffiliation")?.value),
-    office_address: clean(document.getElementById("tcarecAddress")?.value),
-    office_phone_number: clean(document.getElementById("tcaofficePhone")?.value),
-    personal_phone_number: clean(document.getElementById("tcapersonalPhone")?.value),
-    email: clean(document.getElementById("tcarecEmail")?.value),
-    offcode: clean(document.getElementById("tcaoffcode")?.value),
-    percode: clean(document.getElementById("tcapercode")?.value),
-  }
-};
+    application_number: clean(document.getElementById("tcaAppNumber")?.value),
+    name: clean(document.getElementById("tcaName")?.value),
+    date_of_birth: clean(document.getElementById("tcaDOB")?.value), // Added for DOB
+    gender: clean(document.getElementById("tcaSex")?.value),
+    school: clean(document.getElementById("tcaSchool")?.value),
+    address: clean(document.getElementById("tcaAddress")?.value),
+    email: clean(document.getElementById("tcaEmail")?.value),
+    phone_number: clean(document.getElementById("tcaMobile")?.value),
+    alternate_number: clean(document.getElementById("tcaMobile2")?.value),
+    community: clean(document.getElementById("tcaCommunity")?.value),
+    college: clean(selectedCollege),
+    board: clean(document.getElementById("tcaBoard")?.value),
+    year: clean(document.getElementById("tcayear")?.value),
+    applicationstatus: clean(document.getElementById("tcaapplicationStatus")?.value),
+    degreeType: clean(document.getElementById("tcaDegreeType")?.value),
+    course: clean(document.getElementById("tcaCourse")?.value),
+    degree: clean(degree),
+    program_type: programType,
+    ug_consolidated_mark: programType === 'pg' ? clean(document.getElementById("tcaUgConsolidatedMark")?.value, "float") : null,
+    ug_course_name: programType === 'pg' ? clean(document.getElementById("tcaUgCourseName")?.value) : null,
+    ug_institution: programType === 'pg' ? clean(document.getElementById("tcaUgInstitution")?.value) : null,
+    tancet_gate_score: programType === 'pg' ? clean(document.getElementById("tcaTancetGateScore")?.value) : null,
+    subject1: clean(document.getElementById("sub1")?.value, "float"),
+    subject2: clean(document.getElementById("sub2")?.value, "float"),
+    subject3: clean(document.getElementById("sub3")?.value, "float"),
+    subject4: clean(document.getElementById("sub4")?.value, "float"),
+    twelfth_mark: clean(document.getElementById("tcaTotalMarks")?.value, "float"),
+    date_of_application: clean(document.getElementById("tcaAppDate")?.value),
+    aadhar_number: clean(document.getElementById("tcaAadhar")?.value),
+    cutoff: clean(document.getElementById("tcacutoff")?.value),
+    recommender: {
+      name: clean(document.getElementById("tcarecName")?.value),
+      designation: clean(document.getElementById("tcarecDes")?.value),
+      affiliation: clean(document.getElementById("tcaaffiliation")?.value),
+      office_address: clean(document.getElementById("tcarecAddress")?.value),
+      office_phone_number: clean(document.getElementById("tcaofficePhone")?.value),
+      personal_phone_number: clean(document.getElementById("tcapersonalPhone")?.value),
+      email: clean(document.getElementById("tcarecEmail")?.value),
+      offcode: clean(document.getElementById("tcaoffcode")?.value),
+      percode: clean(document.getElementById("tcapercode")?.value),
+    }
+  };
 
 
-  fetch(API_URL_TCA, {
+  authFetch(API_URL_TCA, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -587,125 +712,125 @@ function submitFormData() {
 
 //TCA form
 
-  const aidedCourses = {
-    "B.A.": ["Tamil", "English", "Economics (Tamil Medium)"],
-    "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology", "Computer Science"],
-    "B.Com.": [],
-    "B.B.A.": []
-  };
+const aidedCourses = {
+  "B.A.": ["Tamil", "English", "Economics (Tamil Medium)"],
+  "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Botany", "Zoology", "Computer Science"],
+  "B.Com.": [],
+  "B.B.A.": []
+};
 
-  const sfCourses = {
-    "B.A.": ["Tamil", "English", "Economics (English Medium)"],
-    "B.Com. Professional Accounting": [],
-    "B.Com. Computer Applications": [],
-    "B.Com. Honours": [],
-    "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
-    "B.B.A.": [],
-    "B.C.A.": [],
-    "B.Com. (Fintech)": [],
-    "B.Com.": [],
-    "B.Sc. Computer Science in AI": []
-  };
+const sfCourses = {
+  "B.A.": ["Tamil", "English", "Economics (English Medium)"],
+  "B.Com. Professional Accounting": [],
+  "B.Com. Computer Applications": [],
+  "B.Com. Honours": [],
+  "B.Sc.": ["Mathematics", "Physics", "Chemistry", "Biotechnology", "Microbiology", "Computer Science", "Information Technology", "Psychology", "Data Science"],
+  "B.B.A.": [],
+  "B.C.A.": [],
+  "B.Com. (Fintech)": [],
+  "B.Com.": [],
+  "B.Sc. Computer Science in AI": []
+};
 
-  const degreeTypeSelect = document.getElementById('tcaDegreeType');
-  const degreeSelect = document.getElementById('tcaDegree');
-  const courseSelect = document.getElementById('tcaCourse');
+const degreeTypeSelect = document.getElementById('tcaDegreeType');
+const degreeSelect = document.getElementById('tcaDegree');
+const courseSelect = document.getElementById('tcaCourse');
 
-  const degreeStep = document.getElementById('degreeStep');
-  const courseStep = document.getElementById('courseStep');
-  const marksStep = document.getElementById('marksStep');
+const degreeStep = document.getElementById('degreeStep');
+const courseStep = document.getElementById('courseStep');
+const marksStep = document.getElementById('marksStep');
 
-  degreeTypeSelect.addEventListener('change', () => {
-    const selectedType = degreeTypeSelect.value;
-    degreeSelect.innerHTML = `<option value="">-- Select --</option>`;
-    courseSelect.innerHTML = `<option value="">-- Select --</option>`;
-    courseStep.style.display = 'none';
-    marksStep.style.display = 'none';
+degreeTypeSelect.addEventListener('change', () => {
+  const selectedType = degreeTypeSelect.value;
+  degreeSelect.innerHTML = `<option value="">-- Select --</option>`;
+  courseSelect.innerHTML = `<option value="">-- Select --</option>`;
+  courseStep.style.display = 'none';
+  marksStep.style.display = 'none';
 
-    let courseData = selectedType === 'Aided' ? aidedCourses : selectedType === 'Self Finance' ? sfCourses : null;
+  let courseData = selectedType === 'Aided' ? aidedCourses : selectedType === 'Self Finance' ? sfCourses : null;
 
-    if (courseData) {
-      Object.keys(courseData).forEach(degree => {
+  if (courseData) {
+    Object.keys(courseData).forEach(degree => {
+      const option = document.createElement('option');
+      option.value = degree;
+      option.textContent = degree;
+      degreeSelect.appendChild(option);
+    });
+    degreeStep.style.display = 'block';
+  } else {
+    degreeStep.style.display = 'none';
+  }
+});
+
+degreeSelect.addEventListener('change', () => {
+  const selectedType = degreeTypeSelect.value;
+  const selectedDegree = degreeSelect.value;
+  const courseData = selectedType === 'Aided' ? aidedCourses : sfCourses;
+
+  courseSelect.innerHTML = `<option value="">-- Select --</option>`;
+  marksStep.style.display = 'none';
+
+  if (selectedDegree && courseData[selectedDegree]) {
+    const courses = courseData[selectedDegree];
+    if (courses.length > 0) {
+      courses.forEach(course => {
         const option = document.createElement('option');
-        option.value = degree;
-        option.textContent = degree;
-        degreeSelect.appendChild(option);
+        option.value = course;
+        option.textContent = course;
+        courseSelect.appendChild(option);
       });
-      degreeStep.style.display = 'block';
+      courseStep.style.display = 'block';
     } else {
-      degreeStep.style.display = 'none';
-    }
-  });
-
-  degreeSelect.addEventListener('change', () => {
-    const selectedType = degreeTypeSelect.value;
-    const selectedDegree = degreeSelect.value;
-    const courseData = selectedType === 'Aided' ? aidedCourses : sfCourses;
-
-    courseSelect.innerHTML = `<option value="">-- Select --</option>`;
-    marksStep.style.display = 'none';
-
-    if (selectedDegree && courseData[selectedDegree]) {
-      const courses = courseData[selectedDegree];
-      if (courses.length > 0) {
-        courses.forEach(course => {
-          const option = document.createElement('option');
-          option.value = course;
-          option.textContent = course;
-          courseSelect.appendChild(option);
-        });
-        courseStep.style.display = 'block';
-      } else {
-        // No courses → Skip course step
-        courseStep.style.display = 'none';
-        marksStep.style.display = 'block';
-      }
-    } else {
+      // No courses → Skip course step
       courseStep.style.display = 'none';
-    }
-  });
-
-  courseSelect.addEventListener('change', () => {
-    if (courseSelect.value) {
       marksStep.style.display = 'block';
-    } else {
-      marksStep.style.display = 'none';
     }
-  });
+  } else {
+    courseStep.style.display = 'none';
+  }
+});
+
+courseSelect.addEventListener('change', () => {
+  if (courseSelect.value) {
+    marksStep.style.display = 'block';
+  } else {
+    marksStep.style.display = 'none';
+  }
+});
 function validatePhone(inputId, errorId) {
-      const phone = document.getElementById(inputId).value;
-      const isValid = /^\d{10}$/.test(phone);
-      document.getElementById(errorId).style.display = isValid ? 'none' : 'block';
-    }
-  
-    document.getElementById('tcaofficePhone').addEventListener('input', () => {
-      validatePhone('tcaofficePhone', 'tcaofficePhone-error');
-    });
-  
-    document.getElementById('tcapersonalPhone').addEventListener('input', () => {
-      validatePhone('tcapersonalPhone', 'tcapersonalPhone-error');
-    });
+  const phone = document.getElementById(inputId).value;
+  const isValid = /^\d{10}$/.test(phone);
+  document.getElementById(errorId).style.display = isValid ? 'none' : 'block';
+}
 
-    document.getElementById('tcaMobile').addEventListener('input', function () {
-    const phone = this.value;
-    const isValid = /^[0-9]{10}$/.test(phone);
-    document.getElementById('tcaMobile-error').style.display = isValid ? 'none' : 'block';
-  });
- document.getElementById('tcaMobile2').addEventListener('input', function () {
-    const phone = this.value;
-    const isValid = /^[0-9]{10}$/.test(phone);
-    document.getElementById('tcaMobile2-error').style.display = isValid ? 'none' : 'block';
-  });
-  document.getElementById('tcaTotalMarks').addEventListener('input', function () {
-    const value = parseInt(this.value);
-    const error = document.getElementById('twelthMark-error');
+document.getElementById('tcaofficePhone').addEventListener('input', () => {
+  validatePhone('tcaofficePhone', 'tcaofficePhone-error');
+});
 
-    if (isNaN(value) || value < 0 || value > 600) {
-      error.style.display = 'block';
-    } else {
-      error.style.display = 'none';
-    }
-  });
+document.getElementById('tcapersonalPhone').addEventListener('input', () => {
+  validatePhone('tcapersonalPhone', 'tcapersonalPhone-error');
+});
+
+document.getElementById('tcaMobile').addEventListener('input', function () {
+  const phone = this.value;
+  const isValid = /^[0-9]{10}$/.test(phone);
+  document.getElementById('tcaMobile-error').style.display = isValid ? 'none' : 'block';
+});
+document.getElementById('tcaMobile2').addEventListener('input', function () {
+  const phone = this.value;
+  const isValid = /^[0-9]{10}$/.test(phone);
+  document.getElementById('tcaMobile2-error').style.display = isValid ? 'none' : 'block';
+});
+document.getElementById('tcaTotalMarks').addEventListener('input', function () {
+  const value = parseInt(this.value);
+  const error = document.getElementById('twelthMark-error');
+
+  if (isNaN(value) || value < 0 || value > 600) {
+    error.style.display = 'block';
+  } else {
+    error.style.display = 'none';
+  }
+});
 
 // document.getElementById('tcaAadhar').addEventListener('input', function () {
 //   let input = this.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');

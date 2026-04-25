@@ -52,12 +52,12 @@ const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   currentStatus="UNALLOCATED"
-  fetch(`${API_URL}?status=${currentStatus}`)
+  authFetch(`${API_URL}?status=${currentStatus}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error loading students:", error));
 }
-fetch(SEATS_URL)
+authFetch(SEATS_URL)
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -104,7 +104,7 @@ fetch(SEATS_URL)
   }
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
-  panel.style.display = panel.style.display === "block" ? "none" : "block";
+  panel.style.display = panel.style.display === "flex";
 }
 
 // Optional: hide on outside click
@@ -133,7 +133,7 @@ function handleSearch(status) {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
+  authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
@@ -197,7 +197,7 @@ const filteredStudents = allStudents.filter(student => {
 
 
 function fetchAndRenderStudents(status) {
-  fetch(`${API_URL}?status=${status}`)
+  authFetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
     .then(data => {
       allStudents = data.students || [];
@@ -342,7 +342,7 @@ let isFirstGroup = true;
         <p><strong>Course:</strong> ${key}</p>
         <p><strong>Total Mark:</strong> ${student.twelfth_mark}</p>
         <p><strong>Cut-Off:</strong> ${student.cutoff || "N/A"}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        <button class="view-more view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
       `;
 
       const recommender = student.recommenders?.[0] || {
@@ -484,7 +484,7 @@ function confirmSelection() {
   confirmButton.innerText = "Loading...";
 
   function sendApprovalRequest(isConfirm = false) {
-    fetch(UPDATE_URL, {
+    authFetch(UPDATE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -531,12 +531,13 @@ function confirmSelection() {
 
 
 
+
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -555,7 +556,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -594,7 +595,7 @@ function onHoldStudent(id) {
   }
   const student = allStudents.find(s => s.id === id);
   const studentName = student?.name || `ID ${id}`;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -627,7 +628,7 @@ function withdrawStudent(id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -656,7 +657,7 @@ function withdrawStudent(id) {
 function deleteStudent(id) {
   const confirmed = confirm("Are you sure you want to delete this student's application?");
   if (!confirmed) return;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -767,7 +768,7 @@ window.onload = () => {
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
@@ -789,7 +790,7 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
