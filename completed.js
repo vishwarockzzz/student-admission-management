@@ -1,3 +1,6 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
@@ -43,7 +46,22 @@ function goHome() {
 
 }
     window.onload = () => {
-    loadStatus('APPROVED'); 
+    // Pre-fetch seat data
+    authFetch(SEATS_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        data.forEach(entry => {
+          const remaining_seats = entry.remaining_seats ?? 0;
+          result.push({ student_id: entry.student_id, student_name: entry.student_name,
+            course: entry.course, course_type: entry.course_type,
+            status: entry.status, remaining_seats });
+          seats[entry.course] = remaining_seats;
+        });
+        console.log("Seats pre-loaded:", seats);
+      })
+      .catch(err => console.error("Failed to pre-load seat data:", err));
+
+    loadStatus('APPROVED');
     };
 
 let outcomeCache = [];
@@ -93,42 +111,9 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
 let allStudentsData = []; // global variable
   // global variable
 

@@ -3,9 +3,11 @@
  *
  * Usage: Include this script BEFORE any other JS that makes API calls.
  * It exposes:
- *   - authFetch(url, options) — drop-in replacement for fetch() that
+ *   - authFetch(url, options)  — drop-in replacement for fetch() that
  *     automatically attaches the access token and handles 401 by
  *     refreshing the token and retrying once.
+ *   - requireAuth()            — call once on page load to redirect to
+ *     login if no tokens are present at all.
  */
 
 const AUTH_BASE_URL = window.env.BASE_URL;
@@ -32,6 +34,19 @@ function clearTokens() {
 }
 
 /**
+ * requireAuth — call at the top of any protected page.
+ * Immediately redirects to login if NEITHER token is present.
+ * (A missing access-token alone is fine — authFetch will try to
+ *  refresh it.  But if the refresh token is also gone there is
+ *  nothing we can do.)
+ */
+function requireAuth() {
+    if (!getAccessToken() && !getRefreshToken()) {
+        window.location.replace('index.html');
+    }
+}
+
+/**
  * Attempt to refresh the access token using the stored refresh token.
  * Returns the new access token, or null if refresh failed.
  */
@@ -54,7 +69,7 @@ async function refreshAccessToken() {
             // Refresh token is expired or revoked — force re-login
             clearTokens();
             alert('Your session has expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return null;
         }
     } catch (err) {
@@ -64,8 +79,14 @@ async function refreshAccessToken() {
 }
 
 /**
- * authFetch — drop-in replacement for fetch() with automatic token injection
- * and transparent 401 → refresh → retry logic.
+ * authFetch — drop-in replacement for fetch() with automatic token
+ * injection and transparent 401 → refresh → retry logic.
+ *
+ * Handles three 401 scenarios:
+ *  1. "Access token has expired!"  → try refresh then retry
+ *  2. "Access token is missing!"   → try refresh (token may have been
+ *     cleared while the page was open); if no refresh token → login
+ *  3. Any other 401                → session truly invalid → login
  *
  * @param {string} url
  * @param {RequestInit} options
@@ -74,7 +95,6 @@ async function refreshAccessToken() {
 async function authFetch(url, options = {}) {
     const accessToken = getAccessToken();
 
-    // Merge Authorization header into existing headers
     options.headers = {
         ...options.headers,
         ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
@@ -82,21 +102,28 @@ async function authFetch(url, options = {}) {
 
     let response = await fetch(url, options);
 
-    // If 401 — try to refresh once and retry
     if (response.status === 401) {
         const data = await response.clone().json().catch(() => ({}));
-        // Only refresh if the error is about expiry (not invalid token)
-        if (data.expired || data.message === 'Access token has expired!') {
+        const msg = data.message || '';
+
+        // Case 1 & 2: token expired OR missing — attempt a silent refresh
+        if (
+            data.expired ||
+            msg === 'Access token has expired!' ||
+            msg === 'Access token is missing!'
+        ) {
             const newToken = await refreshAccessToken();
             if (newToken) {
+                // Retry original request with the fresh token
                 options.headers['Authorization'] = `Bearer ${newToken}`;
                 response = await fetch(url, options);
             }
+            // If refreshAccessToken() returned null it already redirected
         } else {
-            // Token is invalid (not just expired) — redirect to login
+            // Case 3: truly invalid token — clear and go to login
             clearTokens();
             alert('Your session is invalid. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
         }
     }
 
