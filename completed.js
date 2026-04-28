@@ -214,7 +214,7 @@ function handleSearch() {
 
 
 function renderCards(students, status, showStatus = false) {
-  const container = document.getElementById("studentList");
+  const container = document.getElementById("studentCards");
   container.innerHTML = "";
 
   const grouped = students.reduce((acc, student) => {
