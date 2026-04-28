@@ -258,7 +258,7 @@ function renderStudents(students) {
 
   const degreeConfig = [
     { key: "btech", displayName: "BE / B.Tech", isPG: false },
-    { key: "msc", displayName: "M.Sc. Data Science", isPG: false },
+    { key: "msc", displayName: "M.Sc. Data Science", isPG: true },
     { key: "bdes", displayName: "B.Des", isPG: false },
     { key: "barch", displayName: "B.Arch", isPG: false },
     { key: "me_mtech", displayName: "ME / M.Tech", isPG: true },

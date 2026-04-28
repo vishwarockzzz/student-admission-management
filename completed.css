@@ -374,19 +374,190 @@ header {
   color: white;
 }
 
+/* ===== Filter Section ===== */
+.filter-section {
+  max-width: 1400px;
+  margin: 15px auto 10px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--maroon);
+  font-size: 14px;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--maroon);
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.filter-group select:hover {
+  border-color: var(--maroon-hover);
+  box-shadow: 0 2px 6px rgba(128, 0, 0, 0.1);
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--maroon);
+  box-shadow: 0 2px 8px rgba(128, 0, 0, 0.2);
+}
+
 #statusTitle {
   text-align: center;
   font-weight: bold;
   font-size: 20px;
-  margin: 15px 0;
+  margin: 10px 0;
   color: var(--maroon);
 }
 
 /* ===== Content Area ===== */
 .content, #tableViewContainer {
   max-width: 1200px;
+  margin: 10px auto;
+  padding: 0 40px 4px;
+}
+
+/* ===== Degree Sections Container ===== */
+.degree-sections-container {
+  width: 100%;
+  max-width: 1000px;
   margin: 20px auto;
-  padding: 0 40px 40px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.degree-group {
+  margin-bottom: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.degree-group-title {
+  color: var(--maroon);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 10px 0 8px;
+  letter-spacing: 1px;
+  width: 100%;
+}
+
+.degree-dropdown {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.degree-dropdown:hover {
+  border-color: var(--maroon);
+  box-shadow: 0 4px 12px rgba(128, 0, 0, 0.1);
+}
+
+.degree-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 2px solid #eee;
+  transition: background 0.2s ease;
+}
+
+.degree-dropdown-header:hover {
+  background: linear-gradient(135deg, #f0f1f3 0%, #f8f9fa 100%);
+}
+
+.degree-dropdown.active .degree-dropdown-header {
+  background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-hover) 100%);
+  color: white;
+  border-bottom: 2px solid var(--maroon);
+}
+
+.degree-dropdown.active .degree-dropdown-header .toggle-icon {
+  color: white;
+  transform: rotate(180deg);
+}
+
+.degree-header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.degree-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+.degree-dropdown.active .degree-name {
+  color: white;
+}
+
+.degree-count {
+  background: #f0f0f0;
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.degree-dropdown.active .degree-count {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.toggle-icon {
+  font-size: 20px;
+  color: var(--maroon);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.degree-content {
+  display: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.degree-dropdown.active .degree-content {
+  display: block;
+  max-height: 10000px;
+  opacity: 1;
 }
 
 /* ===== Student Cards ===== */
@@ -395,6 +566,21 @@ header {
   flex-direction: column;
   gap: 20px;
   width: 100%;
+}
+
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.student-grid .student-row:nth-child(odd):last-child {
+  grid-column: 1 / -1;
+  max-width: calc(50% - 10px);
+  margin: 0 auto;
 }
 
 .card {
@@ -409,6 +595,34 @@ header {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.student-row {
+  background: white;
+  border-radius: var(--radius);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  border-left: 5px solid var(--maroon);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.student-row:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-info p {
+  margin: 6px 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .card-row {
@@ -435,6 +649,11 @@ header {
   font-weight: 600;
 }
 
+.student-info strong {
+  color: var(--maroon);
+  font-weight: 600;
+}
+
 .card-bottom {
   display: flex;
   justify-content: space-between;
@@ -447,20 +666,21 @@ header {
 
 .action-buttons {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  flex: 1;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .action-buttons button {
-  padding: 8px 16px;
+  flex: 1;
+  min-width: 85px;
+  padding: 8px;
   border-radius: 6px;
   font-weight: 600;
   font-size: 12px;
   border: 1.5px solid;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: 0.2s;
 }
 
 .accept { color: #27ae60; border-color: #27ae60; background: #f0fff4; }
@@ -477,6 +697,24 @@ header {
 
 .change_allotment { color: #3498db; border-color: #3498db; background: #ecf0f1; }
 .change_allotment:hover { background: #3498db; color: white; }
+
+.view-more-btn {
+  background: var(--maroon);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.3s;
+  width: 100%;
+}
+
+.view-more-btn:hover {
+  background: var(--maroon-hover);
+}
 
 .view-more {
   background: var(--maroon);
@@ -724,6 +962,7 @@ header {
   background: #6c757d;
   color: white;
   border: none;
+  margin: 50px;
   padding: 10px 25px;
   border-radius: 8px;
   font-weight: bold;
@@ -834,6 +1073,7 @@ header {
 
 .bordered-popup {
   border: 2px solid #ddd;
+  border-top: 5px solid var(--maroon);
 }
 
 .popup-title {

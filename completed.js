@@ -15,6 +15,9 @@ function goHome() {
   }
   function clearSearch() { 
   document.getElementById("searchInput").value = "";
+  document.getElementById("ugFilter").value = "";
+  document.getElementById("pgFilter").value = "";
+
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
@@ -28,6 +31,9 @@ function goHome() {
           return (data.students || []).map(stu => ({ ...stu, application_status: s }));
         });
 
+        allStudentsData = combined;
+        filteredStudentsData = combined;
+        populateDegreeFilters();
         renderCards(combined, "ALL", true); // showStatus = true
       })
       .catch(error => console.error("Error restoring all statuses:", error));
@@ -36,6 +42,9 @@ function goHome() {
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
+        allStudentsData = students;
+        filteredStudentsData = students;
+        populateDegreeFilters();
         renderCards(students, currentStatus); // showStatus = false
       })
       .catch(error => console.error("Error restoring current status:", error));
@@ -130,7 +139,62 @@ authFetch(SEATS_URL)
     console.error("Failed to fetch data:", error);
   });
 let allStudentsData = []; // global variable
-  // global variable
+let filteredStudentsData = []; // for filtering by degree
+
+function populateDegreeFilters() {
+  const degrees = {
+    ug: new Set(),
+    pg: new Set()
+  };
+
+  // Categorize degrees
+  allStudentsData.forEach(student => {
+    const degree = (student.degree || "").toLowerCase();
+    if (['b.e', 'btech', 'engineering', 'bdes', 'barch'].includes(degree)) {
+      degrees.ug.add(student.degree);
+    } else if (['msc'].includes(degree)) {
+      degrees.pg.add(student.degree);
+    }
+  });
+
+  // Populate UG filter
+  const ugFilter = document.getElementById("ugFilter");
+  ugFilter.innerHTML = '<option value="">All UG</option>';
+  Array.from(degrees.ug).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    ugFilter.appendChild(option);
+  });
+
+  // Populate PG filter
+  const pgFilter = document.getElementById("pgFilter");
+  pgFilter.innerHTML = '<option value="">All PG</option>';
+  Array.from(degrees.pg).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    pgFilter.appendChild(option);
+  });
+}
+
+function filterByDegree() {
+  const ugFilter = document.getElementById("ugFilter").value;
+  const pgFilter = document.getElementById("pgFilter").value;
+
+  let filtered = allStudentsData;
+
+  if (ugFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
+  }
+
+  if (pgFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === pgFilter.toLowerCase());
+  }
+
+  filteredStudentsData = filtered;
+  renderCards(filtered, currentStatus, currentStatus === "ALL");
+}
 
 function loadStatus(status, buttonElement) {
   currentStatus = status;
@@ -157,6 +221,10 @@ function loadStatus(status, buttonElement) {
     buttonElement.classList.add('active');
   }
 
+  // Reset filters
+  document.getElementById("ugFilter").value = "";
+  document.getElementById("pgFilter").value = "";
+
   if (status === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
@@ -171,6 +239,8 @@ function loadStatus(status, buttonElement) {
         });
 
         allStudentsData = combined; // ✅ store for search
+        filteredStudentsData = combined;
+        populateDegreeFilters();
         renderCards(combined, "ALL", true); // ✅ showStatus = true
       })
       .catch(err => console.error("Error fetching all statuses:", err));
@@ -180,6 +250,8 @@ function loadStatus(status, buttonElement) {
       .then(data => {
         const students = data.students || [];
         allStudentsData = students; // ✅ store for search
+        filteredStudentsData = students;
+        populateDegreeFilters();
         renderCards(students, status, false); // ✅ showStatus = false
       })
       .catch(err => console.error("Error fetching students:", err));
@@ -212,6 +284,9 @@ function handleSearch() {
           return (data.students || []).map(stu => ({ ...stu, application_status: s }));
         });
 
+        allStudentsData = combined;
+        filteredStudentsData = combined;
+        populateDegreeFilters();
         renderCards(combined, "ALL", true); // showStatus = true
       })
       .catch(error => console.error("Error during multi-status search:", error));
@@ -221,6 +296,9 @@ function handleSearch() {
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
+        allStudentsData = students;
+        filteredStudentsData = students;
+        populateDegreeFilters();
         renderCards(students, currentStatus); // showStatus = false for single
       })
       .catch(error => console.error("Error during search:", error));
@@ -228,56 +306,99 @@ function handleSearch() {
 }
 
 
-function renderCards(students, status, showStatus = false) {
-  const container = document.getElementById("studentList");
+function renderCards(students, statusParam, showStatus = false) {
+  const container = document.getElementById("studentCards");
   container.innerHTML = "";
 
-  const grouped = students.reduce((acc, student) => {
-    const degreeKey = student.degree.trim().toLowerCase();
-    if (!acc[degreeKey]) acc[degreeKey] = [];
-    acc[degreeKey].push(student);
-    return acc;
-  }, {});
+  // Degree configuration
+  const degreeConfig = [
+    { key: "b.e", displayName: "B.E / B.Tech", isPG: false },
+    { key: "btech", displayName: "B.E / B.Tech", isPG: false },
+    { key: "engineering", displayName: "B.E / B.Tech", isPG: false },
+    { key: "msc", displayName: "M.Sc Data Science", isPG: true },
+    { key: "bdes", displayName: "B.Des", isPG: false },
+    { key: "barch", displayName: "B.Arch", isPG: false }
+  ];
 
-  const degreeTitles = {
-    "b.e": "B.E / B.Tech :",
-    "btech": "B.E / B.Tech :",
-    "engineering": "B.E / B.Tech :",
-    "msc": "M.Sc Data Science :",
-    "barch": "B.Arch :",
-    "bdes": "B.Des :"
-  };
+  // Group students by degree
+  const grouped = {};
+  students.forEach(student => {
+    const degreeKey = (student.degree || "").toLowerCase();
+    if (!grouped[degreeKey]) grouped[degreeKey] = [];
+    grouped[degreeKey].push(student);
+  });
 
-  let isFirstGroup = true;
+  // Create main container
+  const mainContainer = document.createElement("div");
+  mainContainer.className = "degree-sections-container";
 
-  for (const [degreeKey, studentsList] of Object.entries(grouped)) {
-    if (!isFirstGroup) {
-      const divider = document.createElement("hr");
-      container.appendChild(divider);
+  let ugGroup = null;
+  let pgGroup = null;
+
+  degreeConfig.forEach(degreeItem => {
+    const { key, displayName, isPG } = degreeItem;
+    const studentsList = grouped[key] || [];
+    const count = studentsList.length;
+    
+    if (count === 0) return;
+
+    // Create degree group separator if needed
+    if (isPG && !pgGroup) {
+      pgGroup = document.createElement("div");
+      pgGroup.className = "degree-group";
+
+      const pgLabel = document.createElement("div");
+      pgLabel.className = "degree-group-title";
+      pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
+      pgGroup.appendChild(pgLabel);
+      mainContainer.appendChild(pgGroup);
+    } else if (!isPG && !ugGroup) {
+      ugGroup = document.createElement("div");
+      ugGroup.className = "degree-group";
+
+      const ugLabel = document.createElement("div");
+      ugLabel.className = "degree-group-title";
+      ugLabel.textContent = "UNDER GRADUATE (UG) DEGREES";
+      ugGroup.appendChild(ugLabel);
+      mainContainer.appendChild(ugGroup);
     }
 
-     const titleContainer = document.createElement("div");
-    titleContainer.className = "degree-title-container";
+    const targetGroup = isPG ? pgGroup : ugGroup;
 
-    const title = document.createElement("h2");
-    title.textContent = degreeTitles[degreeKey] || degreeKey.toUpperCase() + " :";
-    title.className = "degree-title";
+    // Create dropdown
+    const dropdown = document.createElement("div");
+    dropdown.className = "degree-dropdown";
+    dropdown.id = `degree-${key}`;
 
-    titleContainer.appendChild(title);
-    container.appendChild(titleContainer);
+    // Create header
+    const header = document.createElement("div");
+    header.className = "degree-dropdown-header";
+    header.onclick = () => toggleDegreeDropdown(key);
 
-    // Card wrapper with left aligned cards
-    const cardWrapper = document.createElement("div");
-    cardWrapper.className = "card-wrapper";
+    header.innerHTML = `
+      <div class="degree-header-left">
+        <span class="degree-name">${displayName}</span>
+        <span class="degree-count">${count} Student${count !== 1 ? 's' : ''}</span>
+      </div>
+      <span class="toggle-icon">▼</span>
+    `;
+
+    // Create content area
+    const content = document.createElement("div");
+    content.className = "degree-content";
+
+    // Create grid
+    const grid = document.createElement("div");
+    grid.className = "student-grid";
 
     studentsList.forEach(student => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.id = `student-${student.id}`;
+      const row = document.createElement("div");
+      row.className = "student-row";
+      row.id = `student-${student.id}`;
 
-
+      // Get cutoff based on degree
       let cutoff = "";
-      switch (student.degree.toLowerCase()) {
+      switch (key) {
         case "b.e":
         case "btech":
         case "engineering":
@@ -292,86 +413,78 @@ function renderCards(students, status, showStatus = false) {
         case "barch":
           cutoff = student.barch_cutoff;
           break;
-        default:
-          cutoff = "N/A";
       }
 
       const recommender = student.recommender || student.recommenders?.[0] || {};
-      let buttonsHTML = "";
-      if (status === "ONHOLD") {
-        buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>`;
-        buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
-      } else if (status === "APPROVED") {
-       buttonsHTML += `
-  <div class="action-buttons-row">
-    <div class="left-buttons">
-      <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-      <button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>
-    </div>
-    <div class="right-buttons">
-      <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-      <button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>
-    </div>
-  </div>
-`;
+      const currentStatus = showStatus ? student.application_status : statusParam;
 
-      }else if (status === "DECLINED") {
-        buttonsHTML += `<button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>`;
+      let buttonsHTML = "";
+      if (currentStatus === "ONHOLD") {
+        buttonsHTML = `
+          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+        `;
+      } else if (currentStatus === "APPROVED") {
+        buttonsHTML = `
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          <button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>
+          <button class="change_allotment" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Change Allot</button>
+        `;
+      } else if (currentStatus === "DECLINED") {
+        buttonsHTML = `
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+        `;
       }
 
-      const statusHTML = showStatus
-  ? `<p class="status-line"><strong>Status:</strong> ${student.application_status || status}</p>`
-  
-  : "";
+      const outcome = student.outcomes?.[0];
+      let outcomeHTML = "";
+      if (currentStatus === "APPROVED" && outcome) {
+        outcomeHTML = `
+          <div style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+            <p style="margin: 4px 0;"><strong>Allotted Dept:</strong> ${outcome.course_name}</p>
+            <p style="margin: 4px 0;"><strong>Type:</strong> ${outcome.course_type}</p>
+          </div>
+        `;
+      } else if (currentStatus === "DECLINED" && outcome) {
+        outcomeHTML = `
+          <div style="background: #fff5f5; padding: 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+            <p style="margin: 4px 0;"><strong>Reason:</strong> ${outcome.course_name}</p>
+          </div>
+        `;
+      }
 
+      row.innerHTML = `
+        <div class="student-info">
+          <p><strong>App No:</strong> ${student.application_number}</p>
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>DOA:</strong> ${student.date_of_application}</p>
+          <p><strong>Cut-Off:</strong> ${cutoff}</p>
+          <p><strong>Recommender:</strong> ${recommender.name || '-'}</p>
+          <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student).replace(/'/g, "&apos;")})'>View More</button>
+        </div>
+        <div class="action-buttons">
+          ${buttonsHTML}
+        </div>
+        ${outcomeHTML}
+      `;
 
-    card.innerHTML = `
-  <div class="card-row">
-    <div class="student-box">
-      <p><strong>${student.application_number}</strong></p>
-      <p>${student.name}</p>
-      <p><strong>DOA:</strong> ${student.date_of_application}</p>
-      <p><strong>Degree:</strong> ${student.degree}</p>
-      <p><strong>Cut-Off:</strong> ${cutoff}</p>
-       ${statusHTML}
-    </div>
-    <div class="recommender-box">
-      <p><strong>Recommender</strong></p>
-      <p>${recommender.name || '-'}</p>
-      <p>${recommender.designation || '-'}</p>
-      <p>${recommender.affiliation || '-'}</p>
-    </div>
-  </div>
-  <div class="card-bottom">
-    <div class="action-buttons">${buttonsHTML}</div>
-    <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-  </div>
-`;
-
-      const currentStatus = showStatus ? student.application_status : status;
-
-  if (currentStatus === "APPROVED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `
-      <p><strong>Alloted Department :</strong> ${firstOutcome.course_name}</p>
-      <p><strong>Type :</strong> ${firstOutcome.course_type}</p>
-    `;
-    card.appendChild(commentBox);
-  } else if (currentStatus === "DECLINED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `<p><strong>Decline Reason:</strong> ${firstOutcome.course_name}</p>`;
-    card.appendChild(commentBox);
-  }
-
-      cardWrapper.appendChild(card);
+      grid.appendChild(row);
     });
 
-    container.appendChild(cardWrapper);
-    isFirstGroup = false;
+    content.appendChild(grid);
+    dropdown.appendChild(header);
+    dropdown.appendChild(content);
+    targetGroup.appendChild(dropdown);
+  });
+
+  container.appendChild(mainContainer);
+}
+
+function toggleDegreeDropdown(degreeKey) {
+  const dropdown = document.getElementById(`degree-${degreeKey}`);
+  if (dropdown) {
+    dropdown.classList.toggle("active");
   }
 }
 document.addEventListener("DOMContentLoaded", () => {
