@@ -385,6 +385,27 @@ const degreeT = {
   document.getElementById("popupTitle").textContent =
     status === "APPROVED" ? "Allotted Students" : "Declined Students";
 
+  window.currentPopupStudents = students;
+  window.currentPopupStatus = status;
+
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueBranches = new Set();
+    students.forEach(student => {
+      const outcome = student.outcomes[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueBranches.add(courseName);
+    });
+    uniqueBranches.forEach(branch => {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
   tableHead.innerHTML = "";
@@ -430,6 +451,7 @@ const degreeT = {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -439,6 +461,22 @@ const degreeT = {
   });
  
 loadSeatTable();
+}
+
+function applyPrintFilter() {
+  const filterVal = document.getElementById("branchPrintFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (filterVal === "ALL" || row.dataset.course === filterVal) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
 }
 
 function closeStudentPopup() {
