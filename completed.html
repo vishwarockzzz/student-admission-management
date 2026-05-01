@@ -22,6 +22,7 @@
       </div>
 
       <div class="header-right">
+        <button class="nav-btn" onclick="goToApplicationProcessing()" title="Back to Processing">Back to Processing</button>
         <button class="icon-btn" onclick="goBack()" title="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -55,6 +56,7 @@
       <button class="status-btn" onclick="loadStatus('WITHDRAWN', this)">Withdrawn <br>Application</button>
       <div class="export-buttons">
         <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted </button>
+        <button id="onholdBtn" onclick="generateTableView('ONHOLD')" style="display: none;">Print OnHold </button>
         <button id="declinedBtn" onclick="generateTableView('DECLINED')">Print Declined </button>
       </div>
     </div>
@@ -62,6 +64,9 @@
       <input id="searchInput" class="input-box" placeholder="Search for details" />
       <button class="submit-input" onclick="handleSearch()">Search</button>
       <button class="clear-input" onclick="clearSearch()">Clear</button>
+      <select id="recommenderFilter" class="search-type-select" onchange="filterByRecommender()">
+        <option value="all">All Recommenders</option>
+      </select>
     </div>
   </div>
 

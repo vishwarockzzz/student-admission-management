@@ -158,7 +158,7 @@ header {
 }
 
 .status-search-row .input-box {
-  width: 300px;
+  width: 200px;
 }
 
 .search-group {
@@ -337,6 +337,21 @@ header {
 }
 
 .input-box:focus {
+  border-color: var(--maroon);
+}
+
+.search-type-select {
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  outline: none;
+  font-size: 14px;
+  transition: border 0.3s;
+  background-color: white;
+  cursor: pointer;
+}
+
+.search-type-select:focus {
   border-color: var(--maroon);
 }
 
@@ -564,17 +579,18 @@ header {
 #studentCards {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
 }
 
 .student-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 14px;
   width: 100%;
   box-sizing: border-box;
+  grid-auto-rows: minmax(160px, auto);
 }
 
 .student-grid .student-row:nth-child(odd):last-child {
@@ -600,13 +616,127 @@ header {
 .student-row {
   background: white;
   border-radius: var(--radius);
-  padding: 15px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   box-shadow: var(--shadow);
   border-left: 5px solid var(--maroon);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 140px;
+  height: 100%;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  align-items: start;
+}
+
+.card-cell {
+  width: 100%;
+}
+
+.card-cell p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.student-info {
+  display: grid;
+  gap: 3px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.action-buttons button {
+  flex: 1 1 calc(50% - 8px);
+  min-width: 90px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.status-badge.status-approved {
+  background: #e8f8f0;
+  color: #1d7a4f;
+  border: 1px solid #27ae60;
+}
+
+.status-badge.status-onhold {
+  background: #fff4e5;
+  color: #a9600f;
+  border: 1px solid #f39c12;
+}
+
+.status-badge.status-declined {
+  background: #ffeaea;
+  color: #c0392b;
+  border: 1px solid #e74c3c;
+}
+
+.status-badge.status-withdrawn {
+  background: #f0f0f0;
+  color: #5b6268;
+  border: 1px solid #7f8c8d;
+}
+
+/* Status-based styling for visual differentiation */
+.student-row.status-approved {
+  border-left-color: #27ae60;
+  background: linear-gradient(to right, #f0fff4 2px, white 2px);
+}
+
+.student-row.status-onhold {
+  border-left-color: #f39c12;
+  background: linear-gradient(to right, #fffdf0 2px, white 2px);
+}
+
+.student-row.status-declined {
+  border-left-color: #e74c3c;
+  background: linear-gradient(to right, #fff5f5 2px, white 2px);
+}
+
+.student-row.status-withdrawn {
+  border-left-color: #7f8c8d;
+  background: linear-gradient(to right, #f4f4f4 2px, white 2px);
+}
+
+.status-title-approved {
+  color: #27ae60;
+}
+
+.status-title-onhold {
+  color: #f39c12;
+}
+
+.status-title-declined {
+  color: #e74c3c;
+}
+
+.status-title-withdrawn {
+  color: #7f8c8d;
+}
+
+.status-title-all {
+  color: #333;
 }
 
 .student-row:hover {
@@ -617,31 +747,30 @@ header {
 .student-info {
   flex: 1;
   min-width: 0;
+  gap: 1px;
 }
 
 .student-info p {
-  margin: 6px 0;
+  margin: 2px 0;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 .card-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 30px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 8px;
 }
 
 .student-box, .recommender-box {
   flex: 1;
-  min-width: 250px;
+  min-width: 0;
 }
 
 .student-box p, .recommender-box p {
-  margin: 8px 0;
-  font-size: 14px;
-  line-height: 1.5;
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .student-box strong, .recommender-box strong {
@@ -673,11 +802,11 @@ header {
 
 .action-buttons button {
   flex: 1;
-  min-width: 85px;
-  padding: 8px;
+  min-width: 80px;
+  padding: 6px 8px;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   border: 1.5px solid;
   cursor: pointer;
   transition: 0.2s;
@@ -702,14 +831,23 @@ header {
   background: var(--maroon);
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 5px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 0;
   transition: background 0.3s;
   width: 100%;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }
 
 .view-more-btn:hover {
@@ -953,9 +1091,20 @@ header {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 30px;
   border-top: 1px solid #eee;
   padding-top: 12px;
+}
+
+#viewMoreContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+#viewMoreContent .detail-section {
+  flex: 1;
 }
 
 .close-btn {

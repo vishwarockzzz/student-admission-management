@@ -100,6 +100,13 @@ function selectProgramType(type) {
 
   const isPG = selectedProgramType === 'pg';
 
+  // Set the program type in titles
+  const programTypeDisplay = type === 'UG / MSc' ? 'UG / MSc' : type === 'UG Lateral Entry' ? 'UG Lateral Entry' : type;
+  const tceProgramTypeTitle = document.getElementById('tceProgramTypeTitle');
+  const tcaProgramTypeTitle = document.getElementById('tcaProgramTypeTitle');
+  if (tceProgramTypeTitle) tceProgramTypeTitle.textContent = programTypeDisplay;
+  if (tcaProgramTypeTitle) tcaProgramTypeTitle.textContent = programTypeDisplay;
+
   if (selectedCollege === 'TCE') {
     tceForm.style.display = 'block';
     setPgFieldsVisibility('tce', isPG);
@@ -117,20 +124,18 @@ function setPgFieldsVisibility(prefix, visible) {
   section.style.display = visible ? 'block' : 'none';
 
   const fieldIds = [
-    `${prefix}UgConsolidatedMark`,
+    `${prefix}UgDegree`,
     `${prefix}UgCourseName`,
     `${prefix}UgInstitution`,
+    `${prefix}UgConsolidatedMark`,
     `${prefix}TancetGateScore`
   ];
 
   fieldIds.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (id !== `${prefix}TancetGateScore`) {
-      el.required = visible;
-    } else {
-      el.required = false;
-    }
+    // All PG fields are required
+    el.required = visible;
     if (!visible) {
       el.value = '';
     }
