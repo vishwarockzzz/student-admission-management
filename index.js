@@ -29,12 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Store auth tokens
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('is_admin', data.is_admin === 'yes' ? 'true' : 'false');
+                localStorage.setItem('is_admin', data.is_admin ? 'true' : 'false');
 
                 console.log("Login successful. is_admin:", data.is_admin);
 
                 // Figure out destination
-                const dest = data.is_admin === 'yes' ? "college_selection.html" : "administrator_form.html";
+                const dest = data.is_admin ? "college_selection.html" : "administrator_form.html";
 
                 // Use relative URL—preventDefault() guarantees this won't be interrupted by form reload
                 window.location.replace(dest);
