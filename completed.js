@@ -516,6 +516,25 @@ function generateAllStudentTableView(allStudents) {
     theadRow.appendChild(th);
   });
 
+  // Fix 3: Populate branch filter for Print All view
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueCourses = new Set();
+    allStudents.forEach(student => {
+      const outcome = student.outcomes?.[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueCourses.add(courseName);
+    });
+    uniqueCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -532,6 +551,7 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;

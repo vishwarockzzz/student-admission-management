@@ -4,10 +4,38 @@ requireAuth();
 const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
+const EXPORTS_URL = `${window.env.BASE_URL}/exports`;
 let result = [];
 let seats = {};
 
-// Aided UG Courses
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
   const aidedUG = [
     "B.A. Tamil",
     "B.A. English",

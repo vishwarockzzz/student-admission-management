@@ -10,11 +10,42 @@ const SEATS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/statusdetails` : `${B
 
 const SEATS_UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updateseats` : `${BASE_URL}/api/updateseats`;
 
+const EXPORTS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/exports` : `${BASE_URL}/api/exports`;
+
 let result = [];
 let seats = {};
 let allStudents = [];
 let currentStudentId = null;
 let currentStatus = "UNALLOCATED";
+
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
 
 
 
