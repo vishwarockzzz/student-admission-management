@@ -22,7 +22,8 @@ async function downloadExcel() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'student_export.xlsx';
+    const today = new Date().toISOString().split('T')[0];
+    a.download = `student_export_${today}.xlsx`;
     document.body.appendChild(a);
     a.click();
     a.remove();
