@@ -1,3 +1,6 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
@@ -97,7 +100,22 @@ function goHome() {
 
 }
     window.onload = () => {
-    loadStatus('APPROVED'); 
+    // Pre-fetch seat data
+    authFetch(SEATS_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        data.forEach(entry => {
+          const remaining_seats = entry.remaining_seats ?? 0;
+          result.push({ student_id: entry.student_id, student_name: entry.student_name,
+            course: entry.course, course_type: entry.course_type,
+            status: entry.status, remaining_seats });
+          seats[entry.course] = remaining_seats;
+        });
+        console.log("Seats pre-loaded:", seats);
+      })
+      .catch(err => console.error("Failed to pre-load seat data:", err));
+
+    loadStatus('APPROVED');
     };
 
 let outcomeCache = [];
@@ -147,42 +165,9 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
 let allStudentsData = []; // global variable
 let filteredStudentsData = []; // for filtering by degree
 
@@ -669,6 +654,27 @@ function generateTableView(status) {
       ? "Declined Students"
       : "Student Status";
 
+  window.currentPopupStudents = students;
+  window.currentPopupStatus = status;
+
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueBranches = new Set();
+    students.forEach(student => {
+      const outcome = student.outcomes[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueBranches.add(courseName);
+    });
+    uniqueBranches.forEach(branch => {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
   tableHead.innerHTML = "";
@@ -720,6 +726,7 @@ function generateTableView(status) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -729,6 +736,22 @@ function generateTableView(status) {
   });
  
 loadSeatTable();
+}
+
+function applyPrintFilter() {
+  const filterVal = document.getElementById("branchPrintFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (filterVal === "ALL" || row.dataset.course === filterVal) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
 }
 
 function closeStudentPopup() {
@@ -779,6 +802,25 @@ function generateAllStudentTableView(allStudents) {
     theadRow.appendChild(th);
   });
 
+  // Fix 3: Populate branch filter for Print All view
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueCourses = new Set();
+    allStudents.forEach(student => {
+      const outcome = student.outcomes?.[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueCourses.add(courseName);
+    });
+    uniqueCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -795,6 +837,7 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;

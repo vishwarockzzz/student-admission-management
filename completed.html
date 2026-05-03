@@ -92,6 +92,9 @@
     <div id="studentTableContainer" class="popup">
       <div class="popup-header">
         <h3 id="popupTitle">Student Status</h3>
+        <select id="branchPrintFilter" onchange="applyPrintFilter()" style="margin: 0 15px; padding: 5px;">
+          <option value="ALL">All Branches</option>
+        </select>
         <button onclick="printStudentTable()" class="print-btn">Print</button>
       </div>
 

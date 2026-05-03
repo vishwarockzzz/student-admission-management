@@ -1,3 +1,6 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/students`;
 const API_URL_TCA = `${window.env.BASE_URL}/tcarts/students`
 function goHome() {

@@ -1,3 +1,5 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
 
 const BASE_URL = window.env.BASE_URL.replace(/\/$/, '');
 const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/students` : `${BASE_URL}/api/students`;
@@ -8,6 +10,7 @@ const SEATS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/statusdetails` : `${B
 
 const SEATS_UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updateseats` : `${BASE_URL}/api/updateseats`;
 
+const EXPORTS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/exports` : `${BASE_URL}/api/exports`;
 const STATUS_QUERY_ALIASES = {
   ONHOLD: ["ONHOLD", "OnHold", "onhold", "ON HOLD", "On Hold", "on hold"]
 };
@@ -53,6 +56,40 @@ async function fetchStudentsByStatusAndSearch(status, searchTerm) {
 
 let result = [];
 let seats = {};
+let allStudents = [];
+let currentStudentId = null;
+let currentStatus = "UNALLOCATED";
+
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
+
+
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
@@ -65,42 +102,8 @@ function clearSearch() {
     .then(students => renderStudents(students || []))
     .catch(error => console.error("Error loading students:", error));
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
-
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
+// NOTE: seats pre-fetch is done inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
 function goHome() {
   window.location.href = 'index.html';  // Change to your actual login route
@@ -124,9 +127,6 @@ document.addEventListener("click", function (event) {
     panel.style.display = "none";
   }
 });
-
-
-let currentStudentId = null;
 
 function handleSearch(status) {
   const query = document.getElementById("searchInput").value.trim();
@@ -979,6 +979,29 @@ function closeViewMore() {
 
 
 window.onload = () => {
+  // Pre-fetch seat data for use by acceptStudent / confirmSelection
+  authFetch(SEATS_URL)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      data.forEach(entry => {
+        const remaining_seats = entry.remaining_seats ?? 0;
+        result.push({
+          student_id: entry.student_id,
+          student_name: entry.student_name,
+          course: entry.course,
+          course_type: entry.course_type,
+          status: entry.status,
+          remaining_seats: remaining_seats
+        });
+        seats[entry.course] = remaining_seats;
+      });
+      console.log("Seats pre-loaded:", seats);
+    })
+    .catch(error => console.error("Failed to pre-load seat data:", error));
+
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
 };
