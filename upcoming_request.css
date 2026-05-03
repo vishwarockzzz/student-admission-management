@@ -213,7 +213,7 @@ h1 {
   border: 2px solid #ddd;
   border-radius: 8px;
   margin-bottom: 12px;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
   width: 300%;
   max-width: 900px;
@@ -307,9 +307,10 @@ h1 {
 
 .student-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 14px;
+  grid-auto-rows: minmax(160px, auto);
 }
 
 /* Handle odd number of cards - center the last card if odd */
@@ -322,13 +323,30 @@ h1 {
 .student-row {
   background: white;
   border-radius: var(--radius);
-  padding: 15px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   box-shadow: var(--shadow);
   border-left: 5px solid var(--maroon);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: auto;
+  height: auto;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card-cell {
+  width: 100%;
+}
+
+.card-cell p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 /* Hovering effect for entire card */
@@ -340,12 +358,13 @@ h1 {
 .student-info {
   flex: 1;
   min-width: 0;
+  gap: 3px;
 }
 
 .student-info p {
-  margin: 6px 0;
+  margin: 2px 0;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 2;
 }
 
 .student-info strong {
@@ -356,17 +375,17 @@ h1 {
 .action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .action-buttons button {
   flex: 1;
-  min-width: 85px;
-  padding: 8px;
+  min-width: 70px;
+  padding: 5px 8px;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   border: 1.5px solid;
   cursor: pointer;
   transition: 0.2s;
@@ -389,12 +408,12 @@ h1 {
   background: var(--maroon);
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 5px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 0;
   transition: background 0.3s;
   width: 100%;
 }
@@ -497,7 +516,9 @@ h1 {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }
 
 .select-group {
@@ -530,6 +551,53 @@ h1 {
 .maroon-text {
   color: var(--maroon);
   margin-bottom: 15px;
+}
+
+#viewMoreContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+#viewMoreContent .detail-section {
+  flex: 1;
+}
+
+.detail-section h3 {
+  color: var(--maroon);
+  border-bottom: 2px solid var(--maroon);
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table tr {
+  border-bottom: 1px solid #eee;
+}
+
+.detail-table td {
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.detail-table td:first-child {
+  font-weight: bold;
+  color: var(--maroon);
+  width: 40%;
+}
+
+.detail-table td.highlight {
+  background: #fffdf0;
+  font-weight: bold;
+  padding: 8px 5px;
+  border-radius: 4px;
 }
 
 /* Responsive adjustments */
