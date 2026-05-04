@@ -69,6 +69,10 @@ function goHome() {
   document.getElementById("pgFilter").value = "";
   const recommenderFilter = document.getElementById("recommenderFilter");
   if (recommenderFilter) recommenderFilter.value = "all";
+  const combinedFilter = document.getElementById("combinedFilter");
+  if (combinedFilter) combinedFilter.value = "";
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) panel.style.display = "none";
 
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
@@ -251,6 +255,52 @@ function populateRecommenderFilter(students) {
   });
 }
 
+function toggleFilterSort() {
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) {
+    panel.style.display = panel.style.display === "none" || panel.style.display === "" ? "flex" : "none";
+  }
+}
+
+function populateCombinedFilter() {
+  const dropdown = document.getElementById("combinedFilter");
+  if (!dropdown) return;
+  dropdown.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "All Degrees";
+  dropdown.appendChild(allOption);
+
+  const degreeSet = new Set();
+  allStudentsData.forEach(student => {
+    const degree = student.degree || "";
+    if (degree) {
+      degreeSet.add(degree);
+    }
+  });
+
+  Array.from(degreeSet).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    dropdown.appendChild(option);
+  });
+}
+
+function filterByCombined() {
+  const degreeFilter = document.getElementById("combinedFilter")?.value;
+  
+  let filtered = allStudentsData;
+
+  if (degreeFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === degreeFilter.toLowerCase());
+  }
+
+  filteredStudentsData = filtered;
+  renderCards(filtered, currentStatus, currentStatus === "ALL");
+}
+
 function filterByRecommender() {
   const selected = document.getElementById("recommenderFilter")?.value;
   if (!selected || selected === "all") {
@@ -345,8 +395,11 @@ function loadStatus(status, buttonElement) {
         filteredStudentsData = combined;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         const recommenderFilter = document.getElementById("recommenderFilter");
         if (recommenderFilter) recommenderFilter.value = "all";
+        const combinedFilter = document.getElementById("combinedFilter");
+        if (combinedFilter) combinedFilter.value = "";
         renderCards(combined, "ALL", true); // ✅ showStatus = true
       })
       .catch(err => console.error("Error fetching all statuses:", err));
@@ -358,8 +411,11 @@ function loadStatus(status, buttonElement) {
         filteredStudentsData = normalized;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         const recommenderFilter = document.getElementById("recommenderFilter");
         if (recommenderFilter) recommenderFilter.value = "all";
+        const combinedFilter = document.getElementById("combinedFilter");
+        if (combinedFilter) combinedFilter.value = "";
         renderCards(normalized, status, false); // ✅ showStatus = false
       })
       .catch(err => console.error("Error fetching students:", err));
@@ -377,6 +433,10 @@ function handleSearch() {
     return;
   }
 
+  // Close the filter panel when searching
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) panel.style.display = "none";
+
   if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetchPromises = statuses.map(async s => {
@@ -391,6 +451,7 @@ function handleSearch() {
         filteredStudentsData = combined;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         renderCards(combined, "ALL", true);
       })
       .catch(error => console.error("Error during multi-status search:", error));
@@ -402,6 +463,7 @@ function handleSearch() {
         filteredStudentsData = normalized;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         renderCards(normalized, currentStatus);
       })
       .catch(error => console.error("Error during search:", error));
