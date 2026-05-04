@@ -126,11 +126,17 @@ let outcomeCache = [];
 let currentStatus = 'APPROVED'; // Default status on initial load
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
+    const currentDate = new Date().toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
     const printWindow = window.open('', '', 'height=600,width=800');
     printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
+    printWindow.document.write(`<p style="text-align:center; font-size: 14px; margin: 10px 0;">Downloaded on: ${currentDate}</p>`);
     printWindow.document.write(tableHtml);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
@@ -721,20 +727,24 @@ function generateTableView(status) {
 
   const branchFilter = document.getElementById("branchPrintFilter");
   if (branchFilter) {
-    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
-    const uniqueBranches = new Set();
-    students.forEach(student => {
-      const outcome = student.outcomes[0] || {};
-      const courseName = outcome.course_name || "-";
-      if (courseName !== "-") uniqueBranches.add(courseName);
-    });
-    uniqueBranches.forEach(branch => {
-      const option = document.createElement("option");
-      option.value = branch;
-      option.textContent = branch;
-      branchFilter.appendChild(option);
-    });
-    branchFilter.value = "ALL";
+    if (status === "APPROVED" || status === "ALL") {
+      branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+      const uniqueBranches = new Set();
+      students.forEach(student => {
+        const outcome = student.outcomes[0] || {};
+        const courseName = outcome.course_name || "-";
+        if (courseName !== "-") uniqueBranches.add(courseName);
+      });
+      uniqueBranches.forEach(branch => {
+        const option = document.createElement("option");
+        option.value = branch;
+        option.textContent = branch;
+        branchFilter.appendChild(option);
+      });
+      branchFilter.value = "ALL";
+    } else {
+      branchFilter.style.display = "none";
+    }
   }
 
   const tableHead = document.getElementById("studentTableHead");
@@ -971,11 +981,17 @@ function closeStudentPopup() {
 
 function printStudentTable() {
   const popupContent = document.getElementById("studentTableContainer").innerHTML;
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
     const printWindow = window.open('', '', 'height=600,width=800');
     printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard TCE</h2>');
+    printWindow.document.write(`<p style="text-align:center; font-size: 14px; margin: 10px 0;">Downloaded on: ${currentDate}</p>`);
     printWindow.document.write(popupContent);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
