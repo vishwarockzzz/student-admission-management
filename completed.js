@@ -1,6 +1,52 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+
+const STATUS_QUERY_ALIASES = {
+  ONHOLD: ["ONHOLD", "OnHold", "onhold", "ON HOLD", "On Hold", "on hold"]
+};
+
+async function fetchStudentsByStatus(status) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
+
+async function fetchStudentsByStatusAndSearch(status, searchTerm) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+  const encodedQuery = encodeURIComponent(searchTerm);
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?search=${encodedQuery}&status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Search status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
 
 function goHome() {
     window.location.href = 'index.html'; 
@@ -13,37 +59,63 @@ function goHome() {
     
 // Goes to the previous page
   }
+
+  function goToApplicationProcessing() {
+    window.location.href = 'upcoming_request.html';
+  }
   function clearSearch() { 
   document.getElementById("searchInput").value = "";
+  document.getElementById("ugFilter").value = "";
+  document.getElementById("pgFilter").value = "";
+  const recommenderFilter = document.getElementById("recommenderFilter");
+  if (recommenderFilter) recommenderFilter.value = "all";
+
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
-    const fetches = statuses.map(s =>
-      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
-    );
+    const fetchPromises = statuses.map(async s => {
+      const students = await fetchStudentsByStatus(s);
+      return students.map(stu => ({ ...stu, application_status: s }));
+    });
 
-    Promise.all(fetches)
+    Promise.all(fetchPromises)
       .then(results => {
-        const combined = results.flatMap((data, i) => {
-          const s = statuses[i];
-          return (data.students || []).map(stu => ({ ...stu, application_status: s }));
-        });
-
+        const combined = results.flatMap(students => students);
+        allStudentsData = combined;
+        filteredStudentsData = combined;
+        populateDegreeFilters();
         renderCards(combined, "ALL", true); // showStatus = true
       })
       .catch(error => console.error("Error restoring all statuses:", error));
   } else {
-    authFetch(`${API_URL}?status=${currentStatus}`)
-      .then(response => response.json())
-      .then(data => {
-        const students = data.students || [];
-        renderCards(students, currentStatus); // showStatus = false
+    fetchStudentsByStatus(currentStatus)
+      .then(students => {
+        const normalized = students.map(stu => ({ ...stu, application_status: currentStatus }));
+        allStudentsData = normalized;
+        filteredStudentsData = normalized;
+        populateDegreeFilters();
+        renderCards(normalized, currentStatus); // showStatus = false
       })
       .catch(error => console.error("Error restoring current status:", error));
   }
 
 }
     window.onload = () => {
-    loadStatus('APPROVED'); 
+    // Pre-fetch seat data
+    authFetch(SEATS_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        data.forEach(entry => {
+          const remaining_seats = entry.remaining_seats ?? 0;
+          result.push({ student_id: entry.student_id, student_name: entry.student_name,
+            course: entry.course, course_type: entry.course_type,
+            status: entry.status, remaining_seats });
+          seats[entry.course] = remaining_seats;
+        });
+        console.log("Seats pre-loaded:", seats);
+      })
+      .catch(err => console.error("Failed to pre-load seat data:", err));
+
+    loadStatus('APPROVED');
     };
 
 let outcomeCache = [];
@@ -93,44 +165,135 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
 let allStudentsData = []; // global variable
-  // global variable
+let filteredStudentsData = []; // for filtering by degree
+
+function normalizeDegreeValue(degree) {
+  return (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function populateDegreeFilters() {
+  const degrees = {
+    ug: new Set(),
+    pg: new Set()
+  };
+
+  const knownPgKeys = new Set([
+    'me', 'm.e', 'mtech', 'm.tech', 'me_mtech', 'me mtech', 'me-mtech', 'memtech', 'mca', 'm.c.a', 'march', 'm.arch', 'mba', 'm.b.a'
+  ]);
+
+  allStudentsData.forEach(student => {
+    const rawDegree = student.degree || "";
+    const degreeKey = normalizeDegreeValue(rawDegree);
+
+    if (degreeKey === 'msc' || degreeKey === 'mscdata' || degreeKey === 'mscdatascience') {
+      degrees.ug.add(rawDegree);
+    } else if (knownPgKeys.has(degreeKey)) {
+      degrees.pg.add(rawDegree);
+    } else {
+      degrees.ug.add(rawDegree);
+    }
+  });
+
+  const ugFilter = document.getElementById("ugFilter");
+  ugFilter.innerHTML = '<option value="">All UG</option>';
+  Array.from(degrees.ug).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    ugFilter.appendChild(option);
+  });
+
+  const pgFilter = document.getElementById("pgFilter");
+  pgFilter.innerHTML = '<option value="">All PG</option>';
+  Array.from(degrees.pg).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    pgFilter.appendChild(option);
+  });
+}
+
+function populateRecommenderFilter(students) {
+  const dropdown = document.getElementById("recommenderFilter");
+  if (!dropdown) return;
+  dropdown.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "All Recommenders";
+  dropdown.appendChild(allOption);
+
+  const clearOption = document.createElement("option");
+  clearOption.value = "clear";
+  clearOption.textContent = "Clear Filter";
+  dropdown.appendChild(clearOption);
+
+  const recommenderSet = new Set();
+  students.forEach(student => {
+    const rec = student.recommender || student.recommenders?.[0] || {};
+    if (rec.name) {
+      const designation = rec.designation || "-";
+      const affiliation = rec.affiliation || "-";
+      const label = `${rec.name} - ${designation} - ${affiliation}`;
+      recommenderSet.add(label);
+    }
+  });
+
+  Array.from(recommenderSet).sort().forEach(label => {
+    const option = document.createElement("option");
+    option.value = label;
+    option.textContent = label;
+    dropdown.appendChild(option);
+  });
+}
+
+function filterByRecommender() {
+  const selected = document.getElementById("recommenderFilter")?.value;
+  if (!selected || selected === "all") {
+    filteredStudentsData = allStudentsData;
+    renderCards(filteredStudentsData, currentStatus, currentStatus === "ALL");
+    return;
+  }
+
+  if (selected === "clear") {
+    document.getElementById("recommenderFilter").value = "all";
+    filteredStudentsData = allStudentsData;
+    renderCards(filteredStudentsData, currentStatus, currentStatus === "ALL");
+    return;
+  }
+
+  const filtered = allStudentsData.filter(student => {
+    const rec = student.recommender || student.recommenders?.[0] || {};
+    const designation = rec.designation || "-";
+    const affiliation = rec.affiliation || "-";
+    const label = `${rec.name} - ${designation} - ${affiliation}`;
+    return label === selected;
+  });
+  filteredStudentsData = filtered;
+  renderCards(filtered, currentStatus, currentStatus === "ALL");
+}
+
+function filterByDegree() {
+  const ugFilter = document.getElementById("ugFilter").value;
+  const pgFilter = document.getElementById("pgFilter").value;
+
+  let filtered = allStudentsData;
+
+  if (ugFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
+  }
+
+  if (pgFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === pgFilter.toLowerCase());
+  }
+
+  filteredStudentsData = filtered;
+  renderCards(filtered, currentStatus, currentStatus === "ALL");
+}
 
 function loadStatus(status, buttonElement) {
   currentStatus = status;
@@ -139,13 +302,20 @@ function loadStatus(status, buttonElement) {
 
   const titleMap = {
     "ONHOLD": "OnHold Applications",
-    "APPROVED": "Allotted Applications",
+    "APPROVED": "Allocated Applications",
     "DECLINED": "Declined Applications",
     "WITHDRAWN": "Withdrawn Applications",
     "ALL": "All Applications"
   };
 
-  document.getElementById('statusTitle').textContent = titleMap[status] || "";
+  const statusTitle = document.getElementById('statusTitle');
+  statusTitle.textContent = titleMap[status] || "";
+  statusTitle.className = '';
+  if (status === 'APPROVED') statusTitle.classList.add('status-title-approved');
+  else if (status === 'ONHOLD') statusTitle.classList.add('status-title-onhold');
+  else if (status === 'DECLINED') statusTitle.classList.add('status-title-declined');
+  else if (status === 'WITHDRAWN') statusTitle.classList.add('status-title-withdrawn');
+  else statusTitle.classList.add('status-title-all');
 
   // Remove active from all buttons (nav and status)
   document.querySelectorAll('.status-buttons button, .nav-btn2').forEach(btn => {
@@ -157,30 +327,40 @@ function loadStatus(status, buttonElement) {
     buttonElement.classList.add('active');
   }
 
+  // Reset filters
+  document.getElementById("ugFilter").value = "";
+  document.getElementById("pgFilter").value = "";
+
   if (status === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
-    const fetches = statuses.map(s =>
-      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
-    );
+    const fetchPromises = statuses.map(async s => {
+      const students = await fetchStudentsByStatus(s);
+      return students.map(stu => ({ ...stu, application_status: s }));
+    });
 
-    Promise.all(fetches)
+    Promise.all(fetchPromises)
       .then(results => {
-        const combined = results.flatMap((data, i) => {
-          const s = statuses[i];
-          return (data.students || []).map(stu => ({ ...stu, application_status: s }));
-        });
-
+        const combined = results.flatMap(students => students);
         allStudentsData = combined; // ✅ store for search
+        filteredStudentsData = combined;
+        populateDegreeFilters();
+        populateRecommenderFilter(allStudentsData);
+        const recommenderFilter = document.getElementById("recommenderFilter");
+        if (recommenderFilter) recommenderFilter.value = "all";
         renderCards(combined, "ALL", true); // ✅ showStatus = true
       })
       .catch(err => console.error("Error fetching all statuses:", err));
   } else {
-    authFetch(`${API_URL}?status=${status}`)
-      .then(response => response.json())
-      .then(data => {
-        const students = data.students || [];
-        allStudentsData = students; // ✅ store for search
-        renderCards(students, status, false); // ✅ showStatus = false
+    fetchStudentsByStatus(status)
+      .then(students => {
+        const normalized = students.map(stu => ({ ...stu, application_status: status }));
+        allStudentsData = normalized; // ✅ store for search
+        filteredStudentsData = normalized;
+        populateDegreeFilters();
+        populateRecommenderFilter(allStudentsData);
+        const recommenderFilter = document.getElementById("recommenderFilter");
+        if (recommenderFilter) recommenderFilter.value = "all";
+        renderCards(normalized, status, false); // ✅ showStatus = false
       })
       .catch(err => console.error("Error fetching students:", err));
   }
@@ -198,180 +378,232 @@ function handleSearch() {
   }
 
   if (currentStatus === "ALL") {
-    // Fetch search results across all statuses
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
-    const fetches = statuses.map(s =>
-      authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${s}`)
-        .then(res => res.json())
-    );
+    const fetchPromises = statuses.map(async s => {
+      const students = await fetchStudentsByStatusAndSearch(s, query);
+      return students.map(stu => ({ ...stu, application_status: s }));
+    });
 
-    Promise.all(fetches)
+    Promise.all(fetchPromises)
       .then(results => {
-        const combined = results.flatMap((data, i) => {
-          const s = statuses[i];
-          return (data.students || []).map(stu => ({ ...stu, application_status: s }));
-        });
-
-        renderCards(combined, "ALL", true); // showStatus = true
+        const combined = results.flatMap(students => students);
+        allStudentsData = combined;
+        filteredStudentsData = combined;
+        populateDegreeFilters();
+        populateRecommenderFilter(allStudentsData);
+        renderCards(combined, "ALL", true);
       })
       .catch(error => console.error("Error during multi-status search:", error));
   } else {
-    // Single-status search
-    authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${currentStatus}`) 
-      .then(response => response.json())
-      .then(data => {
-        const students = data.students || [];
-        renderCards(students, currentStatus); // showStatus = false for single
+    fetchStudentsByStatusAndSearch(currentStatus, query)
+      .then(students => {
+        const normalized = students.map(stu => ({ ...stu, application_status: currentStatus }));
+        allStudentsData = normalized;
+        filteredStudentsData = normalized;
+        populateDegreeFilters();
+        populateRecommenderFilter(allStudentsData);
+        renderCards(normalized, currentStatus);
       })
       .catch(error => console.error("Error during search:", error));
   }
 }
 
 
-function renderCards(students, status, showStatus = false) {
-  const container = document.getElementById("studentList");
+function renderCards(students, statusParam, showStatus = false) {
+  const container = document.getElementById("studentCards");
   container.innerHTML = "";
 
-  const grouped = students.reduce((acc, student) => {
-    const degreeKey = student.degree.trim().toLowerCase();
-    if (!acc[degreeKey]) acc[degreeKey] = [];
-    acc[degreeKey].push(student);
-    return acc;
-  }, {});
+  // Degree configuration
+  const degreeConfig = [
+    { keys: ["b.e", "btech", "engineering"], displayName: "B.E / B.Tech", isPG: false, cutoffField: "engineering_cutoff" },
+    { keys: ["msc", "mscdata", "mscdatascience"], displayName: "M.Sc Data Science", isPG: false, cutoffField: "msc_cutoff" },
+    { keys: ["bdes", "b.des"], displayName: "B.Des", isPG: false, cutoffField: "bdes_cutoff" },
+    { keys: ["barch", "b.arch"], displayName: "B.Arch", isPG: false, cutoffField: "barch_cutoff" },
+    { keys: ["me", "m.e", "mtech", "m.tech", "me_mtech", "me mtech", "me-mtech", "memtech"], displayName: "M.E / M.Tech", isPG: true, cutoffField: "engineering_cutoff" },
+    { keys: ["mca", "m.c.a"], displayName: "M.C.A", isPG: true, cutoffField: "mca_cutoff" },
+    { keys: ["march", "m.arch"], displayName: "M.Arch", isPG: true, cutoffField: "march_cutoff" }
+  ];
 
-  const degreeTitles = {
-    "b.e": "B.E / B.Tech :",
-    "btech": "B.E / B.Tech :",
-    "engineering": "B.E / B.Tech :",
-    "msc": "M.Sc Data Science :",
-    "barch": "B.Arch :",
-    "bdes": "B.Des :"
-  };
+  const normalizeDegreeValue = degree => (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const allKnownDegreeKeys = new Set(degreeConfig.flatMap(item => item.keys.map(normalizeDegreeValue)));
+  
+  const mainContainer = document.createElement("div");
+  mainContainer.className = "degree-sections-container";
 
-  let isFirstGroup = true;
+  let ugGroup = null;
+  let pgGroup = null;
 
-  for (const [degreeKey, studentsList] of Object.entries(grouped)) {
-    if (!isFirstGroup) {
-      const divider = document.createElement("hr");
-      container.appendChild(divider);
+  degreeConfig.forEach(degreeItem => {
+    const { keys, displayName, isPG, cutoffField } = degreeItem;
+    const normalizedKeys = keys.map(normalizeDegreeValue);
+    const studentsList = normalizedKeys.length
+      ? students.filter(student => normalizedKeys.includes(normalizeDegreeValue(student.degree)))
+      : students.filter(student => !allKnownDegreeKeys.has(normalizeDegreeValue(student.degree)));
+    const count = studentsList.length;
+
+    if (isPG && !pgGroup) {
+      pgGroup = document.createElement("div");
+      pgGroup.className = "degree-group";
+
+      const pgLabel = document.createElement("div");
+      pgLabel.className = "degree-group-title";
+      pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
+      pgGroup.appendChild(pgLabel);
+      mainContainer.appendChild(pgGroup);
+    } else if (!isPG && !ugGroup) {
+      ugGroup = document.createElement("div");
+      ugGroup.className = "degree-group";
+
+      const ugLabel = document.createElement("div");
+      ugLabel.className = "degree-group-title";
+      ugLabel.textContent = "UNDER GRADUATE (UG) DEGREES";
+      ugGroup.appendChild(ugLabel);
+      mainContainer.appendChild(ugGroup);
     }
 
-     const titleContainer = document.createElement("div");
-    titleContainer.className = "degree-title-container";
+    const targetGroup = isPG ? pgGroup : ugGroup;
 
-    const title = document.createElement("h2");
-    title.textContent = degreeTitles[degreeKey] || degreeKey.toUpperCase() + " :";
-    title.className = "degree-title";
+    const degreeId = `degree-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    const dropdown = document.createElement("div");
+    dropdown.className = "degree-dropdown";
+    dropdown.id = degreeId;
 
-    titleContainer.appendChild(title);
-    container.appendChild(titleContainer);
+    const header = document.createElement("div");
+    header.className = "degree-dropdown-header";
+    header.onclick = () => toggleDegreeDropdown(degreeId);
 
-    // Card wrapper with left aligned cards
-    const cardWrapper = document.createElement("div");
-    cardWrapper.className = "card-wrapper";
-
-    studentsList.forEach(student => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.id = `student-${student.id}`;
-
-
-      let cutoff = "";
-      switch (student.degree.toLowerCase()) {
-        case "b.e":
-        case "btech":
-        case "engineering":
-          cutoff = student.engineering_cutoff;
-          break;
-        case "msc":
-          cutoff = student.msc_cutoff;
-          break;
-        case "bdes":
-          cutoff = student.bdes_cutoff;
-          break;
-        case "barch":
-          cutoff = student.barch_cutoff;
-          break;
-        default:
-          cutoff = "N/A";
-      }
-
-      const recommender = student.recommender || student.recommenders?.[0] || {};
-      let buttonsHTML = "";
-      if (status === "ONHOLD") {
-        buttonsHTML += `<button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>`;
-        buttonsHTML += `<button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>`;
-      } else if (status === "APPROVED") {
-       buttonsHTML += `
-  <div class="action-buttons-row">
-    <div class="left-buttons">
-      <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-      <button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>
-    </div>
-    <div class="right-buttons">
-      <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-      <button class="change_allotment" onclick="acceptStudent(${student.id})">Change Allotment</button>
-    </div>
-  </div>
-`;
-
-      }else if (status === "DECLINED") {
-        buttonsHTML += `<button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>`;
-      }
-
-      const statusHTML = showStatus
-  ? `<p class="status-line"><strong>Status:</strong> ${student.application_status || status}</p>`
-  
-  : "";
-
-
-    card.innerHTML = `
-  <div class="card-row">
-    <div class="student-box">
-      <p><strong>${student.application_number}</strong></p>
-      <p>${student.name}</p>
-      <p><strong>DOA:</strong> ${student.date_of_application}</p>
-      <p><strong>Degree:</strong> ${student.degree}</p>
-      <p><strong>Cut-Off:</strong> ${cutoff}</p>
-       ${statusHTML}
-    </div>
-    <div class="recommender-box">
-      <p><strong>Recommender</strong></p>
-      <p>${recommender.name || '-'}</p>
-      <p>${recommender.designation || '-'}</p>
-      <p>${recommender.affiliation || '-'}</p>
-    </div>
-  </div>
-  <div class="card-bottom">
-    <div class="action-buttons">${buttonsHTML}</div>
-    <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
-  </div>
-`;
-
-      const currentStatus = showStatus ? student.application_status : status;
-
-  if (currentStatus === "APPROVED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `
-      <p><strong>Alloted Department :</strong> ${firstOutcome.course_name}</p>
-      <p><strong>Type :</strong> ${firstOutcome.course_type}</p>
+    header.innerHTML = `
+      <div class="degree-header-left">
+        <span class="degree-name">${displayName}</span>
+        <span class="degree-count">${count} Student${count !== 1 ? 's' : ''}</span>
+      </div>
+      <span class="toggle-icon">▼</span>
     `;
-    card.appendChild(commentBox);
-  } else if (currentStatus === "DECLINED" && student.outcomes.length > 0) {
-    const firstOutcome = student.outcomes[0];
-    const commentBox = document.createElement("div");
-    commentBox.className = "decline-comment-box";
-    commentBox.innerHTML = `<p><strong>Decline Reason:</strong> ${firstOutcome.course_name}</p>`;
-    card.appendChild(commentBox);
-  }
 
-      cardWrapper.appendChild(card);
-    });
+    const content = document.createElement("div");
+    content.className = "degree-content";
 
-    container.appendChild(cardWrapper);
-    isFirstGroup = false;
+    const grid = document.createElement("div");
+    grid.className = "student-grid";
+
+    if (count === 0) {
+      const emptyMsg = document.createElement("div");
+      emptyMsg.style.padding = "20px";
+      emptyMsg.style.textAlign = "center";
+      emptyMsg.style.color = "#999";
+      emptyMsg.textContent = "No students in this degree";
+      grid.appendChild(emptyMsg);
+    } else {
+      studentsList.forEach(student => {
+        const row = document.createElement("div");
+        const statusClass = showStatus ? `status-${student.application_status.toLowerCase()}` : `status-${statusParam.toLowerCase()}`;
+        row.className = `student-row ${statusClass}`;
+        row.id = `student-${student.id}`;
+
+        let cutoff = student[cutoffField] || "";
+        if (!cutoff) {
+          cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "";
+        }
+
+        const recommender = student.recommender || student.recommenders?.[0] || {};
+        const currentStatus = showStatus ? student.application_status : statusParam;
+        const statusLabelMap = {
+          APPROVED: 'Allocated',
+          ONHOLD: 'On Hold',
+          DECLINED: 'Declined',
+          WITHDRAWN: 'Withdrawn'
+        };
+        const statusDisplay = statusLabelMap[currentStatus] || currentStatus || 'Unknown';
+        const statusBadge = `
+          <div class="status-badge status-${currentStatus.toLowerCase()}">
+            ${statusDisplay}
+          </div>
+        `;
+
+      let buttonsHTML = "";
+      if (currentStatus === "ONHOLD") {
+        buttonsHTML = `
+          <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+        `;
+      } else if (currentStatus === "APPROVED") {
+        buttonsHTML = `
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          <button class="withdraw" onclick="withdrawStudent(${student.id})">Withdraw</button>
+          <button class="change_allotment" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Change Allot</button>
+        `;
+      } else if (currentStatus === "DECLINED") {
+        buttonsHTML = `
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+        `;
+      }
+
+      const outcome = student.outcomes?.[0];
+      let outcomeHTML = "";
+      if (currentStatus === "APPROVED" && outcome) {
+        outcomeHTML = `
+          <div style="background: #f5f5f5; padding: 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+            <p style="margin: 4px 0;"><strong>Allotted Dept:</strong> ${outcome.course_name}</p>
+            <p style="margin: 4px 0;"><strong>Type:</strong> ${outcome.course_type}</p>
+          </div>
+        `;
+      } else if (currentStatus === "DECLINED" && outcome) {
+        outcomeHTML = `
+          <div style="background: #fff5f5; padding: 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+            <p style="margin: 4px 0;"><strong>Reason:</strong> ${outcome.course_name}</p>
+          </div>
+        `;
+      }
+
+      const preferredBranches = [
+        student.branch_1 || student.branch1,
+        student.branch_2,
+        student.branch_3
+      ]
+        .filter(branch => branch && branch.trim())
+        .map(branch => branch.trim());
+      const preferredBranch = preferredBranches.length ? preferredBranches.join('/') : '-';
+      row.innerHTML = `
+        ${statusBadge}
+        <div class="student-info">
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Name:</strong> ${student.name || '-'}</p></div>
+            <div class="card-cell"><p><strong>App No:</strong> ${student.application_number || '-'}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Recommender:</strong> ${recommender.name || '-'}</p></div>
+            <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation || '-'}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Cut-Off:</strong> ${cutoff || '-'}</p></div>
+            <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch || '-'}</p></div>
+          </div>
+          <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student).replace(/'/g, "&apos;")})'>View More</button>
+        </div>
+        <div class="action-buttons">
+          ${buttonsHTML}
+        </div>
+        ${outcomeHTML}
+      `;
+
+      grid.appendChild(row);
+      });
+    }
+
+    content.appendChild(grid);
+    dropdown.appendChild(header);
+    dropdown.appendChild(content);
+    targetGroup.appendChild(dropdown);
+  });
+
+  container.appendChild(mainContainer);
+}
+
+function toggleDegreeDropdown(degreeId) {
+  const dropdown = document.getElementById(degreeId);
+  if (dropdown) {
+    dropdown.classList.toggle("active");
   }
 }
 document.addEventListener("DOMContentLoaded", () => {
@@ -379,26 +611,69 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function generateTableView(status) {
-    const students = allStudentsData.filter(stu => stu.application_status === status || currentStatus === status);
-    // Normalize degree value
-const degreeT = {
-  "b.e": "B.E / B.Tech ",
-  "btech": "B.E / B.Tech ",
-  "engineering": "B.E / B.Tech ",
-  "msc": "M.Sc Data Science ",
-  "barch": "B.Arch ",
-  "bdes": "B.Des "
-};
+  const students = allStudentsData.filter(stu => {
+    if (status === "ALL") return true;
+    if (stu.application_status === status) return true;
+    return !stu.application_status && currentStatus === status;
+  });
+  const degreeT = {
+    "b.e": "B.E / B.Tech",
+    "btech": "B.E / B.Tech",
+    "engineering": "B.E / B.Tech",
+    "msc": "M.Sc Data Science",
+    "mscdata": "M.Sc Data Science",
+    "mscdatascience": "M.Sc Data Science",
+    "bdes": "B.Des",
+    "b.des": "B.Des",
+    "barch": "B.Arch",
+    "b.arch": "B.Arch",
+    "me": "M.E / M.Tech",
+    "m.e": "M.E / M.Tech",
+    "mtech": "M.E / M.Tech",
+    "m.tech": "M.E / M.Tech",
+    "mca": "M.C.A",
+    "m.c.a": "M.C.A",
+    "march": "M.Arch",
+    "m.arch": "M.Arch"
+  };
 
   if (!students.length) {
-    alert(`No ${status === "APPROVED" ? "Allotted" : "Declined"} applications found.`);
+    const label = status === "APPROVED" ? "Allotted" : status === "ONHOLD" ? "On Hold" : status === "DECLINED" ? "Declined" : "Requested";
+    alert(`No ${label} applications found.`);
     return;
-  } // Toggle button visibility
+  }
+
   updateButtonVisibility(status);
-  // Show popup
   document.getElementById("studentPopup").style.display = "flex";
   document.getElementById("popupTitle").textContent =
-    status === "APPROVED" ? "Allotted Students" : "Declined Students";
+    status === "APPROVED"
+      ? "Allotted Students"
+      : status === "ONHOLD"
+      ? "On Hold Students"
+      : status === "DECLINED"
+      ? "Declined Students"
+      : "Student Status";
+
+  window.currentPopupStudents = students;
+  window.currentPopupStatus = status;
+
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueBranches = new Set();
+    students.forEach(student => {
+      const outcome = student.outcomes[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueBranches.add(courseName);
+    });
+    uniqueBranches.forEach(branch => {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
 
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
@@ -412,7 +687,9 @@ const degreeT = {
     "Cut-Off",
     "Phone",
     "Address",
-    ...(status === "APPROVED" ? ["Degree Type","Degree", "Allotted Course"] : ["Decline Reason"]),
+    ...(status === "APPROVED" || status === "ONHOLD"
+      ? ["Degree Type", "Degree", status === "APPROVED" ? "Allotted Course" : "On Hold Detail"]
+      : ["Decline Reason"]),
     "Recommender Name",
     "Designation"
   ];
@@ -424,12 +701,14 @@ const degreeT = {
   });
 
   students.forEach((student, index) => {
-    const rawDegree = (student.degree || "-").toLowerCase().replace(/\s/g, "");
+    const rawDegree = (student.degree || "-").toLowerCase().replace(/\s|\./g, "");
     const degreeDisplay = degreeT[rawDegree] || student.degree || "-";
-    const outcome = student.outcomes[0] || {};
+    const outcome = (student.outcomes || [])[0] || {};
     const r = student.recommender || student.recommenders?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
 
+    const onHoldDetail = student.onhold_reason || student.on_hold_reason || outcome.course_name || "-";
+    const declineDetail = outcome.course_name || "-";
     const rowData = [
       index + 1,
       student.name || "-",
@@ -438,13 +717,16 @@ const degreeT = {
       student.phone_number || "-",
       student.address || "-",
       ...(status === "APPROVED"
-        ? [outcome.course_type,degreeDisplay, outcome.course_name || "-"]
-        : [outcome.course_name || "-"]),
+        ? [outcome.course_type || "-", degreeDisplay, outcome.course_name || "-"]
+        : status === "ONHOLD"
+        ? [outcome.course_type || "-", degreeDisplay, onHoldDetail]
+        : [declineDetail]),
       r.name || "-",
       r.designation || "-"
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -456,6 +738,22 @@ const degreeT = {
 loadSeatTable();
 }
 
+function applyPrintFilter() {
+  const filterVal = document.getElementById("branchPrintFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (filterVal === "ALL" || row.dataset.course === filterVal) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
+}
+
 function closeStudentPopup() {
   document.getElementById("studentPopup").style.display = "none";
 }
@@ -464,8 +762,19 @@ const degreeT = {
   "btech": "B.E / B.Tech",
   "engineering": "B.E / B.Tech",
   "msc": "M.Sc Data Science",
+  "mscdata": "M.Sc Data Science",
+  "mscdatascience": "M.Sc Data Science",
   "barch": "B.Arch",
-  "bdes": "B.Des"
+  "bdes": "B.Des",
+  "b.des": "B.Des",
+  "m.e": "M.E / M.Tech",
+  "me": "M.E / M.Tech",
+  "mtech": "M.E / M.Tech",
+  "m.tech": "M.E / M.Tech",
+  "mca": "M.C.A",
+  "m.c.a": "M.C.A",
+  "march": "M.Arch",
+  "m.arch": "M.Arch"
 };
 
 function generateAllStudentTableView(allStudents) {
@@ -493,6 +802,25 @@ function generateAllStudentTableView(allStudents) {
     theadRow.appendChild(th);
   });
 
+  // Fix 3: Populate branch filter for Print All view
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueCourses = new Set();
+    allStudents.forEach(student => {
+      const outcome = student.outcomes?.[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueCourses.add(courseName);
+    });
+    uniqueCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -509,6 +837,7 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -595,14 +924,18 @@ function printStudentTable() {
 
 function updateButtonVisibility(status) {
   const allottedBtn = document.getElementById("allottedBtn");
+  const onholdBtn = document.getElementById("onholdBtn");
   const declinedBtn = document.getElementById("declinedBtn");
 
   // Default: hide all buttons
   allottedBtn.style.display = "none";
+  onholdBtn.style.display = "none";
   declinedBtn.style.display = "none";
 
   if (status === "APPROVED") {
     allottedBtn.style.display = "inline-block";
+  } else if (status === "ONHOLD") {
+    onholdBtn.style.display = "inline-block";
   } else if (status === "DECLINED") {
     declinedBtn.style.display = "inline-block";
   }
@@ -967,6 +1300,7 @@ function removeCard(id) {
         ["Year of Passing", student.year_of_passing],
         ["College", student.college],
         ["Degree", student.degree],
+        ["Preferred Branch", student.branch_1 || "-"],
         ["Branch 1", student.branch_1],
         ["Branch 2", student.branch_2],
         ["Branch 3", student.branch_3],

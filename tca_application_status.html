@@ -44,6 +44,9 @@
       <div id="studentTableContainer">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <h3 id="popupTitle">Student Status</h3>
+          <select id="branchPrintFilter" onchange="applyPrintFilter()" style="margin: 0 15px; padding: 5px;">
+            <option value="ALL">All Branches</option>
+          </select>
           <button onclick="printStudentTable()">🖨️ Print</button>
         </div>
 
