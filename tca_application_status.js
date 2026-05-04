@@ -1,7 +1,15 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
-const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
+const SEATS_URL = `${window.env.BASE_URL}/tcarts/statusdetails`;
+const SEATS_UPDATE_URL = `${window.env.BASE_URL}/tcarts/updateseats`;
+const EXPORTS_URL = `${window.env.BASE_URL}/exports`;
 
+let allStudents = [];
+let currentStatus = 'APPROVED';
+let currentSeatData = [];
 
 // Aided UG Courses
   const aidedUG = [
@@ -85,11 +93,27 @@ function goHome() {
 
 }
     window.onload = () => {
-    loadStatus('APPROVED'); 
+    // Pre-fetch seat data
+    authFetch(SEATS_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        data.forEach(entry => {
+          const remaining_seats = entry.remaining_seats ?? 0;
+          result.push({ student_id: entry.student_id, student_name: entry.student_name,
+            course: entry.course, course_type: entry.course_type,
+            status: entry.status, remaining_seats });
+          seats[entry.course] = remaining_seats;
+        });
+        console.log("Seats pre-loaded:", seats);
+      })
+      .catch(err => console.error("Failed to pre-load seat data:", err));
+
+    loadStatus('APPROVED');
     };
 
+
 let outcomeCache = [];
-let currentStatus = 'APPROVED'; // Default status on initial load
+// currentStatus already declared at top
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -135,42 +159,9 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
 let allStudentsData = []; // global variable
   // global variable
 
@@ -294,6 +285,25 @@ function generateAllStudentTableView(allStudents) {
     theadRow.appendChild(th);
   });
 
+  // Fix 3: Populate branch filter for Print All view
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueCourses = new Set();
+    allStudents.forEach(student => {
+      const outcome = student.outcomes?.[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueCourses.add(courseName);
+    });
+    uniqueCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -310,6 +320,7 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -534,6 +545,24 @@ function generateTableView(status) {
   document.getElementById("popupTitle").textContent =
     status === "APPROVED" ? "Allotted Students" : "Declined Students";
 
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueBranches = new Set();
+    students.forEach(student => {
+      const outcome = student.outcomes[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueBranches.add(courseName);
+    });
+    uniqueBranches.forEach(branch => {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
   tableHead.innerHTML = "";
@@ -578,6 +607,7 @@ function generateTableView(status) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -586,6 +616,22 @@ function generateTableView(status) {
     tableBody.appendChild(tr);
   });
   loadSeatTable();
+}
+
+function applyPrintFilter() {
+  const filterVal = document.getElementById("branchPrintFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (filterVal === "ALL" || row.dataset.course === filterVal) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
 }
 
 function closeStudentPopup() {
@@ -1033,8 +1079,160 @@ function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
 
+function closeChangeSeatPopup() {
+  document.getElementById("changeSeatPopup").style.display = "none";
+}
+
+function updateRemaining(index) {
+  const row = document.querySelector(`#changeSeatTable tbody tr:nth-child(${index + 1})`);
+  if (!row) return;
+  const totalInput = row.querySelector(`#total-${index}`);
+  const allocatedInput = row.querySelector(`#allocated-${index}`);
+  const remainingInput = row.querySelector(`#remaining-${index}`);
+  if (!totalInput || !allocatedInput || !remainingInput) return;
+  const total = parseInt(totalInput.value) || 0;
+  const allocated = parseInt(allocatedInput.value) || 0;
+  remainingInput.value = Math.max(0, total - allocated);
+  updateSummaryTotals();
+}
+
+function updateSummaryTotals() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  let sfTotal = 0, sfAllocated = 0, sfRemaining = 0;
+  rows.forEach(row => {
+    if (row.dataset.courseType !== 'self finance') return;
+    sfTotal    += parseInt(row.querySelector("input[id^='total-']")?.value)     || 0;
+    sfAllocated+= parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
+    sfRemaining+= parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
+  });
+  const ts = document.getElementById("sf-total-summary");
+  const as_ = document.getElementById("sf-allocated-summary");
+  const rs = document.getElementById("sf-remaining-summary");
+  if (ts) ts.value = sfTotal;
+  if (as_) as_.value = sfAllocated;
+  if (rs) rs.value = sfRemaining;
+}
+
+function showChangeSeatsPopup() {
+  authFetch(SEATS_URL)
+    .then(r => r.json())
+    .then(result => {
+      currentSeatData = result;
+      const aided = result.filter(e => e.course_type.toLowerCase() === 'aided');
+      const sf    = result.filter(e => e.course_type.toLowerCase() === 'self finance');
+      const grouped = [...aided, ...sf];
+
+      const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      grouped.forEach((entry, index) => {
+        const courseWithType = `${entry.course} (${entry.course_type})`;
+        const row = document.createElement("tr");
+        row.dataset.courseType = entry.course_type.toLowerCase();
+        row.dataset.courseName = entry.course;
+        const remaining = Math.max(0, (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0));
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${courseWithType}</td>
+          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0" onchange="updateRemaining(${index})"></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly disabled></td>
+          <td><input type="number" value="${remaining}" id="remaining-${index}" min="0" readonly disabled></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // SF summary row
+      let summaryTotal = 0, summaryAllocated = 0, summaryRemaining = 0;
+      sf.forEach(e => {
+        summaryTotal     += parseInt(e.total_seats)     || 0;
+        summaryAllocated += parseInt(e.allocated_seats) || 0;
+        summaryRemaining += Math.max(0, (parseInt(e.total_seats)||0) - (parseInt(e.allocated_seats)||0));
+      });
+      const summaryRow = document.createElement("tr");
+      summaryRow.classList.add("summary-row");
+      summaryRow.innerHTML = `
+        <td colspan="2"><strong>Self Finance (Total Count)</strong></td>
+        <td><input type="number" value="${summaryTotal}" id="sf-total-summary" readonly disabled></td>
+        <td><input type="number" value="${summaryAllocated}" id="sf-allocated-summary" readonly disabled></td>
+        <td><input type="number" value="${summaryRemaining}" id="sf-remaining-summary" readonly disabled></td>
+      `;
+      tableBody.appendChild(summaryRow);
+
+      document.getElementById("changeSeatPopup").style.display = "block";
+      updateSummaryTotals();
+    })
+    .catch(err => {
+      console.error("Error loading seat data:", err);
+      alert("Failed to load seat data.");
+    });
+}
+
+function saveChangeSeats() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  const aided = currentSeatData.filter(e => e.course_type.toLowerCase() === 'aided');
+  const sf    = currentSeatData.filter(e => e.course_type.toLowerCase() === 'self finance');
+  const grouped = [...aided, ...sf];
+
+  const updatedData = [];
+  rows.forEach((row, index) => {
+    if (index < grouped.length) {
+      const totalInput = row.querySelector(`#total-${index}`);
+      if (totalInput) {
+        const newTotal = parseInt(totalInput.value) || 0;
+        const originalAllocated = grouped[index].allocated_seats || 0;
+        updatedData.push({
+          course: grouped[index].course,
+          course_type: grouped[index].course_type,
+          total_seats: newTotal,
+          allocated_seats: originalAllocated,
+          remaining_seats: Math.max(0, newTotal - originalAllocated)
+        });
+      }
+    }
+  });
+
+  // Fix 7: Frontend guard — no individual SF seat > allocated already
+  const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
+  if (invalidEntries.length > 0) {
+    alert(`Cannot set total seats less than allocated seats for: ${invalidEntries.map(d => d.course).join(", ")}`);
+    return;
+  }
+
+  // Fix 7: Check that SF individual sum does not exceed the displayed SF total cap
+  const sfSummaryTotal = parseInt(document.getElementById("sf-total-summary")?.value) || 0;
+  const newSFSum = updatedData.filter(d => d.course_type.toLowerCase() === 'self finance').reduce((s, d) => s + d.total_seats, 0);
+  if (newSFSum > sfSummaryTotal && sfSummaryTotal > 0) {
+    alert(`Individual Self Finance seat totals (${newSFSum}) exceed the SF Total cap (${sfSummaryTotal}). Please reduce individual course seats.`);
+    return;
+  }
+
+  authFetch(SEATS_UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.error) throw new Error(data.error);
+      alert("TCA seats updated successfully");
+      location.reload();
+    })
+    .catch(err => {
+      console.error("Error updating seats:", err);
+      alert("Failed to update seats: " + err.message);
+    });
+}
+
 
 window.onload = function() {
   const defaultButton = document.querySelector(".status-buttons button.active");
   loadStatus('APPROVED', defaultButton);
 };
+
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+    window.location.reload();
+  }
+});

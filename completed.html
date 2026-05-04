@@ -22,6 +22,7 @@
       </div>
 
       <div class="header-right">
+        <button class="nav-btn" onclick="goToApplicationProcessing()" title="Back to Processing">Back to Processing</button>
         <button class="icon-btn" onclick="goBack()" title="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -55,6 +56,7 @@
       <button class="status-btn" onclick="loadStatus('WITHDRAWN', this)">Withdrawn <br>Application</button>
       <div class="export-buttons">
         <button id="allottedBtn" onclick="generateTableView('APPROVED')">Print Allotted </button>
+        <button id="onholdBtn" onclick="generateTableView('ONHOLD')" style="display: none;">Print OnHold </button>
         <button id="declinedBtn" onclick="generateTableView('DECLINED')">Print Declined </button>
       </div>
     </div>
@@ -62,6 +64,25 @@
       <input id="searchInput" class="input-box" placeholder="Search for details" />
       <button class="submit-input" onclick="handleSearch()">Search</button>
       <button class="clear-input" onclick="clearSearch()">Clear</button>
+      <select id="recommenderFilter" class="search-type-select" onchange="filterByRecommender()">
+        <option value="all">All Recommenders</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Degree Type Filters -->
+  <div class="filter-section">
+    <div class="filter-group">
+      <label for="ugFilter">Undergraduate:</label>
+      <select id="ugFilter" onchange="filterByDegree()">
+        <option value="">All UG</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="pgFilter">Postgraduate:</label>
+      <select id="pgFilter" onchange="filterByDegree()">
+        <option value="">All PG</option>
+      </select>
     </div>
   </div>
 
@@ -71,6 +92,9 @@
     <div id="studentTableContainer" class="popup">
       <div class="popup-header">
         <h3 id="popupTitle">Student Status</h3>
+        <select id="branchPrintFilter" onchange="applyPrintFilter()" style="margin: 0 15px; padding: 5px;">
+          <option value="ALL">All Branches</option>
+        </select>
         <button onclick="printStudentTable()" class="print-btn">Print</button>
       </div>
 
@@ -106,7 +130,7 @@
 
 
 
-  <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin: 10px 0;"></div>
+  <div id="statusTitle" style="text-align: center; font-weight: bold; font-size: 24px; margin-top: 40px;"></div>
   <div id="tableViewContainer"></div>
 
   <div class="content" id="studentCards">

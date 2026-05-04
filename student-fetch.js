@@ -1,3 +1,5 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
 
 const BASE_URL = window.env.BASE_URL.replace(/\/$/, '');
 const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/students` : `${BASE_URL}/api/students`;
@@ -8,8 +10,86 @@ const SEATS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/statusdetails` : `${B
 
 const SEATS_UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updateseats` : `${BASE_URL}/api/updateseats`;
 
+const EXPORTS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/exports` : `${BASE_URL}/api/exports`;
+const STATUS_QUERY_ALIASES = {
+  ONHOLD: ["ONHOLD", "OnHold", "onhold", "ON HOLD", "On Hold", "on hold"]
+};
+
+async function fetchStudentsByStatus(status) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
+
+async function fetchStudentsByStatusAndSearch(status, searchTerm) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+  const encodedQuery = encodeURIComponent(searchTerm);
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?search=${encodedQuery}&status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Search status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
+
 let result = [];
 let seats = {};
+let allStudents = [];
+let currentStudentId = null;
+let currentStatus = "UNALLOCATED";
+
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
+
+
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
@@ -18,47 +98,12 @@ const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   currentStatus = "UNALLOCATED"
-  authFetch(`${API_URL}?status=${currentStatus}`)
-    .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
+  fetchStudentsByStatus(currentStatus)
+    .then(students => renderStudents(students || []))
     .catch(error => console.error("Error loading students:", error));
 }
-authFetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
-
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
+// NOTE: seats pre-fetch is done inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
 function goHome() {
   window.location.href = 'index.html';  // Change to your actual login route
@@ -83,9 +128,6 @@ document.addEventListener("click", function (event) {
   }
 });
 
-
-let currentStudentId = null;
-
 function handleSearch(status) {
   const query = document.getElementById("searchInput").value.trim();
 
@@ -94,9 +136,8 @@ function handleSearch(status) {
     return;
   }
 
-  authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`)
-    .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
+  fetchStudentsByStatusAndSearch(status, query)
+    .then(students => renderStudents(students || []))
     .catch(error => console.error("Error during search:", error));
 }
 function populateFilters() {
@@ -168,10 +209,9 @@ function filterByCombined() {
 
 
 function fetchAndRenderStudents(status) {
-  authFetch(`${API_URL}?status=${status}`)
-    .then(response => response.json())
-    .then(data => {
-      allStudents = data.students || [];
+  fetchStudentsByStatus(status)
+    .then(students => {
+      allStudents = students || [];
       renderStudents(allStudents);
       populateRecommenderFilter(allStudents);
     })
@@ -370,14 +410,28 @@ function renderStudents(students) {
       const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
       let deleteBtn = !isAdmin ? `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>` : "";
 
+      const preferredBranches = [
+        student.branch_1 || student.branch1,
+        student.branch_2,
+        student.branch_3
+      ]
+        .filter(branch => branch && branch.trim())
+        .map(branch => branch.trim());
+      const preferredBranch = preferredBranches.length ? preferredBranches.join('/') : '-';
       row.innerHTML = `
         <div class="student-info">
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>App No:</strong> ${student.application_number}</p>
-          <p><strong>Recommender:</strong> ${recommender.name}</p>
-          <p><strong>Designation:</strong> ${recommender.designation}</p>
-          ${cutoffDisplay}
-          ${ugDetailsDisplay}
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Name:</strong> ${student.name}</p></div>
+            <div class="card-cell"><p><strong>App No:</strong> ${student.application_number}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Recommender:</strong> ${recommender.name}</p></div>
+            <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Cut-Off:</strong> ${cutoff || '-'}</p></div>
+            <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch}</p></div>
+          </div>
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
         </div>
         <div class="action-buttons">
@@ -823,12 +877,11 @@ function showViewMore(student) {
 
   const makeSection = (title, fields) => {
     const section = document.createElement("div");
+    section.className = "detail-section";
     // Bold Section Heading
     section.innerHTML = `
-      <h3 style="color: #800000; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px; font-weight: 800;">
-        ${title.toUpperCase()}
-      </h3>
-      <table class="neat-table"></table>
+      <h3>${title.toUpperCase()}</h3>
+      <table class="detail-table"></table>
     `;
     const table = section.querySelector("table");
 
@@ -836,7 +889,7 @@ function showViewMore(student) {
       if (value) {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td style="font-weight: bold; width: 45%;">${label}:</td>
+          <td>${label}:</td>
           <td>${value}</td>
         `;
         table.appendChild(row);
@@ -867,6 +920,7 @@ function showViewMore(student) {
     ["Board", student.board],
     ["Year of Passing", student.year_of_passing],
     ["College", student.college],
+    ["Preferred Branch", student.branch_1 || "-"],
     ["Branch 1", student.branch_1],
     ["Branch 2", student.branch_2],
     ["Branch 3", student.branch_3]
@@ -925,6 +979,29 @@ function closeViewMore() {
 
 
 window.onload = () => {
+  // Pre-fetch seat data for use by acceptStudent / confirmSelection
+  authFetch(SEATS_URL)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      data.forEach(entry => {
+        const remaining_seats = entry.remaining_seats ?? 0;
+        result.push({
+          student_id: entry.student_id,
+          student_name: entry.student_name,
+          course: entry.course,
+          course_type: entry.course_type,
+          status: entry.status,
+          remaining_seats: remaining_seats
+        });
+        seats[entry.course] = remaining_seats;
+      });
+      console.log("Seats pre-loaded:", seats);
+    })
+    .catch(error => console.error("Failed to pre-load seat data:", error));
+
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
 };
