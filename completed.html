@@ -64,9 +64,15 @@
       <input id="searchInput" class="input-box" placeholder="Search for details" />
       <button class="submit-input" onclick="handleSearch()">Search</button>
       <button class="clear-input" onclick="clearSearch()">Clear</button>
-      <select id="recommenderFilter" class="search-type-select" onchange="filterByRecommender()">
-        <option value="all">All Recommenders</option>
-      </select>
+      <div class="filter-sort-wrapper">
+        <button class="filter-sort-toggle" onclick="toggleFilterSort()">Search Specific</button>
+        <div id="filterSortPanel" class="filter-sort-panel">
+           <label>Recommender</label>
+           <select id="recommenderFilter" onchange="filterByRecommender()"></select>
+           <label>Dept & Degree</label>
+           <select id="combinedFilter" onchange="filterByCombined()"></select>
+        </div>
+      </div>
     </div>
   </div>
 

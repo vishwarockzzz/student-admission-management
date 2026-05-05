@@ -69,6 +69,10 @@ function goHome() {
   document.getElementById("pgFilter").value = "";
   const recommenderFilter = document.getElementById("recommenderFilter");
   if (recommenderFilter) recommenderFilter.value = "all";
+  const combinedFilter = document.getElementById("combinedFilter");
+  if (combinedFilter) combinedFilter.value = "";
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) panel.style.display = "none";
 
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
@@ -122,11 +126,17 @@ let outcomeCache = [];
 let currentStatus = 'APPROVED'; // Default status on initial load
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
+    const currentDate = new Date().toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
     const printWindow = window.open('', '', 'height=600,width=800');
     printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard</h2>');
+    printWindow.document.write(`<p style="text-align:center; font-size: 14px; margin: 10px 0;">Downloaded on: ${currentDate}</p>`);
     printWindow.document.write(tableHtml);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
@@ -251,6 +261,52 @@ function populateRecommenderFilter(students) {
   });
 }
 
+function toggleFilterSort() {
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) {
+    panel.style.display = panel.style.display === "none" || panel.style.display === "" ? "flex" : "none";
+  }
+}
+
+function populateCombinedFilter() {
+  const dropdown = document.getElementById("combinedFilter");
+  if (!dropdown) return;
+  dropdown.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "All Degrees";
+  dropdown.appendChild(allOption);
+
+  const degreeSet = new Set();
+  allStudentsData.forEach(student => {
+    const degree = student.degree || "";
+    if (degree) {
+      degreeSet.add(degree);
+    }
+  });
+
+  Array.from(degreeSet).sort().forEach(degree => {
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree.toUpperCase();
+    dropdown.appendChild(option);
+  });
+}
+
+function filterByCombined() {
+  const degreeFilter = document.getElementById("combinedFilter")?.value;
+  
+  let filtered = allStudentsData;
+
+  if (degreeFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === degreeFilter.toLowerCase());
+  }
+
+  filteredStudentsData = filtered;
+  renderCards(filtered, currentStatus, currentStatus === "ALL");
+}
+
 function filterByRecommender() {
   const selected = document.getElementById("recommenderFilter")?.value;
   if (!selected || selected === "all") {
@@ -345,8 +401,11 @@ function loadStatus(status, buttonElement) {
         filteredStudentsData = combined;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         const recommenderFilter = document.getElementById("recommenderFilter");
         if (recommenderFilter) recommenderFilter.value = "all";
+        const combinedFilter = document.getElementById("combinedFilter");
+        if (combinedFilter) combinedFilter.value = "";
         renderCards(combined, "ALL", true); // ✅ showStatus = true
       })
       .catch(err => console.error("Error fetching all statuses:", err));
@@ -358,8 +417,11 @@ function loadStatus(status, buttonElement) {
         filteredStudentsData = normalized;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         const recommenderFilter = document.getElementById("recommenderFilter");
         if (recommenderFilter) recommenderFilter.value = "all";
+        const combinedFilter = document.getElementById("combinedFilter");
+        if (combinedFilter) combinedFilter.value = "";
         renderCards(normalized, status, false); // ✅ showStatus = false
       })
       .catch(err => console.error("Error fetching students:", err));
@@ -377,6 +439,10 @@ function handleSearch() {
     return;
   }
 
+  // Close the filter panel when searching
+  const panel = document.getElementById("filterSortPanel");
+  if (panel) panel.style.display = "none";
+
   if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetchPromises = statuses.map(async s => {
@@ -391,6 +457,7 @@ function handleSearch() {
         filteredStudentsData = combined;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         renderCards(combined, "ALL", true);
       })
       .catch(error => console.error("Error during multi-status search:", error));
@@ -402,6 +469,7 @@ function handleSearch() {
         filteredStudentsData = normalized;
         populateDegreeFilters();
         populateRecommenderFilter(allStudentsData);
+        populateCombinedFilter();
         renderCards(normalized, currentStatus);
       })
       .catch(error => console.error("Error during search:", error));
@@ -659,20 +727,24 @@ function generateTableView(status) {
 
   const branchFilter = document.getElementById("branchPrintFilter");
   if (branchFilter) {
-    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
-    const uniqueBranches = new Set();
-    students.forEach(student => {
-      const outcome = student.outcomes[0] || {};
-      const courseName = outcome.course_name || "-";
-      if (courseName !== "-") uniqueBranches.add(courseName);
-    });
-    uniqueBranches.forEach(branch => {
-      const option = document.createElement("option");
-      option.value = branch;
-      option.textContent = branch;
-      branchFilter.appendChild(option);
-    });
-    branchFilter.value = "ALL";
+    if (status === "APPROVED" || status === "ALL") {
+      branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+      const uniqueBranches = new Set();
+      students.forEach(student => {
+        const outcome = student.outcomes[0] || {};
+        const courseName = outcome.course_name || "-";
+        if (courseName !== "-") uniqueBranches.add(courseName);
+      });
+      uniqueBranches.forEach(branch => {
+        const option = document.createElement("option");
+        option.value = branch;
+        option.textContent = branch;
+        branchFilter.appendChild(option);
+      });
+      branchFilter.value = "ALL";
+    } else {
+      branchFilter.style.display = "none";
+    }
   }
 
   const tableHead = document.getElementById("studentTableHead");
@@ -909,11 +981,17 @@ function closeStudentPopup() {
 
 function printStudentTable() {
   const popupContent = document.getElementById("studentTableContainer").innerHTML;
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
     const printWindow = window.open('', '', 'height=600,width=800');
     printWindow.document.write('<html><head><title>TCE</title>');
     printWindow.document.write('<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 8px; }</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write('<h2 style="text-align:center;">Thiagarajar Group of Institutions: Management Quota Application Dashboard TCE</h2>');
+    printWindow.document.write(`<p style="text-align:center; font-size: 14px; margin: 10px 0;">Downloaded on: ${currentDate}</p>`);
     printWindow.document.write(popupContent);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
