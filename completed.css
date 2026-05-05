@@ -340,6 +340,70 @@ header {
   border-color: var(--maroon);
 }
 
+.filter-sort-wrapper {
+  position: relative;
+}
+
+.filter-sort-toggle {
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  outline: none;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+.filter-sort-toggle:hover {
+  border-color: var(--maroon);
+  background-color: var(--bg-light);
+}
+
+.filter-sort-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 2px solid var(--maroon);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 10px;
+  z-index: 100;
+  box-shadow: 0 8px 16px rgba(128, 0, 0, 0.15);
+  min-width: 280px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-sort-panel label {
+  font-weight: 600;
+  color: var(--maroon);
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.filter-sort-panel select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+  transition: border 0.3s;
+}
+
+.filter-sort-panel select:focus {
+  outline: none;
+  border-color: var(--maroon);
+}
+
 .search-type-select {
   padding: 12px 20px;
   border: 2px solid #ddd;
