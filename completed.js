@@ -1031,7 +1031,16 @@ const courseMap = {
   "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
+  "B.ARCH": "B.Arch. Architecture",
+  "M.E. STRUCTURAL ENGINEERING": "M.E. Structural Engineering",
+  "M.E. ENVIRONMENTAL ENGINEERING": "M.E. Environmental Engineering",
+  "M.E. CONSTRUCTION ENGINEERING AND MANAGEMENT": "M.E. Construction Engineering and Management",
+  "M.E. ENGINEERING DESIGN": "M.E. Engineering Design",
+  "M.E. POWER SYSTEM ENGINEERING": "M.E. Power System Engineering",
+  "M.E. COMMUNICATION SYSTEMS": "M.E. Communication Systems",
+  "M.E. COMPUTER SCIENCE AND ENGINEERING": "M.E. Computer Science and Engineering",
+  "MCA": "M.C.A",
+  "M.ARCH": "M.Arch"
 };
 
 
@@ -1051,20 +1060,22 @@ function acceptStudent(id, branch) {
   branchSelect.disabled = false;
   modeSelect.disabled = false;
 
-  const degree = (student.degree || "").toUpperCase();
-  const branch1 = (student.branch || "").toLowerCase();
+  // Normalize degree for matching
+  const degree = (student.degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
-    "IT", "AI/ML", "CSBS", "Civil"
-  ];
-
-  // PG course logic
-  if (
-    ["ME", "M.E", "MTECH", "M.TECH", "ME_MTECH", "ME MTECH", "ME-MTECH", "MEMTECH"].includes(degree)
-  ) {
+  // PG logic
+  if (["me", "me_mtech", "memtech", "mtech", "me-mtech", "m.e", "m.tech"].includes(degree)) {
     // M.E/M.Tech
-    beCourses.forEach(course => {
+    const pgCourses = [
+      'M.E. Structural Engineering',
+      'M.E. Environmental Engineering',
+      'M.E. Construction Engineering and Management',
+      'M.E. Engineering Design',
+      'M.E. Power System Engineering',
+      'M.E. Communication Systems',
+      'M.E. Computer Science and Engineering',
+    ];
+    pgCourses.forEach(course => {
       const option = document.createElement("option");
       option.value = course;
       option.textContent = course;
@@ -1076,80 +1087,71 @@ function acceptStudent(id, branch) {
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  } else if (["MCA", "M.C.A"].includes(degree)) {
+  } else if (["mca", "mca"].includes(degree) || degree === "mca") {
     // MCA
     const option = document.createElement("option");
     option.value = "MCA";
     option.textContent = "MCA";
     branchSelect.appendChild(option);
-    branchSelect.value = "MCA";
     branchSelect.disabled = true;
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  } else if (["MARCH", "M.ARCH"].includes(degree)) {
+  } else if (["march", "m.arch"].includes(degree)) {
     // M.Arch
     const option = document.createElement("option");
     option.value = "M.ARCH";
     option.textContent = "M.ARCH";
     branchSelect.appendChild(option);
-    branchSelect.value = "M.ARCH";
     branchSelect.disabled = true;
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  }
-  // ...existing UG/other logic...
-  else if (degree === "MSC") {
+  } else if (["msc", "mscdata", "mscdatascience"].includes(degree)) {
+    // M.Sc Data Science
     const option = document.createElement("option");
     option.value = "MSC DATA SCIENCE";
     option.textContent = "MSC DATA SCIENCE";
     branchSelect.appendChild(option);
-    branchSelect.value = "MSC DATA SCIENCE";
     branchSelect.disabled = true;
-
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  }
-  else if (degree === "BARCH") {
+  } else if (["barch", "b.arch"].includes(degree)) {
+    // B.Arch
     const option = document.createElement("option");
     option.value = "B.ARCH";
     option.textContent = "B.ARCH";
     branchSelect.appendChild(option);
-    branchSelect.value = "B.ARCH";
     branchSelect.disabled = true;
-
     modeSelect.innerHTML = `
       <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  }
-  else if (["BDES", "IT", "Mechatronics", "CSBS"].includes(degree)) {
+  } else if (["bdes", "b.des"].includes(degree)) {
+    // B.Des
     const option = document.createElement("option");
-    option.value = degree;
-    option.textContent = degree;
+    option.value = "B.DES";
+    option.textContent = "B.DES";
     branchSelect.appendChild(option);
-    branchSelect.value = degree;
     branchSelect.disabled = true;
-
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  }
-  // General case: BE courses
-  else {
-    // ...existing BE logic...
-    const branchesToShow = beCourses;
+  } else {
+    // UG BE/BTech logic
+    const beCourses = [
+      "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
+      "IT", "AI/ML", "CSBS", "Civil"
+    ];
     const defaultOption = document.createElement("option");
     defaultOption.textContent = "Select Branch";
     defaultOption.disabled = true;
     defaultOption.selected = true;
     branchSelect.appendChild(defaultOption);
 
-    branchesToShow.forEach(course => {
+    beCourses.forEach(course => {
       const option = document.createElement("option");
       option.value = course;
       option.textContent = course;
@@ -1173,6 +1175,23 @@ function acceptStudent(id, branch) {
     };
 
     branchSelect.dispatchEvent(new Event("change"));
+  }
+
+  // --- SET THE SELECTED VALUE ONLY AFTER POPULATING OPTIONS ---
+  let alreadyAllotted = "";
+  if (student.outcomes && student.outcomes.length > 0 && student.outcomes[0].course_name) {
+    alreadyAllotted = student.outcomes[0].course_name;
+  }
+
+  if (alreadyAllotted) {
+    branchSelect.value = alreadyAllotted;
+    // If the value is not found (maybe due to mismatch), fallback to first option
+    if (branchSelect.value !== alreadyAllotted) {
+      branchSelect.selectedIndex = 0;
+    }
+  } else {
+    // No allotment yet, select the default (first) option if exists
+    branchSelect.selectedIndex = 0;
   }
 
   // Show the popup
