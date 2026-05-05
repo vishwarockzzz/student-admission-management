@@ -960,6 +960,7 @@ const courseMap = {
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
 }
+
 function acceptStudent(id, branch) {
   currentStudentId = id;
   const student = allStudentsData.find(s => s.id === id);
@@ -980,7 +981,48 @@ function acceptStudent(id, branch) {
     "IT", "AI/ML", "CSBS", "Civil"
   ];
 
-    if (degree === "MSC") {
+  // PG course logic
+  if (
+    ["ME", "M.E", "MTECH", "M.TECH", "ME_MTECH", "ME MTECH", "ME-MTECH", "MEMTECH"].includes(degree)
+  ) {
+    // M.E/M.Tech
+    beCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchSelect.appendChild(option);
+    });
+    branchSelect.disabled = false;
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else if (["MCA", "M.C.A"].includes(degree)) {
+    // MCA
+    const option = document.createElement("option");
+    option.value = "MCA";
+    option.textContent = "MCA";
+    branchSelect.appendChild(option);
+    branchSelect.value = "MCA";
+    branchSelect.disabled = true;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  } else if (["MARCH", "M.ARCH"].includes(degree)) {
+    // M.Arch
+    const option = document.createElement("option");
+    option.value = "M.ARCH";
+    option.textContent = "M.ARCH";
+    branchSelect.appendChild(option);
+    branchSelect.value = "M.ARCH";
+    branchSelect.disabled = true;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  }
+  // ...existing UG/other logic...
+  else if (degree === "MSC") {
     const option = document.createElement("option");
     option.value = "MSC DATA SCIENCE";
     option.textContent = "MSC DATA SCIENCE";
@@ -992,7 +1034,6 @@ function acceptStudent(id, branch) {
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
   }
-
   else if (degree === "BARCH") {
     const option = document.createElement("option");
     option.value = "B.ARCH";
@@ -1008,24 +1049,22 @@ function acceptStudent(id, branch) {
     `;
     modeSelect.disabled = false;
   }
-
-
   else if (["BDES", "IT", "Mechatronics", "CSBS"].includes(degree)) {
-  const option = document.createElement("option");
-  option.value = degree;
-  option.textContent = degree;
-  branchSelect.appendChild(option);
-  branchSelect.value = degree;
-  branchSelect.disabled = true;
+    const option = document.createElement("option");
+    option.value = degree;
+    option.textContent = degree;
+    branchSelect.appendChild(option);
+    branchSelect.value = degree;
+    branchSelect.disabled = true;
 
-  modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-  modeSelect.value = "self-finance";
-  modeSelect.disabled = false;
-}
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  }
   // General case: BE courses
   else {
-    const branchesToShow = beCourses
-    // Add a default option
+    // ...existing BE logic...
+    const branchesToShow = beCourses;
     const defaultOption = document.createElement("option");
     defaultOption.textContent = "Select Branch";
     defaultOption.disabled = true;
@@ -1039,7 +1078,6 @@ function acceptStudent(id, branch) {
       branchSelect.appendChild(option);
     });
 
-    // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
       if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
@@ -1056,15 +1094,12 @@ function acceptStudent(id, branch) {
       }
     };
 
-    // Trigger mode dropdown update initially
     branchSelect.dispatchEvent(new Event("change"));
   }
 
   // Show the popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
-
-
 
 
 function confirmSelection() {
