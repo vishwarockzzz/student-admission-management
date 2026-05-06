@@ -97,15 +97,9 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
-  document.getElementById("ugFilter").value = "";
-  document.getElementById("pgFilter").value = "";
-  document.getElementById("ugLateralFilter").value = "";
   currentStatus = "UNALLOCATED"
   fetchStudentsByStatus(currentStatus)
-    .then(students => {
-      renderStudents(students || []);
-      populateDegreeFilters();
-    })
+    .then(students => renderStudents(students || []))
     .catch(error => console.error("Error loading students:", error));
 }
 // NOTE: seats pre-fetch is done inside window.onload to avoid
@@ -146,90 +140,6 @@ function handleSearch(status) {
     .then(students => renderStudents(students || []))
     .catch(error => console.error("Error during search:", error));
 }
-
-function normalizeDegreeValue(degree) {
-  return (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function populateDegreeFilters() {
-  const degrees = {
-    ug: new Set(),
-    pg: new Set()
-  };
-
-  const knownPgKeys = new Set([
-    'me', 'm.e', 'mtech', 'm.tech', 'me_mtech', 'me mtech', 'me-mtech', 'memtech', 'mca', 'm.c.a', 'march', 'm.arch', 'mba', 'm.b.a'
-  ]);
-
-  allStudents.forEach(student => {
-    const rawDegree = student.degree || "";
-    const degreeKey = normalizeDegreeValue(rawDegree);
-
-    if (degreeKey === 'msc' || degreeKey === 'mscdata' || degreeKey === 'mscdatascience') {
-      degrees.ug.add(rawDegree);
-    } else if (knownPgKeys.has(degreeKey)) {
-      degrees.pg.add(rawDegree);
-    } else {
-      degrees.ug.add(rawDegree);
-    }
-  });
-
-  const ugFilter = document.getElementById("ugFilter");
-  if (ugFilter) {
-    ugFilter.innerHTML = '<option value="">All UG</option>';
-    Array.from(degrees.ug).sort().forEach(degree => {
-      const option = document.createElement("option");
-      option.value = degree;
-      option.textContent = degree.toUpperCase();
-      ugFilter.appendChild(option);
-    });
-  }
-
-  const pgFilter = document.getElementById("pgFilter");
-  if (pgFilter) {
-    pgFilter.innerHTML = '<option value="">All PG</option>';
-    Array.from(degrees.pg).sort().forEach(degree => {
-      const option = document.createElement("option");
-      option.value = degree;
-      option.textContent = degree.toUpperCase();
-      pgFilter.appendChild(option);
-    });
-  }
-
-  const ugLateralFilter = document.getElementById("ugLateralFilter");
-  if (ugLateralFilter) {
-    ugLateralFilter.innerHTML = '<option value="">All UG Lateral</option>';
-    Array.from(degrees.ug).sort().forEach(degree => {
-      const option = document.createElement("option");
-      option.value = degree;
-      option.textContent = degree.toUpperCase();
-      ugLateralFilter.appendChild(option);
-    });
-  }
-}
-
-function filterByDegree() {
-  const ugFilter = document.getElementById("ugFilter")?.value;
-  const pgFilter = document.getElementById("pgFilter")?.value;
-  const ugLateralFilter = document.getElementById("ugLateralFilter")?.value;
-
-  let filtered = allStudents;
-
-  if (ugFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
-  }
-
-  if (pgFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === pgFilter.toLowerCase());
-  }
-
-  if (ugLateralFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase());
-  }
-
-  renderStudents(filtered);
-}
-
 function populateFilters() {
   const filterElement = document.getElementById("combinedFilter");
 
@@ -304,7 +214,6 @@ function fetchAndRenderStudents(status) {
       allStudents = students || [];
       renderStudents(allStudents);
       populateRecommenderFilter(allStudents);
-      populateDegreeFilters();
     })
     .catch(error => console.error("Error fetching students:", error));
 }// Populate recommender dropdown
@@ -388,24 +297,18 @@ function renderStudents(students) {
   };
 
   const degreeConfig = [
-    { key: "btech", displayName: "BE / B.Tech", keys: ["b.e", "btech", "engineering"], isPG: false, isLateral: false },
-    { key: "msc", displayName: "M.Sc. Data Science", keys: ["msc", "mscdata", "mscdatascience"], isPG: false, isLateral: false },
-    { key: "bdes", displayName: "B.Des", keys: ["bdes", "b.des"], isPG: false, isLateral: false },
-    { key: "barch", displayName: "B.Arch", keys: ["barch", "b.arch"], isPG: false, isLateral: false },
-    { key: "btech_lateral", displayName: "BE / B.Tech", keys: ["b.e", "btech", "engineering"], isPG: false, isLateral: true },
-    { key: "bdes_lateral", displayName: "B.Des", keys: ["bdes", "b.des"], isPG: false, isLateral: true },
-    { key: "barch_lateral", displayName: "B.Arch", keys: ["barch", "b.arch"], isPG: false, isLateral: true },
-    { key: "me_mtech", displayName: "ME / M.Tech", keys: ["me_mtech"], isPG: true, isLateral: false },
-    { key: "march", displayName: "M.Arch", keys: ["march"], isPG: true, isLateral: false },
-    { key: "mca", displayName: "MCA", keys: ["mca"], isPG: true, isLateral: false }
+    { key: "btech", displayName: "BE / B.Tech", isPG: false },
+    { key: "msc", displayName: "M.Sc. Data Science", isPG: false },
+    { key: "bdes", displayName: "B.Des", isPG: false },
+    { key: "barch", displayName: "B.Arch", isPG: false },
+    { key: "me_mtech", displayName: "ME / M.Tech", isPG: true },
+    { key: "march", displayName: "M.Arch", isPG: true },
+    { key: "mca", displayName: "MCA", isPG: true }
   ];
-
-  const normalizeDegreeValue = degree => (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
 
   const grouped = {};
   students.forEach(student => {
-    const degreeKey = normalizeDegreeValue(student.degree);
+    const degreeKey = student.degree?.toLowerCase();
     if (!grouped[degreeKey]) grouped[degreeKey] = [];
     grouped[degreeKey].push(student);
   });
@@ -415,20 +318,11 @@ function renderStudents(students) {
   mainContainer.className = "degree-sections-container";
 
   let ugGroup = null;
-  let ugLateralGroup = null;
   let pgGroup = null;
 
   degreeConfig.forEach(degreeItem => {
-    const { key, displayName, isPG, isLateral, keys } = degreeItem;
-    const normalizedKeys = keys.map(normalizeDegreeValue);
-    const studentsList = Array.from(new Set(Object.values(grouped).flat())).filter(student => {
-      const studentDegree = normalizeDegreeValue(student.degree);
-      const lateral = isStudentLateral(student);
-      if (isLateral) {
-        return lateral && normalizedKeys.includes(studentDegree);
-      }
-      return !lateral && normalizedKeys.includes(studentDegree);
-    });
+    const { key, displayName, isPG } = degreeItem;
+    const studentsList = grouped[key] || [];
     const count = studentsList.length;
 
     // Create degree group separator if needed
@@ -441,16 +335,7 @@ function renderStudents(students) {
       pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
       pgGroup.appendChild(pgLabel);
       mainContainer.appendChild(pgGroup);
-    } else if (isLateral && !ugLateralGroup) {
-      ugLateralGroup = document.createElement("div");
-      ugLateralGroup.className = "degree-group";
-
-      const lateralLabel = document.createElement("div");
-      lateralLabel.className = "degree-group-title";
-      lateralLabel.textContent = "UG LATERAL ENTRY DEGREES";
-      ugLateralGroup.appendChild(lateralLabel);
-      mainContainer.appendChild(ugLateralGroup);
-    } else if (!isPG && !isLateral && !ugGroup) {
+    } else if (!isPG && !ugGroup) {
       ugGroup = document.createElement("div");
       ugGroup.className = "degree-group";
 
@@ -461,7 +346,7 @@ function renderStudents(students) {
       mainContainer.appendChild(ugGroup);
     }
 
-    const targetGroup = isPG ? pgGroup : isLateral ? ugLateralGroup : ugGroup;
+    const targetGroup = isPG ? pgGroup : ugGroup;
 
     // Create dropdown
     const dropdown = document.createElement("div");
@@ -1035,6 +920,7 @@ function showViewMore(student) {
     ["Board", student.board],
     ["Year of Passing", student.year_of_passing],
     ["College", student.college],
+    ["Preferred Branch", student.branch_1 || "-"],
     ["Branch 1", student.branch_1],
     ["Branch 2", student.branch_2],
     ["Branch 3", student.branch_3]
