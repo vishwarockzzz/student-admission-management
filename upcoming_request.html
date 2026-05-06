@@ -31,7 +31,7 @@
 <div class="main-controls">
   <div class="left-nav-group">
     <button class="modern-btn" onclick="showSeatPopup()">Seats Remaining</button>
-    <button class="modern-btn" onclick="showChangeSeatsPopup()">Edit Alloted Seats</button>
+    <button class="modern-btn" onclick="showChangeSeatsPopup()">Edit Seats Strength</button>
     <button class="modern-btn" onclick="window.location.href='completed.html'">Application Status</button>
     <button class="modern-btn" id="downloadExcelBtn" onclick="downloadExcel()">&#8595; Download Excel</button>
     
@@ -50,6 +50,28 @@
     <input id="searchInput" class="input-box" placeholder="Search for details..." />
     <button class="submit-input" onclick="handleSearch('UNALLOCATED')">Search</button>
     <button class="maroon-btn clear-search" onclick="clearSearch()">Clear</button>
+  </div>
+</div>
+
+<!-- Degree Type Filters -->
+<div class="filter-section">
+  <div class="filter-group">
+    <label for="ugFilter">Undergraduate:</label>
+    <select id="ugFilter" onchange="filterByDegree()">
+      <option value="">All UG</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="pgFilter">Postgraduate:</label>
+    <select id="pgFilter" onchange="filterByDegree()">
+      <option value="">All PG</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="ugLateralFilter">UG Lateral:</label>
+    <select id="ugLateralFilter" onchange="filterByDegree()">
+      <option value="">All UG Lateral</option>
+    </select>
   </div>
 </div>
 
@@ -79,7 +101,7 @@
 
 <div id="changeSeatPopup" class="popup-overlay">
   <div class="popup wide-popup">
-    <h3 class="maroon-text">Change Seat Totals</h3>
+    <h3 class="maroon-text">Edit Seats Strength</h3>
     <table id="changeSeatTable" class="neat-table">
       <thead>
         <tr>
