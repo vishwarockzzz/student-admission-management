@@ -177,6 +177,51 @@ h1 {
   cursor: pointer;
 }
 
+.filter-section {
+  max-width: 1400px;
+  margin: 15px auto 10px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--maroon);
+  font-size: 14px;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--maroon);
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.filter-group select:hover {
+  border-color: var(--maroon-hover);
+  box-shadow: 0 2px 6px rgba(128, 0, 0, 0.1);
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--maroon);
+  box-shadow: 0 2px 8px rgba(128, 0, 0, 0.2);
+}
+
 /* ===== Student Card Grid & Alignment ===== */
 .degree-sections-container {
   width: 100%;
