@@ -467,6 +467,26 @@ h1 {
   background: var(--maroon-hover);
 }
 
+.nav-btn {
+  background: white;
+  color: var(--maroon);
+  border: 1.5px solid var(--maroon);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: var(--maroon);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
 /* ===== Centered Popups & Overlays ===== */
 .popup-overlay {
   position: fixed;
