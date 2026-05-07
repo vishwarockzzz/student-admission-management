@@ -1089,7 +1089,7 @@ function updateRemaining(index) {
 
   const total = parseInt(totalInput.value) || 0;
   const allocated = parseInt(allocatedInput.value) || 0;
-  const remaining = Math.max(0, total - allocated);
+  const remaining = total - allocated; // Allow negative values
   remainingInput.value = remaining;
 
   updateSummaryTotals();
@@ -1098,28 +1098,45 @@ function updateRemaining(index) {
 function updateSummaryTotals() {
   const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
   const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  let aidedTotal = 0;
+  let aidedAllocated = 0;
+  let aidedRemaining = 0;
   let sfTotal = 0;
   let sfAllocated = 0;
   let sfRemaining = 0;
 
   rows.forEach(row => {
-    if (row.dataset.courseType !== 'self finance') return;
-
+    const courseType = row.dataset.courseType;
     const total = parseInt(row.querySelector("input[id^='total-']")?.value) || 0;
     const allocated = parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
     const remaining = parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
 
-    sfTotal += total;
-    sfAllocated += allocated;
-    sfRemaining += remaining;
+    if (courseType === 'aided') {
+      aidedTotal += total;
+      aidedAllocated += allocated;
+      aidedRemaining += remaining;
+    } else if (courseType === 'self finance') {
+      sfTotal += total;
+      sfAllocated += allocated;
+      sfRemaining += remaining;
+    }
   });
 
-  const totalSummary = document.getElementById("sf-total-summary");
-  const allocatedSummary = document.getElementById("sf-allocated-summary");
-  const remainingSummary = document.getElementById("sf-remaining-summary");
-  if (totalSummary) totalSummary.value = sfTotal;
-  if (allocatedSummary) allocatedSummary.value = sfAllocated;
-  if (remainingSummary) remainingSummary.value = sfRemaining;
+  // Update aided totals
+  const aidedTotalEl = document.getElementById("aided-total");
+  const aidedAllocatedEl = document.getElementById("aided-allocated");
+  const aidedRemainingEl = document.getElementById("aided-remaining");
+  if (aidedTotalEl) aidedTotalEl.textContent = aidedTotal;
+  if (aidedAllocatedEl) aidedAllocatedEl.textContent = aidedAllocated;
+  if (aidedRemainingEl) aidedRemainingEl.textContent = aidedRemaining;
+
+  // Update self finance totals
+  const sfTotalEl = document.getElementById("sf-total");
+  const sfAllocatedEl = document.getElementById("sf-allocated");
+  const sfRemainingEl = document.getElementById("sf-remaining");
+  if (sfTotalEl) sfTotalEl.textContent = sfTotal;
+  if (sfAllocatedEl) sfAllocatedEl.textContent = sfAllocated;
+  if (sfRemainingEl) sfRemainingEl.textContent = sfRemaining;
 }
 
 function showChangeSeatsPopup() {
@@ -1144,18 +1161,18 @@ function showChangeSeatsPopup() {
         if (courseType.includes("aided")) {
           totals.aided.totalSeats += Number(entry.total_seats) || 0;
           totals.aided.allocatedSeats += Number(entry.allocated_seats) || 0;
-          totals.aided.remainingSeats += Math.max(0, (Number(entry.total_seats) || 0) - (Number(entry.allocated_seats) || 0));
+          totals.aided.remainingSeats += (Number(entry.total_seats) || 0) - (Number(entry.allocated_seats) || 0);
         } else if (courseType.includes("self")) {
           totals.selfFinance.totalSeats += Number(entry.total_seats) || 0;
           totals.selfFinance.allocatedSeats += Number(entry.allocated_seats) || 0;
-          totals.selfFinance.remainingSeats += Math.max(0, (Number(entry.total_seats) || 0) - (Number(entry.allocated_seats) || 0));
+          totals.selfFinance.remainingSeats += (Number(entry.total_seats) || 0) - (Number(entry.allocated_seats) || 0);
         }
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
         const row = document.createElement("tr");
         row.dataset.courseType = entry.course_type.toLowerCase();
         row.dataset.courseName = entry.course;
-        const remainingSeats = Math.max(0, (parseInt(entry.total_seats) || 0) - (parseInt(entry.allocated_seats) || 0));
+        const remainingSeats = (parseInt(entry.total_seats) || 0) - (parseInt(entry.allocated_seats) || 0);
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
@@ -1166,21 +1183,21 @@ function showChangeSeatsPopup() {
         tableBody.appendChild(row);
       });
 
-      const appendTotalRow = (label, totalsData) => {
+      const appendTotalRow = (label, totalsData, type) => {
         const totalRow = document.createElement("tr");
         totalRow.className = "seat-total-row summary-row";
         totalRow.innerHTML = `
           <td></td>
           <td><strong>${label}</strong></td>
-          <td><strong>${totalsData.totalSeats}</strong></td>
-          <td><strong>${totalsData.allocatedSeats}</strong></td>
-          <td><strong>${totalsData.remainingSeats}</strong></td>
+          <td><strong id="${type}-total">${totalsData.totalSeats}</strong></td>
+          <td><strong id="${type}-allocated">${totalsData.allocatedSeats}</strong></td>
+          <td><strong id="${type}-remaining">${totalsData.remainingSeats}</strong></td>
         `;
         tableBody.appendChild(totalRow);
       };
 
-      appendTotalRow("Aided Total", totals.aided);
-      appendTotalRow("Self Finance Total", totals.selfFinance);
+      appendTotalRow("Aided Total", totals.aided, "aided");
+      appendTotalRow("Self Finance Total", totals.selfFinance, "sf");
 
       document.getElementById("changeSeatPopup").style.display = "flex";
       updateSummaryTotals();
@@ -1205,7 +1222,7 @@ function saveChangeSeats() {
       const originalAllocated = grouped[index].allocated_seats || 0;
       if (totalInput) {
         const newTotal = parseInt(totalInput.value) || 0;
-        const newRemaining = Math.max(0, newTotal - originalAllocated);
+        const newRemaining = newTotal - originalAllocated; // Allow negative values
 
         updatedData.push({
           course: grouped[index].course,
@@ -1218,10 +1235,10 @@ function saveChangeSeats() {
     }
   });
 
-  const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
+  const invalidEntries = updatedData.filter(d => d.total_seats < 0);
   if (invalidEntries.length > 0) {
     const courses = invalidEntries.map(d => d.course).join(", ");
-    alert(`Cannot set total seats less than allocated seats for: ${courses}`);
+    alert(`Total seats cannot be negative for: ${courses}`);
     return;
   }
 
