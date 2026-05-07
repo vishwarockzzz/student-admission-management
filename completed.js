@@ -732,6 +732,11 @@ function renderCards(students, statusParam, showStatus = false) {
         .filter(branch => branch && branch.trim())
         .map(branch => branch.trim());
       const preferredBranch = preferredBranches.length ? preferredBranches.join('/') : '-';
+      
+      const isPG = degreeItem.isPG;
+      const scoreLabel = isPG ? 'TANCET/GATE Score' : 'Cut-Off';
+      const scoreValue = isPG ? (student.tancet_gate_score || '-') : (cutoff || '-');
+      
       row.innerHTML = `
         ${statusBadge}
         <div class="student-info">
@@ -744,7 +749,7 @@ function renderCards(students, statusParam, showStatus = false) {
             <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation || '-'}</p></div>
           </div>
           <div class="card-row">
-            <div class="card-cell"><p><strong>Cut-Off:</strong> ${cutoff || '-'}</p></div>
+            <div class="card-cell"><p><strong>${scoreLabel}:</strong> ${scoreValue}</p></div>
             <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch || '-'}</p></div>
           </div>
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student).replace(/'/g, "&apos;")})'>View More</button>
@@ -1419,7 +1424,11 @@ function removeCard(id) {
       container.innerHTML = "";
 
       const r = student.recommender || student.recommenders?.[0] || {};
+      
+      console.log("Student Data:", student);
 
+      const isPGStudent = (student.degree || "").toLowerCase().match(/me|mtech|march|mca/);
+      
       const studentFields = [
         ["Application Number", student.application_number],
         ["Name", student.name],
@@ -1436,7 +1445,20 @@ function removeCard(id) {
         ["Board", student.board],
         ["Year of Passing", student.year_of_passing],
         ["College", student.college],
-        ["Degree", student.degree],
+        ["Degree", student.degree]
+      ];
+      
+      if (isPGStudent) {
+        studentFields.push(
+          ["UG Degree", student.ug_degree || "-"],
+          ["UG Programme Name", student.ug_course_name || "-"],
+          ["UG Institution", student.ug_institution || "-"],
+          ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
+          ["Tancet/GATE Score", student.tancet_gate_score || "-"]
+        );
+      }
+      
+      studentFields.push(
         ["Branch 1", student.branch_1],
         ["Branch 2", student.branch_2],
         ["Branch 3", student.branch_3],
@@ -1449,7 +1471,7 @@ function removeCard(id) {
         ["MSC Cutoff", student.msc_cutoff, true],
         ["BArch Cutoff", student.barch_cutoff, true],
         ["BDes Cutoff", student.bdes_cutoff, true]
-      ];
+      );
 
       const recommenderFields = [
         ["Name", r.name],

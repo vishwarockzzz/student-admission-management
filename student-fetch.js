@@ -504,22 +504,13 @@ function renderStudents(students) {
 
       const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
 
-      let cutoffDisplay = '';
-      let ugDetailsDisplay = '';
+      let scoreDisplay = '';
 
       if (!isPG) {
-        cutoffDisplay = `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
+        scoreDisplay = `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
       } else {
-        // For PG students, show UG details
-        const ugCourse = student.ug_course_name ? `${student.ug_course_name}` : '-';
-        const ugInstitution = student.ug_institution ? `${student.ug_institution}` : '-';
-        const ugCutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || '-';
-
-        ugDetailsDisplay = `
-          <p><strong>UG Course:</strong> ${ugCourse}</p>
-          <p><strong>UG Institute:</strong> ${ugInstitution}</p>
-          <p><strong>UG Cut-Off:</strong> ${ugCutoff}</p>
-        `;
+        const tancetGateScore = student.tancet_gate_score ? `${student.tancet_gate_score}` : '-';
+        scoreDisplay = `<p><strong>TANCET/GATE Score:</strong> ${tancetGateScore}</p>`;
       }
 
       const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
@@ -544,7 +535,7 @@ function renderStudents(students) {
             <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation}</p></div>
           </div>
           <div class="card-row">
-            <div class="card-cell"><p><strong>Cut-Off:</strong> ${cutoff || '-'}</p></div>
+            <div class="card-cell">${scoreDisplay}</div>
             <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch}</p></div>
           </div>
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
@@ -989,6 +980,8 @@ function showViewMore(student) {
   container.innerHTML = "";
 
   const r = student.recommender || student.recommenders?.[0] || {};
+  
+  console.log("Student Data:", student);
 
   const makeSection = (title, fields) => {
     const section = document.createElement("div");
@@ -1014,6 +1007,7 @@ function showViewMore(student) {
   };
 
   const studentProgramType = student.program_type ? student.program_type.toUpperCase() : 'UG';
+  console.log("Program Type:", studentProgramType);
   const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
   const degreeDisplay = degreeDisplayMap[(student.degree || '').toLowerCase()] || student.degree;
 
@@ -1042,19 +1036,11 @@ function showViewMore(student) {
 
   if (studentProgramType === 'PG') {
     studentFields.push(
-      ["UG Consolidated Mark", student.ug_consolidated_mark],
-      ["UG Course Name", student.ug_course_name],
-      ["UG Institution", student.ug_institution],
-      ["Tancet/GATE Score", student.tancet_gate_score],
-      ["Maths", student.maths],
-      ["Physics", student.physics],
-      ["Chemistry", student.chemistry],
-      ["Total Marks", student.twelfth_mark],
-      ["Mark %", student.markpercentage],
-      ["Engineering Cutoff", student.engineering_cutoff],
-      ["MSC Cutoff", student.msc_cutoff],
-      ["BArch Cutoff", student.barch_cutoff],
-      ["BDes Cutoff", student.bdes_cutoff]
+      ["UG Degree", student.ug_degree || "-"],
+      ["UG Programme Name", student.ug_course_name || "-"],
+      ["UG Institution", student.ug_institution || "-"],
+      ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
+      ["Tancet/GATE Score", student.tancet_gate_score || "-"]
     );
   } else {
     studentFields.push(
