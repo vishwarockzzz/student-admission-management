@@ -469,6 +469,17 @@ h1 {
   font-weight: 600;
 }
 
+.neat-table .seat-total-row {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  border-top: 2px solid var(--maroon);
+}
+
+.neat-table .seat-total-row td {
+  color: var(--maroon);
+  font-weight: 700;
+}
+
 /* Form elements in Popups */
 .popup select, .popup textarea, .popup-input {
   width: 100%;
