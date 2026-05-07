@@ -154,6 +154,24 @@ function loadSeatTable() {
   authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
+      const totals = {
+        aided: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 },
+        selfFinance: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }
+      };
+
+      result.forEach(entry => {
+        const courseType = (entry.course_type || "").toString().trim().toLowerCase();
+        if (courseType.includes("aided")) {
+          totals.aided.totalSeats += Number(entry.total_seats) || 0;
+          totals.aided.allocatedSeats += Number(entry.allocated_seats) || 0;
+          totals.aided.remainingSeats += Number(entry.remaining_seats) || 0;
+        } else if (courseType.includes("self")) {
+          totals.selfFinance.totalSeats += Number(entry.total_seats) || 0;
+          totals.selfFinance.allocatedSeats += Number(entry.allocated_seats) || 0;
+          totals.selfFinance.remainingSeats += Number(entry.remaining_seats) || 0;
+        }
+      });
+
       seatTbody.forEach(tbody => {
         result.forEach((entry, index) => {
           const courseWithType = `${entry.course} (${entry.course_type})`;
@@ -168,6 +186,22 @@ function loadSeatTable() {
           `;
           tbody.appendChild(row);
         });
+
+        const appendTotalRow = (label, totalsData) => {
+          const totalRow = document.createElement("tr");
+          totalRow.className = "seat-total-row";
+          totalRow.innerHTML = `
+            <td></td>
+            <td><strong>${label}</strong></td>
+            <td><strong>${totalsData.totalSeats}</strong></td>
+            <td><strong>${totalsData.allocatedSeats}</strong></td>
+            <td><strong>${totalsData.remainingSeats}</strong></td>
+          `;
+          tbody.appendChild(totalRow);
+        };
+
+        appendTotalRow("Aided Total", totals.aided);
+        appendTotalRow("Self Finance Total", totals.selfFinance);
       });
     })
     .catch(err => {
@@ -1046,7 +1080,8 @@ const courseMap = {
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
-}
+  }
+
 
 function acceptStudent(id, branch) {
   currentStudentId = id;
@@ -1172,6 +1207,7 @@ function acceptStudent(id, branch) {
         `;
         modeSelect.disabled = false;
       }
+      updateSeatInfo();
     };
 
     branchSelect.dispatchEvent(new Event("change"));
@@ -1209,7 +1245,7 @@ function confirmSelection() {
   }
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
+  selectedMode === "aided" ? "Aided" : "Self Finance";
  const confirmButton = document.querySelector("#popup-overlay button.accept");
   if (confirmButton) {
     confirmButton.disabled = true;
@@ -1230,13 +1266,13 @@ function sendApprovalRequest(isConfirm = false) {
       status: "APPROVED",
       course: fullCourseName,
       course_type: modeFormatted,
-      is_confirm: isConfirm
+      confirm: isConfirm
     })
   })
   .then(async (res) => {
     const data = await res.json().catch(() => ({})); // protect against invalid JSON
     if (res.status === 409) {
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      const proceed = confirm(`${data.error || "No remaining seats."}\n\nDo you want to proceed?`);
       if (proceed) {
         return sendApprovalRequest(true); // Retry with confirmation
       } else {
@@ -1283,6 +1319,10 @@ function openDeclineModal(id) {
 
 function closeDeclineModal() {
   document.getElementById("declineModal").style.display = "none";
+}
+
+function closeSelectionModal() {
+  document.getElementById("popup-overlay").style.display = "none";
 }
 
 function submitDecline() {
