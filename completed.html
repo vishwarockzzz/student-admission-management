@@ -90,6 +90,12 @@
         <option value="">All PG</option>
       </select>
     </div>
+    <div class="filter-group">
+      <label for="ugLateralFilter">UG Lateral:</label>
+      <select id="ugLateralFilter" onchange="filterByDegree()">
+        <option value="">All UG Lateral</option>
+      </select>
+    </div>
   </div>
 
 
@@ -98,8 +104,19 @@
     <div id="studentTableContainer" class="popup">
       <div class="popup-header">
         <h3 id="popupTitle">Student Status</h3>
-        <select id="branchPrintFilter" onchange="applyPrintFilter()" style="margin: 0 15px; padding: 5px;">
+        <select id="degreeLevelFilter" onchange="populateBranchFilter(); applyFilters()" style="margin: 0 5px; padding: 5px;">
+          <option value="ALL">All</option>
+          <option value="UG">UG</option>
+          <option value="PG">PG</option>
+          <option value="UG_LATERAL">UG Lateral</option>
+        </select>
+        <select id="branchFilter" onchange="applyFilters()" style="margin: 0 5px; padding: 5px;">
           <option value="ALL">All Branches</option>
+        </select>
+        <select id="modeFilter" onchange="applyFilters()" style="margin: 0 5px; padding: 5px;">
+          <option value="BOTH">Both</option>
+          <option value="AIDED">Aided</option>
+          <option value="SELF_FINANCE">Self Finance</option>
         </select>
         <button onclick="printStudentTable()" class="print-btn">Print</button>
       </div>
