@@ -1092,7 +1092,7 @@ function updateRemaining(index) {
   if (!totalInput || !allocatedInput || !remainingInput) return;
   const total = parseInt(totalInput.value) || 0;
   const allocated = parseInt(allocatedInput.value) || 0;
-  remainingInput.value = Math.max(0, total - allocated);
+  remainingInput.value = total - allocated; // Allow negative values
   updateSummaryTotals();
 }
 
@@ -1131,7 +1131,7 @@ function showChangeSeatsPopup() {
         const row = document.createElement("tr");
         row.dataset.courseType = entry.course_type.toLowerCase();
         row.dataset.courseName = entry.course;
-        const remaining = Math.max(0, (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0));
+        const remaining = (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0);
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
@@ -1147,7 +1147,7 @@ function showChangeSeatsPopup() {
       sf.forEach(e => {
         summaryTotal     += parseInt(e.total_seats)     || 0;
         summaryAllocated += parseInt(e.allocated_seats) || 0;
-        summaryRemaining += Math.max(0, (parseInt(e.total_seats)||0) - (parseInt(e.allocated_seats)||0));
+        summaryRemaining += (parseInt(e.total_seats)||0) - (parseInt(e.allocated_seats)||0);
       });
       const summaryRow = document.createElement("tr");
       summaryRow.classList.add("summary-row");
@@ -1187,16 +1187,16 @@ function saveChangeSeats() {
           course_type: grouped[index].course_type,
           total_seats: newTotal,
           allocated_seats: originalAllocated,
-          remaining_seats: Math.max(0, newTotal - originalAllocated)
+          remaining_seats: newTotal - originalAllocated
         });
       }
     }
   });
 
   // Fix 7: Frontend guard — no individual SF seat > allocated already
-  const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
+  const invalidEntries = updatedData.filter(d => d.total_seats < 0);
   if (invalidEntries.length > 0) {
-    alert(`Cannot set total seats less than allocated seats for: ${invalidEntries.map(d => d.course).join(", ")}`);
+    alert(`Total seats cannot be negative for: ${invalidEntries.map(d => d.course).join(", ")}`);
     return;
   }
 
