@@ -8,6 +8,19 @@ const EXPORTS_URL = `${window.env.BASE_URL}/exports`;
 let result = [];
 let seats = {};
 
+function getDegreeLevel(course) {
+  const normalized = (course || "").toString().trim().toLowerCase();
+  if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+    return "PG";
+  }
+  return "UG";
+}
+
+function normalizeCourseType(courseType) {
+  const normalized = (courseType || "").toString().trim().toLowerCase();
+  return normalized.includes("aided") ? "aided" : "selfFinance";
+}
+
 // Fix 5: Download Excel report via authenticated fetch
 function downloadExcel() {
   const btn = document.getElementById('downloadExcelBtn');
@@ -785,10 +798,23 @@ function showSeatPopup() {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -800,6 +826,24 @@ function showSeatPopup() {
 
         tableBody.appendChild(row);
       });
+
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
 
       document.getElementById("seatPopup").style.display = "flex";
     })
