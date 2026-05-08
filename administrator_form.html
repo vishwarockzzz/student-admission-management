@@ -101,22 +101,25 @@
           </div>
 
           <div class="form-group">
-            <label>School:</label>
-            <input type="text" id="school" />
+            <label>Diploma College Name:<span style="color:red">*</span></label>
+            <input type="text" id="diplomaCollegeName" placeholder="e.g., Government Polytechnic, Chennai" required />
           </div>
 
           <div class="form-group">
-            <label>District:</label>
-            <input type="text" id="district" />
+            <label>Diploma Course / Branch:<span style="color:red">*</span></label>
+            <input type="text" id="diplomaCourse" placeholder="e.g., Mechanical Engineering" required />
           </div>
 
           <div class="form-group">
-            <label>12th Mark:</label>
-            <input type="text" id="twelfthMark" />
-            <small id="twelthMark-error" style="color: red; display: none;">Please enter a valid mark between 0 and
-              600.</small>
+            <label>Diploma University / Board:<span style="color:red">*</span></label>
+            <input type="text" id="diplomaUniversity" placeholder="e.g., Tamil Nadu State Board of Technical Education" required />
           </div>
 
+          <div class="form-group">
+            <label>Consolidated Diploma CGPA:<span style="color:red">*</span></label>
+            <input type="number" id="diplomaCGPA" min="0" max="10" step="0.01" placeholder="e.g., 8.5" required />
+            <small id="diplomaCGPA-error" style="color: red; display: none;">CGPA must be between 0 and 10.</small>
+          </div>
 
           <div class="form-group">
             <label>Remarks on Application:</label>
@@ -150,15 +153,6 @@
               digits.</small>
           </div>
           <div class="form-group">
-            <label>Board:<span style="color:red">*</span></label>
-            <select id="boardSelect" required>
-              <option value="">-- Select Board --</option>
-              <option value="state">State Board</option>
-              <option value="cbse">CBSE</option>
-              <option value="icse">ICSE</option>
-            </select>
-          </div>
-          <div class="form-group">
             <label>Email-Id:</label>
             <input type="email" id="email" name="email" autocomplete="email">
           </div>
@@ -174,25 +168,10 @@
             </select>
           </div>
 
-
-
           <div class="form-group">
-            <label>Year Of Passing:</label>
-            <input type="number" id="yearOfPassing" min="2000" max="2025" placeholder="e.g., 2024" />
-            <small id="year-error" style="color: red; display: none;">Enter a valid year between 2000 and 2025.</small>
-          </div>
-
-          <div class="form-group">
-            <label>Study Break:</label>
-            <select id="studyBreak">
-              <option>No</option>
-              <option>Yes</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>12th Mark (in percentage):</label>
-            <input type="text" id="twelfthMarkInput" />
-            <small id="mark-error" style="color: red; display: none;">Please enter a valid percentage (0–100).</small>
+            <label>Year of Diploma Passing:<span style="color:red">*</span></label>
+            <input type="number" id="yearOfDiplomaPassing" min="2000" max="2025" placeholder="e.g., 2023" required />
+            <small id="yearOfDiploma-error" style="color: red; display: none;">Enter a valid year between 2000 and 2025.</small>
           </div>
 
 
@@ -203,9 +182,7 @@
           <label for="degree">Academic Degree Applying for:<span style="color:red">*</span></label>
           <select id="degree" onchange="togglePreferences()" required>
             <option value="">-- Select --</option>
-            <option value="me_mtech">M.E / M.Tech</option>
-            <option value="march">M.Arch</option>
-            <option value="mca">M.C.A</option>
+            <option value="btech_lateral">B.E./B.Tech (Lateral Entry)</option>
           </select>
         </div>
 
@@ -233,61 +210,11 @@
           </div>
         </div>
 
-        <!-- Subject Marks Input -->
-        <div id="subject-fields" style="display: none;">
-          <div class="form-group">
-            <label>Mathematics (out of 100):</label>
-            <input type="number" id="maths" name="maths" oninput="calculateCutoff()" />
-          </div>
-          <div class="form-group">
-            <label>Physics (out of 100):</label>
-            <input type="number" id="physics" name="physics" oninput="calculateCutoff()" />
-          </div>
-          <div class="form-group">
-            <label>Chemistry (out of 100):</label>
-            <input type="number" id="chemistry" name="chemistry" oninput="calculateCutoff()" />
-          </div>
-        </div>
-
-        <!-- NATA and 12th for B.Arch -->
-        <div id="nata-fields" style="display: none;">
-          <div class="form-group">
-            <label>NATA Score (out of 200):<span style="color:red">*</span></label>
-            <input type="number" id="nata" name="nata" oninput="calculateCutoff()" required />
-          </div>
-          <div class="form-group">
-            <label>12th Total Marks:<span style="color:red">*</span></label>
-            <input type="number" id="twelvemarks" name="twelvemarks" oninput="calculateCutoff()" required />
-          </div>
-          <div class="form-group">
-            <label>12th Total Out Of:<span style="color:red">*</span></label>
-            <select name="twelvemax" id="twelvemax" oninput="calculateCutoff()" required>
-              <option value="600">600</option>
-              <option value="500">500</option>
-            </select>
-          </div>
-        </div>
-
         <!-- Cutoff Outputs -->
         <div id="cutoffs-wrapper" class="mt-4">
-          <div class="form-group" id="engg-cutoff-group">
-            <label>Engineering Cutoff (out of 200):<span style="color:red">*</span></label>
-            <input type="text" class="form-control" id="engg-cutoff" required />
-          </div>
-
-          <div class="form-group" id="msc-cutoff-group" style="display: none;">
-            <label>M.Sc. Cutoff (out of 300):<span style="color:red">*</span></label>
-            <input type="text" class="form-control" id="msc-cutoff" required />
-          </div>
-
-          <div class="form-group" id="barch-cutoff-group" style="display: none;">
-            <label>B.Arch. Cutoff (out of 400):<span style="color:red">*</span></label>
-            <input type="text" class="form-control" id="barch-cutoff" required />
-          </div>
-
-          <div class="form-group" id="bdes-cutoff-group" style="display: none;">
-            <label>B.Des. Cutoff (out of 200):<span style="color:red">*</span></label>
-            <input type="text" class="form-control" id="bdes-cutoff" required />
+          <div class="form-group" id="lateral-cutoff-group">
+            <label>Lateral Entry Cutoff:<span style="color:red">*</span></label>
+            <input type="text" class="form-control" id="lateral-cutoff" required />
           </div>
         </div>
 

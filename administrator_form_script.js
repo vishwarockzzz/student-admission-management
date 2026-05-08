@@ -37,20 +37,27 @@ function setDegreeOptions() {
   const degreeDropdown = document.getElementById('degree');
   if (!degreeDropdown) return;
 
-  const pgOptions = [
-    { value: 'me_mtech', text: 'M.E / M.Tech' },
-    { value: 'march', text: 'M.Arch' },
-    { value: 'mca', text: 'M.C.A' }
-  ];
+  let options = [];
 
-  const ugOptions = [
-    { value: 'btech', text: 'B.E./B.Tech' },
-    { value: 'msc', text: 'M.Sc.' },
-    { value: 'bdes', text: 'B.Des' },
-    { value: 'barch', text: 'B.Arch' }
-  ];
+  if (selectedProgramType === 'pg') {
+    options = [
+      { value: 'me_mtech', text: 'M.E / M.Tech' },
+      { value: 'march', text: 'M.Arch' },
+      { value: 'mca', text: 'M.C.A' }
+    ];
+  } else if (selectedProgramType === 'ug') {
+    options = [
+      { value: 'btech', text: 'B.E./B.Tech' },
+      { value: 'msc', text: 'M.Sc.' },
+      { value: 'bdes', text: 'B.Des' },
+      { value: 'barch', text: 'B.Arch' }
+    ];
+  } else if (selectedProgramType === 'lateral') {
+    options = [
+      { value: 'btech_lateral', text: 'B.E./B.Tech (Lateral Entry)' }
+    ];
+  }
 
-  const options = selectedProgramType === 'pg' ? pgOptions : ugOptions;
   degreeDropdown.innerHTML = '<option value="">-- Select --</option>';
 
   options.forEach(opt => {
@@ -170,17 +177,6 @@ document.getElementById('phone').addEventListener('input', function () {
   document.getElementById('phone-error').style.display = isValid ? 'none' : 'block';
 });
 
-document.getElementById('twelfthMark').addEventListener('input', function () {
-  const value = parseInt(this.value);
-  const error = document.getElementById('twelthMark-error');
-
-  if (isNaN(value) || value < 0 || value > 600) {
-    error.style.display = 'block';
-  } else {
-    error.style.display = 'none';
-  }
-});
-
 document.getElementById('aadhar').addEventListener('input', function () {
   let input = this.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
   if (input.length > 12) input = input.slice(0, 12);
@@ -189,15 +185,22 @@ document.getElementById('aadhar').addEventListener('input', function () {
 
   document.getElementById('aadhar-error').style.display = input.length === 12 ? 'none' : 'block';
 });
-document.getElementById('twelfthMarkInput').addEventListener('input', function () {
-  const value = parseFloat(this.value);
-  const error = document.getElementById('mark-error');
 
-  if (isNaN(value) || value < 0 || value > 100) {
+document.getElementById('diplomaCGPA').addEventListener('input', function () {
+  const value = parseFloat(this.value);
+  const error = document.getElementById('diplomaCGPA-error');
+
+  if (isNaN(value) || value < 0 || value > 10) {
     error.style.display = 'block';
   } else {
     error.style.display = 'none';
   }
+});
+
+document.getElementById('yearOfDiplomaPassing').addEventListener('input', function () {
+  const year = parseInt(this.value, 10);
+  const isValid = year >= 2000 && year <= 2025;
+  document.getElementById('yearOfDiploma-error').style.display = isValid ? 'none' : 'block';
 });
 
 const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
@@ -262,95 +265,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add listeners for updates when preferences are changed
   document.getElementById('pref1').addEventListener('change', updateOptions);
   document.getElementById('pref2').addEventListener('change', updateOptions);
-
-  const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
-  inputs.forEach(input => input.addEventListener("input", calculateCutoff));
-  inputs.forEach(input => input.addEventListener("change", calculateCutoff));
 });
 
 
 function togglePreferences() {
   const degree = document.getElementById("degree").value;
-  const subjectFields = document.getElementById("subject-fields");
-  const nataFields = document.getElementById("nata-fields");
-
-  const enggCutoff = document.getElementById("engg-cutoff-group");
-  const mscCutoff = document.getElementById("msc-cutoff-group");
-  const barchCutoff = document.getElementById("barch-cutoff-group");
-  const bdesCutoff = document.getElementById("bdes-cutoff-group");
   const preferences = document.getElementById("preferences");
+  const lateralCutoff = document.getElementById("lateral-cutoff-group");
 
-  subjectFields.style.display = "none";
-  nataFields.style.display = "none";
-  enggCutoff.style.display = "none";
-  mscCutoff.style.display = "none";
-  barchCutoff.style.display = "none";
-  bdesCutoff.style.display = "none";
+  // Hide all non-lateral sections
   preferences.style.display = "none";
+  lateralCutoff.style.display = "none";
 
-  if (degree === "btech" || degree === "msc" || degree === "bdes") {
-    subjectFields.style.display = "block";
-  }
-
-  if (degree === "btech") {
-    enggCutoff.style.display = "block";
+  // Show lateral entry sections
+  if (degree === "btech_lateral") {
+    lateralCutoff.style.display = "block";
     preferences.style.display = "block";
-  }
-
-  if (degree === "me_mtech") {
-    preferences.style.display = "block";
-  }
-
-  if (degree === "msc") {
-    mscCutoff.style.display = "block";
-  }
-
-  if (degree === "barch") {
-    nataFields.style.display = "block";
-    barchCutoff.style.display = "block";
-  }
-
-  if (degree === "bdes") {
-    bdesCutoff.style.display = "block";
-  }
-
-  // Populate preferences based on degree
-  if (degree === "btech" || degree === "me_mtech") {
-    const br = degree === "btech" ? ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'] : [
-      'M.E. Structural Engineering',
-      'M.E. Environmental Engineering',
-      'M.E. Construction Engineering and Management',
-      'M.E. Engineering Design',
-      'M.E. Power System Engineering',
-      'M.E. Communication Systems',
-      'M.E. Computer Science and Engineering',
-      'Any Branch'
-    ];
-    populateDropdown('pref1', [], br);
-    populateDropdown('pref2', [], br);
-    populateDropdown('pref3', [], br);
-  }
-
-  calculateCutoff();
-}
-
-function calculateCutoff() {
-  const degree = document.getElementById("degree").value;
-  document.getElementById("barch-cutoff-group").style.display = "none";
-
-  if (degree === "barch") {
-    const nata = parseFloat(document.getElementById("nata").value) || 0;
-    const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
-    const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
-
-    const converted12th = (twelve / totalOutOf) * 200;
-    const barchCutoff = nata + converted12th;
-
-    if (nata > 0 && twelve > 0) {
-      document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
-    }
-
-    document.getElementById("barch-cutoff-group").style.display = "block";
+    
+    // Populate lateral entry branch preferences
+    const branches = ['CSE', 'IT', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'CSBS', 'Civil', 'AI&ML', 'Any Branch'];
+    populateDropdown('pref1', [], branches);
+    populateDropdown('pref2', [], branches);
+    populateDropdown('pref3', [], branches);
   }
 }
 
@@ -443,20 +379,18 @@ async function handleSubmit(event) {
 
   // Detect program type from degree
   const degreeKey = (degree || '').toLowerCase();
-  let program_type = 'ug';
-  if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey.includes('me_mtech') || degreeKey === 'march' || degreeKey === 'mca') {
-    program_type = 'pg';
-  }
-
+  let program_type = 'lateral';
+  
   const formData = {
     application_number: clean(document.getElementById("applicationNumber")?.value),
     name: clean(document.getElementById("nameInput")?.value),
     email: clean(document.getElementById("email")?.value),
     address: clean(document.getElementById("tceAddress")?.value),
     parent_annual_income: clean(document.getElementById("parentsincome")?.value),
-    school: clean(document.getElementById("school")?.value),
-    district: clean(document.getElementById("district")?.value),
-    twelfth_mark: clean(document.getElementById("twelfthMark")?.value, "float"),
+    diploma_college_name: clean(document.getElementById("diplomaCollegeName")?.value),
+    diploma_course: clean(document.getElementById("diplomaCourse")?.value),
+    diploma_university: clean(document.getElementById("diplomaUniversity")?.value),
+    diploma_cgpa: clean(document.getElementById("diplomaCGPA")?.value, "float"),
     date_of_application: clean(document.getElementById("applicationDate")?.value),
     applicationstatus: clean(document.getElementById("applicationStatus")?.value),
     stdcode: clean(document.getElementById("stdcode")?.value),
@@ -464,23 +398,10 @@ async function handleSubmit(event) {
     aadhar_number: clean(document.getElementById("aadhar")?.value),
     community: clean(document.getElementById("community")?.value),
     college: clean(selectedCollege),
-    board: clean(document.getElementById("boardSelect")?.value),
-    year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
+    year_of_diploma_passing: clean(document.getElementById("yearOfDiplomaPassing")?.value),
     degree: clean(degree),
     program_type: program_type,
-    ug_degree: program_type === 'pg' ? clean(document.getElementById("tceUgDegree")?.value, "float") : null,
-    ug_consolidated_mark: program_type === 'pg' ? clean(document.getElementById("tceUgConsolidatedMark")?.value, "float") : null,
-    ug_course_name: program_type === 'pg' ? clean(document.getElementById("tceUgCourseName")?.value) : null,
-    ug_institution: program_type === 'pg' ? clean(document.getElementById("tceUgInstitution")?.value) : null,
-    tancet_gate_score: program_type === 'pg' ? clean(document.getElementById("tceTancetGateScore")?.value) : null,
-    maths: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
-    physics: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
-    chemistry: (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
-    nata: (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
-    engineering_cutoff: (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
-    msc_cutoff: (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
-    barch_cutoff: (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
-    bdes_cutoff: (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+    lateral_cutoff: clean(document.getElementById("lateral-cutoff")?.value, "float"),
     branch_1: clean(document.getElementById("pref1")?.value),
     branch_2: clean(document.getElementById("pref2")?.value),
     branch_3: clean(document.getElementById("pref3")?.value),
