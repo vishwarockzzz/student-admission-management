@@ -21,6 +21,9 @@ function normalizeCourseType(courseType) {
   const normalized = (courseType || "").toString().trim().toLowerCase();
   return normalized.includes("aided") ? "aided" : "selfFinance";
 }
+const ugBranches = ["CSE", "IT", "ECE", "EEE", "MECHANICAL", "MECHATRONICS", "AI/ML", "CSBS", "CIVIL", "MSC DATA SCIENCE", "B.DES", "B.ARCH"];
+const pgBranches = ["ME", "MCA", "MARCH"];
+const ugLateralBranches = []; // Add if needed
 
 async function fetchStudentsByStatus(status) {
   const queries = STATUS_QUERY_ALIASES[status] || [status];
@@ -116,6 +119,65 @@ function goHome() {
   }
 
 }
+
+function getDegreeLevel(degree) {
+  const ugDegrees = ["b.e", "btech", "msc", "bdes", "barch"];
+  const pgDegrees = ["me", "mtech", "mca", "march"];
+  const ugLateralDegrees = []; // define if any
+  const norm = normalizeDegreeValue(degree);
+  if (ugDegrees.some(d => norm.includes(d))) return "UG";
+  if (pgDegrees.some(d => norm.includes(d))) return "PG";
+  if (ugLateralDegrees.some(d => norm.includes(d))) return "UG_LATERAL";
+  return "ALL";
+}
+
+function populateBranchFilter() {
+  const degreeLevel = document.getElementById("degreeLevelFilter").value;
+  const branchSelect = document.getElementById("branchFilter");
+  branchSelect.innerHTML = '<option value="ALL">All Branches</option>';
+  const branches = new Set();
+  window.currentPopupStudents.forEach(student => {
+    const studLevel = getDegreeLevel(student.degree);
+    if (degreeLevel === "ALL" || studLevel === degreeLevel) {
+      const courseName = student.outcomes?.[0]?.course_name || student.allotted_course || student.course_name || "";
+      if (courseName && courseName !== "-") branches.add(courseName);
+    }
+  });
+  Array.from(branches).sort().forEach(branch => {
+    const option = document.createElement("option");
+    option.value = branch;
+    option.textContent = branch;
+    branchSelect.appendChild(option);
+  });
+}
+
+function applyFilters() {
+  const degreeLevel = document.getElementById("degreeLevelFilter").value;
+  const branch = document.getElementById("branchFilter").value;
+  const mode = document.getElementById("modeFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const student = window.currentPopupStudents[i];
+    const studDegreeLevel = getDegreeLevel(student.degree);
+    const courseName = student.outcomes?.[0]?.course_name || student.allotted_course || student.course_name || "";
+    const courseType = student.outcomes?.[0]?.course_type || student.course_type || "";
+    const normalizedCourseType = courseType.toUpperCase().replace(/ /g, '_');
+    let show = true;
+    if (degreeLevel !== "ALL" && studDegreeLevel !== degreeLevel) show = false;
+    if (branch !== "ALL" && !courseName.toLowerCase().includes(branch.toLowerCase())) show = false;
+    if (mode !== "BOTH" && normalizedCourseType !== mode) show = false;
+    if (show) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
+}
+
     window.onload = () => {
     // Pre-fetch seat data
     authFetch(SEATS_URL)
@@ -296,6 +358,17 @@ function populateDegreeFilters() {
     option.textContent = degree.toUpperCase();
     pgFilter.appendChild(option);
   });
+
+  const ugLateralFilter = document.getElementById("ugLateralFilter");
+  if (ugLateralFilter) {
+    ugLateralFilter.innerHTML = '<option value="">All UG Lateral</option>';
+    Array.from(degrees.ug).sort().forEach(degree => {
+      const option = document.createElement("option");
+      option.value = degree;
+      option.textContent = degree.toUpperCase();
+      ugLateralFilter.appendChild(option);
+    });
+  }
 }
 
 function populateRecommenderFilter(students) {
@@ -407,6 +480,7 @@ function filterByRecommender() {
 function filterByDegree() {
   const ugFilter = document.getElementById("ugFilter").value;
   const pgFilter = document.getElementById("pgFilter").value;
+  const ugLateralFilter = document.getElementById("ugLateralFilter").value;
 
   let filtered = allStudentsData;
 
@@ -416,6 +490,10 @@ function filterByDegree() {
 
   if (pgFilter) {
     filtered = filtered.filter(s => (s.degree || "").toLowerCase() === pgFilter.toLowerCase());
+  }
+
+  if (ugLateralFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase());
   }
 
   filteredStudentsData = filtered;
@@ -554,29 +632,41 @@ function renderCards(students, statusParam, showStatus = false) {
 
   // Degree configuration
   const degreeConfig = [
-    { keys: ["b.e", "btech", "engineering"], displayName: "B.E / B.Tech", isPG: false, cutoffField: "engineering_cutoff" },
-    { keys: ["msc", "mscdata", "mscdatascience"], displayName: "M.Sc Data Science", isPG: false, cutoffField: "msc_cutoff" },
-    { keys: ["bdes", "b.des"], displayName: "B.Des", isPG: false, cutoffField: "bdes_cutoff" },
-    { keys: ["barch", "b.arch"], displayName: "B.Arch", isPG: false, cutoffField: "barch_cutoff" },
-    { keys: ["me", "m.e", "mtech", "m.tech", "me_mtech", "me mtech", "me-mtech", "memtech"], displayName: "M.E / M.Tech", isPG: true, cutoffField: "engineering_cutoff" },
-    { keys: ["mca", "m.c.a"], displayName: "M.C.A", isPG: true, cutoffField: "mca_cutoff" },
-    { keys: ["march", "m.arch"], displayName: "M.Arch", isPG: true, cutoffField: "march_cutoff" }
+    { keys: ["b.e", "btech", "engineering"], displayName: "B.E / B.Tech", isPG: false, isLateral: false, cutoffField: "engineering_cutoff" },
+    { keys: ["msc", "mscdata", "mscdatascience"], displayName: "M.Sc Data Science", isPG: false, isLateral: false, cutoffField: "msc_cutoff" },
+    { keys: ["bdes", "b.des"], displayName: "B.Des", isPG: false, isLateral: false, cutoffField: "bdes_cutoff" },
+    { keys: ["barch", "b.arch"], displayName: "B.Arch", isPG: false, isLateral: false, cutoffField: "barch_cutoff" },
+    { keys: ["b.e", "btech", "engineering"], displayName: "B.E / B.Tech", isPG: false, isLateral: true, cutoffField: "engineering_cutoff" },
+    { keys: ["bdes", "b.des"], displayName: "B.Des", isPG: false, isLateral: true, cutoffField: "bdes_cutoff" },
+    { keys: ["barch", "b.arch"], displayName: "B.Arch", isPG: false, isLateral: true, cutoffField: "barch_cutoff" },
+    { keys: ["me", "m.e", "mtech", "m.tech", "me_mtech", "me mtech", "me-mtech", "memtech"], displayName: "M.E / M.Tech", isPG: true, isLateral: false, cutoffField: "engineering_cutoff" },
+    { keys: ["mca", "m.c.a"], displayName: "M.C.A", isPG: true, isLateral: false, cutoffField: "mca_cutoff" },
+    { keys: ["march", "m.arch"], displayName: "M.Arch", isPG: true, isLateral: false, cutoffField: "march_cutoff" }
   ];
 
   const normalizeDegreeValue = degree => (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const allKnownDegreeKeys = new Set(degreeConfig.flatMap(item => item.keys.map(normalizeDegreeValue)));
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
   
   const mainContainer = document.createElement("div");
   mainContainer.className = "degree-sections-container";
 
   let ugGroup = null;
+  let ugLateralGroup = null;
   let pgGroup = null;
 
   degreeConfig.forEach(degreeItem => {
-    const { keys, displayName, isPG, cutoffField } = degreeItem;
+    const { keys, displayName, isPG, isLateral, cutoffField } = degreeItem;
     const normalizedKeys = keys.map(normalizeDegreeValue);
     const studentsList = normalizedKeys.length
-      ? students.filter(student => normalizedKeys.includes(normalizeDegreeValue(student.degree)))
+      ? students.filter(student => {
+          const studentDegree = normalizeDegreeValue(student.degree);
+          const lateral = isStudentLateral(student);
+          if (isLateral) {
+            return lateral && normalizedKeys.includes(studentDegree);
+          }
+          return !lateral && normalizedKeys.includes(studentDegree);
+        })
       : students.filter(student => !allKnownDegreeKeys.has(normalizeDegreeValue(student.degree)));
     const count = studentsList.length;
 
@@ -589,7 +679,16 @@ function renderCards(students, statusParam, showStatus = false) {
       pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
       pgGroup.appendChild(pgLabel);
       mainContainer.appendChild(pgGroup);
-    } else if (!isPG && !ugGroup) {
+    } else if (isLateral && !ugLateralGroup) {
+      ugLateralGroup = document.createElement("div");
+      ugLateralGroup.className = "degree-group";
+
+      const lateralLabel = document.createElement("div");
+      lateralLabel.className = "degree-group-title";
+      lateralLabel.textContent = "UG LATERAL ENTRY DEGREES";
+      ugLateralGroup.appendChild(lateralLabel);
+      mainContainer.appendChild(ugLateralGroup);
+    } else if (!isPG && !isLateral && !ugGroup) {
       ugGroup = document.createElement("div");
       ugGroup.className = "degree-group";
 
@@ -600,7 +699,7 @@ function renderCards(students, statusParam, showStatus = false) {
       mainContainer.appendChild(ugGroup);
     }
 
-    const targetGroup = isPG ? pgGroup : ugGroup;
+    const targetGroup = isPG ? pgGroup : isLateral ? ugLateralGroup : ugGroup;
 
     const degreeId = `degree-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
     const dropdown = document.createElement("div");
@@ -703,6 +802,11 @@ function renderCards(students, statusParam, showStatus = false) {
         .filter(branch => branch && branch.trim())
         .map(branch => branch.trim());
       const preferredBranch = preferredBranches.length ? preferredBranches.join('/') : '-';
+      
+      const isPG = degreeItem.isPG;
+      const scoreLabel = isPG ? 'TANCET/GATE Score' : 'Cut-Off';
+      const scoreValue = isPG ? (student.tancet_gate_score || '-') : (cutoff || '-');
+      
       row.innerHTML = `
         ${statusBadge}
         <div class="student-info">
@@ -715,7 +819,7 @@ function renderCards(students, statusParam, showStatus = false) {
             <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation || '-'}</p></div>
           </div>
           <div class="card-row">
-            <div class="card-cell"><p><strong>Cut-Off:</strong> ${cutoff || '-'}</p></div>
+            <div class="card-cell"><p><strong>${scoreLabel}:</strong> ${scoreValue}</p></div>
             <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch || '-'}</p></div>
           </div>
           <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student).replace(/'/g, "&apos;")})'>View More</button>
@@ -793,30 +897,18 @@ function generateTableView(status) {
       ? "Declined Students"
       : "Student Status";
 
+  if (status === "ONHOLD" || status === "DECLINED") {
+    document.getElementById("degreeLevelFilter").style.display = "none";
+    document.getElementById("branchFilter").style.display = "none";
+    document.getElementById("modeFilter").style.display = "none";
+  } else {
+    document.getElementById("degreeLevelFilter").style.display = "";
+    document.getElementById("branchFilter").style.display = "";
+    document.getElementById("modeFilter").style.display = "";
+  }
+
   window.currentPopupStudents = students;
   window.currentPopupStatus = status;
-
-  const branchFilter = document.getElementById("branchPrintFilter");
-  if (branchFilter) {
-    if (status === "APPROVED" || status === "ALL") {
-      branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
-      const uniqueBranches = new Set();
-      students.forEach(student => {
-        const outcome = student.outcomes[0] || {};
-        const courseName = outcome.course_name || "-";
-        if (courseName !== "-") uniqueBranches.add(courseName);
-      });
-      uniqueBranches.forEach(branch => {
-        const option = document.createElement("option");
-        option.value = branch;
-        option.textContent = branch;
-        branchFilter.appendChild(option);
-      });
-      branchFilter.value = "ALL";
-    } else {
-      branchFilter.style.display = "none";
-    }
-  }
 
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
@@ -869,7 +961,6 @@ function generateTableView(status) {
     ];
 
     const tr = document.createElement("tr");
-    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -877,24 +968,11 @@ function generateTableView(status) {
     });
     tableBody.appendChild(tr);
   });
- 
-loadSeatTable();
-}
-
-function applyPrintFilter() {
-  const filterVal = document.getElementById("branchPrintFilter").value;
-  const tbody = document.getElementById("studentTableBody");
-  const rows = tbody.getElementsByTagName("tr");
-  let displayIndex = 1;
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    if (filterVal === "ALL" || row.dataset.course === filterVal) {
-      row.style.display = "";
-      row.cells[0].textContent = displayIndex++;
-    } else {
-      row.style.display = "none";
-    }
+  if (status !== "ONHOLD" && status !== "DECLINED") {
+    populateBranchFilter();
+    applyFilters();
   }
+  loadSeatTable();
 }
 
 function closeStudentPopup() {
@@ -933,6 +1011,9 @@ function generateAllStudentTableView(allStudents) {
     "Status"
   ];
 
+  document.getElementById("popupTitle").textContent = "All Students Status";
+  window.currentPopupStudents = allStudents;
+
   const theadRow = document.getElementById("studentTableHead");
   const tbody = document.getElementById("studentTableBody");
 
@@ -944,25 +1025,6 @@ function generateAllStudentTableView(allStudents) {
     th.textContent = h;
     theadRow.appendChild(th);
   });
-
-  // Fix 3: Populate branch filter for Print All view
-  const branchFilter = document.getElementById("branchPrintFilter");
-  if (branchFilter) {
-    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
-    const uniqueCourses = new Set();
-    allStudents.forEach(student => {
-      const outcome = student.outcomes?.[0] || {};
-      const courseName = outcome.course_name || "-";
-      if (courseName !== "-") uniqueCourses.add(courseName);
-    });
-    uniqueCourses.forEach(course => {
-      const option = document.createElement("option");
-      option.value = course;
-      option.textContent = course;
-      branchFilter.appendChild(option);
-    });
-    branchFilter.value = "ALL";
-  }
 
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
@@ -980,7 +1042,6 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
-    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -988,6 +1049,8 @@ function generateAllStudentTableView(allStudents) {
     });
     tbody.appendChild(tr);
   });
+  populateBranchFilter();
+  applyFilters();
   loadSeatTable();
 }
 
@@ -1491,7 +1554,11 @@ function removeCard(id) {
       container.innerHTML = "";
 
       const r = student.recommender || student.recommenders?.[0] || {};
+      
+      console.log("Student Data:", student);
 
+      const isPGStudent = (student.degree || "").toLowerCase().match(/me|mtech|march|mca/);
+      
       const studentFields = [
         ["Application Number", student.application_number],
         ["Name", student.name],
@@ -1508,8 +1575,20 @@ function removeCard(id) {
         ["Board", student.board],
         ["Year of Passing", student.year_of_passing],
         ["College", student.college],
-        ["Degree", student.degree],
-        ["Preferred Branch", student.branch_1 || "-"],
+        ["Degree", student.degree]
+      ];
+      
+      if (isPGStudent) {
+        studentFields.push(
+          ["UG Degree", student.ug_degree || "-"],
+          ["UG Programme Name", student.ug_course_name || "-"],
+          ["UG Institution", student.ug_institution || "-"],
+          ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
+          ["Tancet/GATE Score", student.tancet_gate_score || "-"]
+        );
+      }
+      
+      studentFields.push(
         ["Branch 1", student.branch_1],
         ["Branch 2", student.branch_2],
         ["Branch 3", student.branch_3],
@@ -1522,7 +1601,7 @@ function removeCard(id) {
         ["MSC Cutoff", student.msc_cutoff, true],
         ["BArch Cutoff", student.barch_cutoff, true],
         ["BDes Cutoff", student.bdes_cutoff, true]
-      ];
+      );
 
       const recommenderFields = [
         ["Name", r.name],

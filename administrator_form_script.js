@@ -235,7 +235,7 @@ function updateOptions() {
   const degree = document.getElementById("degree").value;
   const degKey = (degree || '').toLowerCase();
   let branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
-  if (degKey.includes('me') || degKey.includes('mtech')) {
+  if (degKey.includes('me') || degKey.includes('mtech') || degKey.includes('me_mtech')) {
     branches = [
       'M.E. Structural Engineering',
       'M.E. Environmental Engineering',
@@ -444,7 +444,7 @@ async function handleSubmit(event) {
   // Detect program type from degree
   const degreeKey = (degree || '').toLowerCase();
   let program_type = 'ug';
-  if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey === 'march' || degreeKey === 'mca') {
+  if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey.includes('me_mtech') || degreeKey === 'march' || degreeKey === 'mca') {
     program_type = 'pg';
   }
 
@@ -468,6 +468,7 @@ async function handleSubmit(event) {
     year_of_passing: clean(document.getElementById("yearOfPassing")?.value),
     degree: clean(degree),
     program_type: program_type,
+    ug_degree: program_type === 'pg' ? clean(document.getElementById("tceUgDegree")?.value, "float") : null,
     ug_consolidated_mark: program_type === 'pg' ? clean(document.getElementById("tceUgConsolidatedMark")?.value, "float") : null,
     ug_course_name: program_type === 'pg' ? clean(document.getElementById("tceUgCourseName")?.value) : null,
     ug_institution: program_type === 'pg' ? clean(document.getElementById("tceUgInstitution")?.value) : null,
@@ -659,6 +660,7 @@ async function handleSubmitTca(event) {
     course: clean(document.getElementById("tcaCourse")?.value),
     degree: clean(degree),
     program_type: programType,
+    ug_degree: program_type === 'pg' ? clean(document.getElementById("tcaUgDregree")?.value, "float") : null,
     ug_consolidated_mark: programType === 'pg' ? clean(document.getElementById("tcaUgConsolidatedMark")?.value, "float") : null,
     ug_course_name: programType === 'pg' ? clean(document.getElementById("tcaUgCourseName")?.value) : null,
     ug_institution: programType === 'pg' ? clean(document.getElementById("tcaUgInstitution")?.value) : null,
