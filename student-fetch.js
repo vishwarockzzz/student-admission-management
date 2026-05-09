@@ -225,11 +225,16 @@ function filterByDegree() {
   const ugFilter = document.getElementById("ugFilter")?.value;
   const pgFilter = document.getElementById("pgFilter")?.value;
   const ugLateralFilter = document.getElementById("ugLateralFilter")?.value;
+  
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
 
   let filtered = allStudents;
 
   if (ugFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugFilter.toLowerCase() && 
+      !isStudentLateral(s)
+    );
   }
 
   if (pgFilter) {
@@ -237,7 +242,10 @@ function filterByDegree() {
   }
 
   if (ugLateralFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase() && 
+      isStudentLateral(s)
+    );
   }
 
   renderStudents(filtered);
@@ -415,13 +423,8 @@ function renderStudents(students) {
 
   const normalizeDegreeValue = degree => (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
-
-  const grouped = {};
-  students.forEach(student => {
-    const degreeKey = normalizeDegreeValue(student.degree);
-    if (!grouped[degreeKey]) grouped[degreeKey] = [];
-    grouped[degreeKey].push(student);
-  });
+  
+  const allKnownDegreeKeys = new Set(degreeConfig.flatMap(item => item.keys.map(normalizeDegreeValue)));
 
   // Create main container
   const mainContainer = document.createElement("div");
@@ -434,14 +437,16 @@ function renderStudents(students) {
   degreeConfig.forEach(degreeItem => {
     const { key, displayName, isPG, isLateral, keys } = degreeItem;
     const normalizedKeys = keys.map(normalizeDegreeValue);
-    const studentsList = Array.from(new Set(Object.values(grouped).flat())).filter(student => {
-      const studentDegree = normalizeDegreeValue(student.degree);
-      const lateral = isStudentLateral(student);
-      if (isLateral) {
-        return lateral && normalizedKeys.includes(studentDegree);
-      }
-      return !lateral && normalizedKeys.includes(studentDegree);
-    });
+    const studentsList = normalizedKeys.length
+      ? students.filter(student => {
+          const studentDegree = normalizeDegreeValue(student.degree);
+          const lateral = isStudentLateral(student);
+          if (isLateral) {
+            return lateral && normalizedKeys.includes(studentDegree);
+          }
+          return !lateral && normalizedKeys.includes(studentDegree);
+        })
+      : students.filter(student => !allKnownDegreeKeys.has(normalizeDegreeValue(student.degree)));
     const count = studentsList.length;
 
     // Create degree group separator if needed
