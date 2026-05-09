@@ -1568,7 +1568,7 @@ function removeCard(id) {
       console.log("Student Data:", student);
 
       const isPGStudent = (student.degree || "").toLowerCase().match(/me|mtech|march|mca/);
-      
+      const isLateral = (student.program_type || "").toLowerCase().match(/lateral/);
       const studentFields = [
         ["Application Number", student.application_number],
         ["Name", student.name],
@@ -1595,6 +1595,15 @@ function removeCard(id) {
           ["UG Institution", student.ug_institution || "-"],
           ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
           ["Tancet/GATE Score", student.tancet_gate_score || "-"]
+        );
+      }
+      else if (isLateral) {
+        studentFields.push(
+          ["Diploma College", student.diploma_college_name],
+          ["Diploma Course", student.diploma_course],
+          ["Diploma University", student.diploma_university],
+          ["Diploma Percentage/CGPA", student.diploma_cgpa],
+          ["Lateral Cutoff", student.lateral_cutoff]
         );
       }
       
