@@ -709,7 +709,9 @@ function renderCards(students, statusParam, showStatus = false) {
 
     const targetGroup = isPG ? pgGroup : isLateral ? ugLateralGroup : ugGroup;
 
-    const degreeId = `degree-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    const groupPrefix = isPG ? 'pg' : isLateral ? 'ug-lateral' : 'ug';
+    const cleanName = displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const degreeId = `degree-${groupPrefix}-${cleanName}`;
     const dropdown = document.createElement("div");
     dropdown.className = "degree-dropdown";
     dropdown.id = degreeId;
