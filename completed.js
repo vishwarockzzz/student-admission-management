@@ -120,17 +120,6 @@ function goHome() {
 
 }
 
-function getDegreeLevel(degree) {
-  const ugDegrees = ["b.e", "btech", "msc", "bdes", "barch"];
-  const pgDegrees = ["me", "mtech", "mca", "march"];
-  const ugLateralDegrees = []; // define if any
-  const norm = normalizeDegreeValue(degree);
-  if (ugDegrees.some(d => norm.includes(d))) return "UG";
-  if (pgDegrees.some(d => norm.includes(d))) return "PG";
-  if (ugLateralDegrees.some(d => norm.includes(d))) return "UG_LATERAL";
-  return "ALL";
-}
-
 function populateBranchFilter() {
   const degreeLevel = document.getElementById("degreeLevelFilter").value;
   const branchSelect = document.getElementById("branchFilter");
@@ -1667,8 +1656,7 @@ function removeCard(id) {
     function closeViewMore() {
       document.getElementById("viewMoreOverlay").style.display = "none";
     }
-    function showSeatPopup() {
-
+function showSeatPopup() {
   authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
@@ -1700,7 +1688,6 @@ function removeCard(id) {
           <td>${entry.allocated_seats}</td>
           <td>${entry.remaining_seats}</td>
         `;
-
         tableBody.appendChild(row);
       });
 
