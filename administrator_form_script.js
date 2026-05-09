@@ -37,25 +37,31 @@ function setDegreeOptions() {
   const degreeDropdown = document.getElementById('degree');
   if (!degreeDropdown) return;
 
-  let options = [];
+  const pgOptions = [
+    { value: 'me_mtech', text: 'M.E / M.Tech' },
+    { value: 'march', text: 'M.Arch' },
+    { value: 'mca', text: 'M.C.A' }
+  ];
 
+  const ugOptions = [
+    { value: 'btech', text: 'B.E./B.Tech' },
+    { value: 'msc', text: 'M.Sc.' },
+    { value: 'bdes', text: 'B.Des' },
+    { value: 'barch', text: 'B.Arch' }
+  ];
+
+  // Lateral entry allows only B.Tech (2-year program)
+  const lateralOptions = [
+    { value: 'btech', text: 'B.E./B.Tech' }
+  ];
+
+  let options = [];
   if (selectedProgramType === 'pg') {
-    options = [
-      { value: 'me_mtech', text: 'M.E / M.Tech' },
-      { value: 'march', text: 'M.Arch' },
-      { value: 'mca', text: 'M.C.A' }
-    ];
-  } else if (selectedProgramType === 'ug') {
-    options = [
-      { value: 'btech', text: 'B.E./B.Tech' },
-      { value: 'msc', text: 'M.Sc.' },
-      { value: 'bdes', text: 'B.Des' },
-      { value: 'barch', text: 'B.Arch' }
-    ];
+    options = pgOptions;
   } else if (selectedProgramType === 'lateral') {
-    options = [
-      { value: 'btech_lateral', text: 'B.E./B.Tech (Lateral Entry)' }
-    ];
+    options = lateralOptions;
+  } else {
+    options = ugOptions;
   }
 
   degreeDropdown.innerHTML = '<option value="">-- Select --</option>';
@@ -109,6 +115,7 @@ function selectProgramType(type) {
   programTypeSection.style.display = 'none';
 
   const isPG = selectedProgramType === 'pg';
+  const isLateral = selectedProgramType === 'lateral';
 
   // Set the program type in titles
   const programTypeDisplay = type === 'UG / MSc' ? 'UG / MSc' : type === 'UG Lateral Entry' ? 'UG Lateral Entry' : type;
@@ -120,6 +127,7 @@ function selectProgramType(type) {
   if (selectedCollege === 'TCE') {
     tceForm.style.display = 'block';
     setPgFieldsVisibility('tce', isPG);
+    setLateralFieldsVisibility(isLateral);
   } else if (selectedCollege === 'TCA') {
     tcaForm.style.display = 'block';
     setPgFieldsVisibility('tca', isPG);
@@ -152,6 +160,79 @@ function setPgFieldsVisibility(prefix, visible) {
   });
 }
 
+function setLateralFieldsVisibility(isLateral) {
+  // Hide/show HSC field containers for lateral entry
+  const hscFieldContainers = [
+    'twelfthMarkField',
+    'twelfthMarkInputField',
+    'boardField',
+    'yearOfPassingField',
+    'studyBreakField',
+    'schoolField',
+    'districtField'
+  ];
+
+  const diplomaSection = document.getElementById('tceLateralSection');
+  const subjectFields = document.getElementById('subject-fields');
+  const enggCutoffGroup = document.getElementById('engg-cutoff-group');
+
+  // Show diploma section and hide subject/HSC fields for lateral
+  if (diplomaSection) {
+    diplomaSection.style.display = isLateral ? 'block' : 'none';
+  }
+  if (subjectFields) {
+    subjectFields.style.display = isLateral ? 'none' : 'block';
+  }
+  if (enggCutoffGroup) {
+    enggCutoffGroup.style.display = isLateral ? 'none' : 'block';
+  }
+
+  // Completely hide HSC field containers for lateral
+  hscFieldContainers.forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (isLateral) {
+      container.style.display = 'none';
+      // Clear values
+      const input = container.querySelector('input, select, textarea');
+      if (input) input.value = '';
+    } else {
+      container.style.display = 'block';
+    }
+  });
+
+  // Set diploma fields as required for lateral
+  if (isLateral) {
+    const diplomaFieldIds = [
+      'diplomaCollegeName',
+      'diplomaCourseBranch',
+      'diplomaUniversityBoard',
+      'diplomaCGPA',
+      'yearOfDiplomaPassing',
+      'lateralCutoff'
+    ];
+    diplomaFieldIds.forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (el) el.required = true;
+    });
+  } else {
+    // Clear diploma required flags for non-lateral
+    const diplomaFieldIds = [
+      'diplomaCollegeName',
+      'diplomaCourseBranch',
+      'diplomaUniversityBoard',
+      'diplomaCGPA',
+      'yearOfDiplomaPassing',
+      'lateralCutoff'
+    ];
+    diplomaFieldIds.forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (el) el.required = false;
+    });
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const dobInput = document.getElementById('tcaDOB');
   const today = new Date();
@@ -161,15 +242,60 @@ window.addEventListener('DOMContentLoaded', () => {
   const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
   const formattedMaxDate = maxDate.toISOString().split('T')[0];  // Format as YYYY-MM-DD
 
-  dobInput.max = formattedMaxDate;
+  if (dobInput) dobInput.max = formattedMaxDate;
+
+  // Add diploma CGPA validation
+  const diplomaCGPA = document.getElementById('diplomaCGPA');
+  if (diplomaCGPA) {
+    diplomaCGPA.addEventListener('input', function () {
+      const value = parseFloat(this.value);
+      const error = document.getElementById('diplomaCGPA-error');
+      if (error) {
+        error.style.display = (isNaN(value) || value < 0 || value > 10) ? 'block' : 'none';
+      }
+      // Auto-calculate diploma percentage from CGPA (if business logic exists)
+      calculateDiplomaPercentage();
+    });
+  }
+
+  // Add diploma percentage validation
+  const diplomaPercentage = document.getElementById('diplomaPercentage');
+  if (diplomaPercentage) {
+    diplomaPercentage.addEventListener('input', function () {
+      const value = parseFloat(this.value);
+      const error = document.getElementById('diplomaPercentage-error');
+      if (error) {
+        error.style.display = (isNaN(value) || value < 0 || value > 100) ? 'block' : 'none';
+      }
+    });
+  }
+
+  // Add lateral cutoff validation
+  const lateralCutoff = document.getElementById('lateralCutoff');
+  if (lateralCutoff) {
+    lateralCutoff.addEventListener('input', function () {
+      const value = parseFloat(this.value);
+      const error = document.getElementById('lateralCutoff-error');
+      if (error) {
+        error.style.display = (isNaN(value) || value < 0) ? 'block' : 'none';
+      }
+    });
+  }
+
+  // Add year of diploma passing validation
+  const yearOfDiplomaPassing = document.getElementById('yearOfDiplomaPassing');
+  if (yearOfDiplomaPassing) {
+    yearOfDiplomaPassing.addEventListener('input', function () {
+      const year = parseInt(this.value, 10);
+      const isValid = year >= 2000 && year <= 2025;
+      const error = document.getElementById('diplomaYear-error');
+      if (error) {
+        error.style.display = isValid ? 'none' : 'block';
+      }
+    });
+  }
 });
 
-
-document.getElementById('yearOfPassing').addEventListener('input', function () {
-  const year = parseInt(this.value, 10);
-  const isValid = year >= 2000 && year <= 2025;
-  document.getElementById('year-error').style.display = isValid ? 'none' : 'block';
-});
 
 document.getElementById('phone').addEventListener('input', function () {
   const phone = this.value;
@@ -186,24 +312,20 @@ document.getElementById('aadhar').addEventListener('input', function () {
   document.getElementById('aadhar-error').style.display = input.length === 12 ? 'none' : 'block';
 });
 
-document.getElementById('diplomaCGPA').addEventListener('input', function () {
-  const value = parseFloat(this.value);
-  const error = document.getElementById('diplomaCGPA-error');
-
-  if (isNaN(value) || value < 0 || value > 10) {
-    error.style.display = 'block';
-  } else {
-    error.style.display = 'none';
-  }
-});
-
-document.getElementById('yearOfDiplomaPassing').addEventListener('input', function () {
-  const year = parseInt(this.value, 10);
-  const isValid = year >= 2000 && year <= 2025;
-  document.getElementById('yearOfDiploma-error').style.display = isValid ? 'none' : 'block';
-});
-
 const branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'];
+
+function calculateDiplomaPercentage() {
+  const cgpa = parseFloat(document.getElementById('diplomaCGPA')?.value) || 0;
+  const percentageField = document.getElementById('diplomaPercentage');
+  
+  if (percentageField && cgpa > 0) {
+    // Common conversion: Percentage = CGPA * 10 (or can be customized)
+    const percentage = cgpa * 10;
+    if (percentage <= 100) {
+      percentageField.value = percentage.toFixed(2);
+    }
+  }
+}
 
 function populateDropdown(dropdownId, exclude = [], branches = ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch']) {
   const dropdown = document.getElementById(dropdownId);
@@ -265,28 +387,100 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add listeners for updates when preferences are changed
   document.getElementById('pref1').addEventListener('change', updateOptions);
   document.getElementById('pref2').addEventListener('change', updateOptions);
+
+  const inputs = document.querySelectorAll('input, select[name="twelvemax"]');
+  inputs.forEach(input => input.addEventListener("input", calculateCutoff));
+  inputs.forEach(input => input.addEventListener("change", calculateCutoff));
 });
 
 
 function togglePreferences() {
   const degree = document.getElementById("degree").value;
+  const isLateral = selectedProgramType === 'lateral';
+  const subjectFields = document.getElementById("subject-fields");
+  const nataFields = document.getElementById("nata-fields");
+
+  const enggCutoff = document.getElementById("engg-cutoff-group");
+  const mscCutoff = document.getElementById("msc-cutoff-group");
+  const barchCutoff = document.getElementById("barch-cutoff-group");
+  const bdesCutoff = document.getElementById("bdes-cutoff-group");
   const preferences = document.getElementById("preferences");
-  const lateralCutoff = document.getElementById("lateral-cutoff-group");
 
-  // Hide all non-lateral sections
+  subjectFields.style.display = "none";
+  nataFields.style.display = "none";
+  enggCutoff.style.display = "none";
+  mscCutoff.style.display = "none";
+  barchCutoff.style.display = "none";
+  bdesCutoff.style.display = "none";
   preferences.style.display = "none";
-  lateralCutoff.style.display = "none";
 
-  // Show lateral entry sections
-  if (degree === "btech_lateral") {
-    lateralCutoff.style.display = "block";
+  // For lateral entry, subject fields and cutoffs are hidden, but branch preferences should still appear for B.Tech
+  if (degree === "btech") {
     preferences.style.display = "block";
-    
-    // Populate lateral entry branch preferences
-    const branches = ['CSE', 'IT', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'CSBS', 'Civil', 'AI&ML', 'Any Branch'];
-    populateDropdown('pref1', [], branches);
-    populateDropdown('pref2', [], branches);
-    populateDropdown('pref3', [], branches);
+  }
+
+  if (!isLateral && (degree === "btech" || degree === "msc" || degree === "bdes")) {
+    subjectFields.style.display = "block";
+  }
+
+  if (!isLateral && degree === "btech") {
+    enggCutoff.style.display = "block";
+  }
+
+  if (degree === "me_mtech") {
+    preferences.style.display = "block";
+  }
+
+  if (!isLateral && degree === "msc") {
+    mscCutoff.style.display = "block";
+  }
+
+  if (!isLateral && degree === "barch") {
+    nataFields.style.display = "block";
+    barchCutoff.style.display = "block";
+  }
+
+  if (!isLateral && degree === "bdes") {
+    bdesCutoff.style.display = "block";
+  }
+
+  // Populate preferences based on degree
+  if (degree === "btech" || degree === "me_mtech") {
+    const br = degree === "btech" ? ['CSE', 'EEE', 'ECE', 'Mechanical', 'Mechatronic', 'IT', 'AI&ML', 'CSBS', 'Civil', 'Any Branch'] : [
+      'M.E. Structural Engineering',
+      'M.E. Environmental Engineering',
+      'M.E. Construction Engineering and Management',
+      'M.E. Engineering Design',
+      'M.E. Power System Engineering',
+      'M.E. Communication Systems',
+      'M.E. Computer Science and Engineering',
+      'Any Branch'
+    ];
+    populateDropdown('pref1', [], br);
+    populateDropdown('pref2', [], br);
+    populateDropdown('pref3', [], br);
+  }
+
+  calculateCutoff();
+}
+
+function calculateCutoff() {
+  const degree = document.getElementById("degree").value;
+  document.getElementById("barch-cutoff-group").style.display = "none";
+
+  if (degree === "barch") {
+    const nata = parseFloat(document.getElementById("nata").value) || 0;
+    const twelve = parseFloat(document.querySelector('[name="twelvemarks"]').value) || 0;
+    const totalOutOf = parseFloat(document.querySelector('[name="twelvemax"]').value) || 600;
+
+    const converted12th = (twelve / totalOutOf) * 200;
+    const barchCutoff = nata + converted12th;
+
+    if (nata > 0 && twelve > 0) {
+      document.getElementById("barch-cutoff").value = barchCutoff.toFixed(2);
+    }
+
+    document.getElementById("barch-cutoff-group").style.display = "block";
   }
 }
 
@@ -377,9 +571,18 @@ async function handleSubmit(event) {
 
   const degree = document.getElementById("degree")?.value;
 
-  // Detect program type from degree
-  const degreeKey = (degree || '').toLowerCase();
-  let program_type = 'lateral';
+  // Detect program type from selectedProgramType first, then from degree
+  let program_type = selectedProgramType === 'lateral' ? 'lateral' : 'ug';
+  
+  if (!['lateral'].includes(selectedProgramType)) {
+    const degreeKey = (degree || '').toLowerCase();
+    if (degreeKey.includes('me') || degreeKey.includes('mtech') || degreeKey.includes('me_mtech') || degreeKey === 'march' || degreeKey === 'mca') {
+      program_type = 'pg';
+    }
+  }
+
+  // Prepare lateral entry specific fields
+  const isLateral = selectedProgramType === 'lateral';
   
   const formData = {
     application_number: clean(document.getElementById("applicationNumber")?.value),
@@ -387,10 +590,6 @@ async function handleSubmit(event) {
     email: clean(document.getElementById("email")?.value),
     address: clean(document.getElementById("tceAddress")?.value),
     parent_annual_income: clean(document.getElementById("parentsincome")?.value),
-    diploma_college_name: clean(document.getElementById("diplomaCollegeName")?.value),
-    diploma_course: clean(document.getElementById("diplomaCourse")?.value),
-    diploma_university: clean(document.getElementById("diplomaUniversity")?.value),
-    diploma_cgpa: clean(document.getElementById("diplomaCGPA")?.value, "float"),
     date_of_application: clean(document.getElementById("applicationDate")?.value),
     applicationstatus: clean(document.getElementById("applicationStatus")?.value),
     stdcode: clean(document.getElementById("stdcode")?.value),
@@ -398,13 +597,48 @@ async function handleSubmit(event) {
     aadhar_number: clean(document.getElementById("aadhar")?.value),
     community: clean(document.getElementById("community")?.value),
     college: clean(selectedCollege),
-    year_of_diploma_passing: clean(document.getElementById("yearOfDiplomaPassing")?.value),
     degree: clean(degree),
     program_type: program_type,
-    lateral_cutoff: clean(document.getElementById("lateral-cutoff")?.value, "float"),
-    branch_1: clean(document.getElementById("pref1")?.value),
-    branch_2: clean(document.getElementById("pref2")?.value),
-    branch_3: clean(document.getElementById("pref3")?.value),
+    
+    // HSC Fields (only for non-lateral UG)
+    school: !isLateral ? clean(document.getElementById("school")?.value) : null,
+    district: !isLateral ? clean(document.getElementById("district")?.value) : null,
+    twelfth_mark: !isLateral ? clean(document.getElementById("twelfthMark")?.value, "float") : null,
+    board: !isLateral ? clean(document.getElementById("boardSelect")?.value) : null,
+    year_of_passing: !isLateral ? clean(document.getElementById("yearOfPassing")?.value) : null,
+    
+    // Diploma Fields (only for lateral entry)
+    diploma_college_name: isLateral ? clean(document.getElementById("diplomaCollegeName")?.value) : null,
+    diploma_course_branch: isLateral ? clean(document.getElementById("diplomaCourseBranch")?.value) : null,
+    diploma_university_board: isLateral ? clean(document.getElementById("diplomaUniversityBoard")?.value) : null,
+    diploma_cgpa: isLateral ? clean(document.getElementById("diplomaCGPA")?.value, "float") : null,
+    diploma_percentage: isLateral ? clean(document.getElementById("diplomaPercentage")?.value, "float") : null,
+    year_of_diploma_passing: isLateral ? clean(document.getElementById("yearOfDiplomaPassing")?.value) : null,
+    lateral_cutoff: isLateral ? clean(document.getElementById("lateralCutoff")?.value, "float") : null,
+    
+    // PG Fields
+    ug_degree: program_type === 'pg' ? clean(document.getElementById("tceUgDegree")?.value, "float") : null,
+    ug_consolidated_mark: program_type === 'pg' ? clean(document.getElementById("tceUgConsolidatedMark")?.value, "float") : null,
+    ug_course_name: program_type === 'pg' ? clean(document.getElementById("tceUgCourseName")?.value) : null,
+    ug_institution: program_type === 'pg' ? clean(document.getElementById("tceUgInstitution")?.value) : null,
+    tancet_gate_score: program_type === 'pg' ? clean(document.getElementById("tceTancetGateScore")?.value) : null,
+    
+    // Subject Marks (only for non-lateral)
+    maths: !isLateral && (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("maths")?.value, "float") : null,
+    physics: !isLateral && (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("physics")?.value, "float") : null,
+    chemistry: !isLateral && (degree === "btech" || degree === "msc" || degree === "bdes") ? clean(document.getElementById("chemistry")?.value, "float") : null,
+    nata: !isLateral && (degree === "barch") ? clean(document.getElementById("nata")?.value, "float") : null,
+    
+    // Cutoff Fields
+    engineering_cutoff: !isLateral && (degree === "btech") ? clean(document.getElementById("engg-cutoff")?.value, "float") : null,
+    msc_cutoff: !isLateral && (degree === "msc") ? clean(document.getElementById("msc-cutoff")?.value, "float") : null,
+    barch_cutoff: !isLateral && (degree === "barch") ? clean(document.getElementById("barch-cutoff")?.value, "float") : null,
+    bdes_cutoff: !isLateral && (degree === "bdes") ? clean(document.getElementById("bdes-cutoff")?.value, "float") : null,
+    
+    // Branch Preferences
+    branch_1: !isLateral ? clean(document.getElementById("pref1")?.value) : null,
+    branch_2: !isLateral ? clean(document.getElementById("pref2")?.value) : null,
+    branch_3: !isLateral ? clean(document.getElementById("pref3")?.value) : null,
     recommender: {
       name: clean(document.getElementById("nameInput2")?.value),
       designation: clean(document.getElementById("recDes")?.value),
