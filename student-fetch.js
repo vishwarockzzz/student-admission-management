@@ -1060,7 +1060,17 @@ function showViewMore(student) {
       ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
       ["Tancet/GATE Score", student.tancet_gate_score || "-"]
     );
-  } else {
+  } 
+  else if(studentProgramType == 'LATERAL') {
+    studentFields.push(
+      ["Diploma College", student.diploma_college_name],
+      ["Diploma Course", student.diploma_course],
+      ["Diploma University", student.diploma_university],
+      ["Diploma Percentage/CGPA", student.diploma_cgpa],
+      ["Lateral Cutoff", student.lateral_cutoff]
+    );
+  }
+  else {
     studentFields.push(
       ["Maths", student.maths],
       ["Physics", student.physics],
