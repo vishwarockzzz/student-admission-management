@@ -481,11 +481,16 @@ function filterByDegree() {
   const ugFilter = document.getElementById("ugFilter").value;
   const pgFilter = document.getElementById("pgFilter").value;
   const ugLateralFilter = document.getElementById("ugLateralFilter").value;
+  
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
 
   let filtered = allStudentsData;
 
   if (ugFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugFilter.toLowerCase() && 
+      !isStudentLateral(s)
+    );
   }
 
   if (pgFilter) {
@@ -493,7 +498,10 @@ function filterByDegree() {
   }
 
   if (ugLateralFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase() && 
+      isStudentLateral(s)
+    );
   }
 
   filteredStudentsData = filtered;
