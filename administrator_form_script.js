@@ -167,7 +167,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('yearOfPassing').addEventListener('input', function () {
   const year = parseInt(this.value, 10);
-  const isValid = year >= 2000 && year <= 2025;
+  const isValid = year >= 2000 && year <= 2026;
   document.getElementById('year-error').style.display = isValid ? 'none' : 'block';
 });
 
@@ -199,7 +199,7 @@ document.getElementById('diplomaCGPA').addEventListener('input', function () {
 
 document.getElementById('yearOfDiplomaPassing').addEventListener('input', function () {
   const year = parseInt(this.value, 10);
-  const isValid = year >= 2000 && year <= 2025;
+  const isValid = year >= 2000 && year <= 2026;
   document.getElementById('yearOfDiploma-error').style.display = isValid ? 'none' : 'block';
 });
 
