@@ -9,6 +9,18 @@ const STATUS_QUERY_ALIASES = {
   ONHOLD: ["ONHOLD", "OnHold", "onhold", "ON HOLD", "On Hold", "on hold"]
 };
 
+function getDegreeLevel(course) {
+  const normalized = (course || "").toString().trim().toLowerCase();
+  if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+    return "PG";
+  }
+  return "UG";
+}
+
+function normalizeCourseType(courseType) {
+  const normalized = (courseType || "").toString().trim().toLowerCase();
+  return normalized.includes("aided") ? "aided" : "selfFinance";
+}
 const ugBranches = ["CSE", "IT", "ECE", "EEE", "MECHANICAL", "MECHATRONICS", "AI/ML", "CSBS", "CIVIL", "MSC DATA SCIENCE", "B.DES", "B.ARCH"];
 const pgBranches = ["ME", "MCA", "MARCH"];
 const ugLateralBranches = []; // Add if needed
@@ -217,11 +229,42 @@ function loadSeatTable() {
   authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
+
+      // ✅ Separate totals by Aided/SF + UG/PG
+      const totals = {
+        aided: {
+          UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 },
+          PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }
+        },
+        selfFinance: {
+          UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 },
+          PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }
+        }
+      };
+
+      result.forEach(entry => {
+
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        // ✅ Correct split accumulation
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
+      });
+
       seatTbody.forEach(tbody => {
+
         result.forEach((entry, index) => {
+
           const courseWithType = `${entry.course} (${entry.course_type})`;
 
           const row = document.createElement("tr");
+
           row.innerHTML = `
             <td>${index + 1}</td>
             <td>${courseWithType}</td>
@@ -229,9 +272,36 @@ function loadSeatTable() {
             <td>${entry.allocated_seats}</td>
             <td>${entry.remaining_seats}</td>
           `;
+
           tbody.appendChild(row);
         });
+
+        // ✅ Total row function
+        const appendTotalRow = (label, totalsData) => {
+
+          const totalRow = document.createElement("tr");
+
+          totalRow.className = "seat-total-row";
+
+          totalRow.innerHTML = `
+            <td></td>
+            <td><strong>${label}</strong></td>
+            <td><strong>${totalsData.totalSeats}</strong></td>
+            <td><strong>${totalsData.allocatedSeats}</strong></td>
+            <td><strong>${totalsData.remainingSeats}</strong></td>
+          `;
+
+          tbody.appendChild(totalRow);
+        };
+
+        // ✅ Correct split totals
+        appendTotalRow("Aided UG Total", totals.aided.UG);
+        appendTotalRow("Aided PG Total", totals.aided.PG);
+
+        appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+        appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
       });
+
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
@@ -411,11 +481,16 @@ function filterByDegree() {
   const ugFilter = document.getElementById("ugFilter").value;
   const pgFilter = document.getElementById("pgFilter").value;
   const ugLateralFilter = document.getElementById("ugLateralFilter").value;
+  
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
 
   let filtered = allStudentsData;
 
   if (ugFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugFilter.toLowerCase() && 
+      !isStudentLateral(s)
+    );
   }
 
   if (pgFilter) {
@@ -423,7 +498,10 @@ function filterByDegree() {
   }
 
   if (ugLateralFilter) {
-    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase());
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase() && 
+      isStudentLateral(s)
+    );
   }
 
   filteredStudentsData = filtered;
@@ -1097,13 +1175,24 @@ const courseMap = {
   "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
+  "B.ARCH": "B.Arch. Architecture",
+  "M.E. STRUCTURAL ENGINEERING": "M.E. Structural Engineering",
+  "M.E. ENVIRONMENTAL ENGINEERING": "M.E. Environmental Engineering",
+  "M.E. CONSTRUCTION ENGINEERING AND MANAGEMENT": "M.E. Construction Engineering and Management",
+  "M.E. ENGINEERING DESIGN": "M.E. Engineering Design",
+  "M.E. POWER SYSTEM ENGINEERING": "M.E. Power System Engineering",
+  "M.E. COMMUNICATION SYSTEMS": "M.E. Communication Systems",
+  "M.E. COMPUTER SCIENCE AND ENGINEERING": "M.E. Computer Science and Engineering",
+  "MCA": "M.C.A",
+  "M.ARCH": "M.Arch"
 };
 
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
-}
+  }
+
+
 function acceptStudent(id, branch) {
   currentStudentId = id;
   const student = allStudentsData.find(s => s.id === id);
@@ -1116,74 +1205,104 @@ function acceptStudent(id, branch) {
   branchSelect.disabled = false;
   modeSelect.disabled = false;
 
-  const degree = (student.degree || "").toUpperCase();
-  const branch1 = (student.branch || "").toLowerCase();
+  // Normalize degree for matching
+  const degree = (student.degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const beCourses = [
-    "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
-    "IT", "AI/ML", "CSBS", "Civil"
-  ];
-
-    if (degree === "MSC") {
+  // PG logic
+  if (["me", "me_mtech", "memtech", "mtech", "me-mtech", "m.e", "m.tech"].includes(degree)) {
+    // M.E/M.Tech
+    const pgCourses = [
+      'M.E. Structural Engineering',
+      'M.E. Environmental Engineering',
+      'M.E. Construction Engineering and Management',
+      'M.E. Engineering Design',
+      'M.E. Power System Engineering',
+      'M.E. Communication Systems',
+      'M.E. Computer Science and Engineering',
+    ];
+    pgCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchSelect.appendChild(option);
+    });
+    branchSelect.disabled = false;
+    modeSelect.innerHTML = `
+      <option value="">-- Select Mode --</option>
+      <option value="self-finance">Self-Finance</option>
+    `;
+    modeSelect.disabled = false;
+  } else if (["mca", "mca"].includes(degree) || degree === "mca") {
+    // MCA
+    const option = document.createElement("option");
+    option.value = "MCA";
+    option.textContent = "MCA";
+    branchSelect.appendChild(option);
+    branchSelect.disabled = true;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  } else if (["march", "m.arch"].includes(degree)) {
+    // M.Arch
+    const option = document.createElement("option");
+    option.value = "M.ARCH";
+    option.textContent = "M.ARCH";
+    branchSelect.appendChild(option);
+    branchSelect.disabled = true;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  } else if (["msc", "mscdata", "mscdatascience"].includes(degree)) {
+    // M.Sc Data Science
     const option = document.createElement("option");
     option.value = "MSC DATA SCIENCE";
     option.textContent = "MSC DATA SCIENCE";
     branchSelect.appendChild(option);
-    branchSelect.value = "MSC DATA SCIENCE";
     branchSelect.disabled = true;
-
     modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
     modeSelect.value = "self-finance";
     modeSelect.disabled = false;
-  }
-
-  else if (degree === "BARCH") {
+  } else if (["barch", "b.arch"].includes(degree)) {
+    // B.Arch
     const option = document.createElement("option");
     option.value = "B.ARCH";
     option.textContent = "B.ARCH";
     branchSelect.appendChild(option);
-    branchSelect.value = "B.ARCH";
     branchSelect.disabled = true;
-
     modeSelect.innerHTML = `
       <option value="">-- Select Mode --</option>
-      <option value="aided">Aided</option>
       <option value="self-finance">Self-Finance</option>
     `;
     modeSelect.disabled = false;
-  }
-
-
-  else if (["BDES", "IT", "Mechatronics", "CSBS"].includes(degree)) {
-  const option = document.createElement("option");
-  option.value = degree;
-  option.textContent = degree;
-  branchSelect.appendChild(option);
-  branchSelect.value = degree;
-  branchSelect.disabled = true;
-
-  modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
-  modeSelect.value = "self-finance";
-  modeSelect.disabled = false;
-}
-  // General case: BE courses
-  else {
-    const branchesToShow = beCourses
-    // Add a default option
+  } else if (["bdes", "b.des"].includes(degree)) {
+    // B.Des
+    const option = document.createElement("option");
+    option.value = "B.DES";
+    option.textContent = "B.DES";
+    branchSelect.appendChild(option);
+    branchSelect.disabled = true;
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.value = "self-finance";
+    modeSelect.disabled = false;
+  } else {
+    // UG BE/BTech logic
+    const beCourses = [
+      "CSE", "ECE", "EEE", "Mechanical", "Mechatronics",
+      "IT", "AI/ML", "CSBS", "Civil"
+    ];
     const defaultOption = document.createElement("option");
     defaultOption.textContent = "Select Branch";
     defaultOption.disabled = true;
     defaultOption.selected = true;
     branchSelect.appendChild(defaultOption);
 
-    branchesToShow.forEach(course => {
+    beCourses.forEach(course => {
       const option = document.createElement("option");
       option.value = course;
       option.textContent = course;
       branchSelect.appendChild(option);
     });
 
-    // Handle mode change on branch selection
     branchSelect.onchange = () => {
       const selected = branchSelect.value.toLowerCase();
       if (["msc data science", "data science", "b.des", "b.arch", "it", "mechatronics", "csbs", "ai/ml"].includes(selected)) {
@@ -1198,17 +1317,32 @@ function acceptStudent(id, branch) {
         `;
         modeSelect.disabled = false;
       }
+      updateSeatInfo();
     };
 
-    // Trigger mode dropdown update initially
     branchSelect.dispatchEvent(new Event("change"));
+  }
+
+  // --- SET THE SELECTED VALUE ONLY AFTER POPULATING OPTIONS ---
+  let alreadyAllotted = "";
+  if (student.outcomes && student.outcomes.length > 0 && student.outcomes[0].course_name) {
+    alreadyAllotted = student.outcomes[0].course_name;
+  }
+
+  if (alreadyAllotted) {
+    branchSelect.value = alreadyAllotted;
+    // If the value is not found (maybe due to mismatch), fallback to first option
+    if (branchSelect.value !== alreadyAllotted) {
+      branchSelect.selectedIndex = 0;
+    }
+  } else {
+    // No allotment yet, select the default (first) option if exists
+    branchSelect.selectedIndex = 0;
   }
 
   // Show the popup
   document.getElementById("popup-overlay").style.display = "flex";
 }
-
-
 
 
 function confirmSelection() {
@@ -1221,7 +1355,7 @@ function confirmSelection() {
   }
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
+  selectedMode === "aided" ? "Aided" : "Self Finance";
  const confirmButton = document.querySelector("#popup-overlay button.accept");
   if (confirmButton) {
     confirmButton.disabled = true;
@@ -1242,13 +1376,13 @@ function sendApprovalRequest(isConfirm = false) {
       status: "APPROVED",
       course: fullCourseName,
       course_type: modeFormatted,
-      is_confirm: isConfirm
+      confirm: isConfirm
     })
   })
   .then(async (res) => {
     const data = await res.json().catch(() => ({})); // protect against invalid JSON
     if (res.status === 409) {
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+      const proceed = confirm(`${data.error || "No remaining seats."}\n\nDo you want to proceed?`);
       if (proceed) {
         return sendApprovalRequest(true); // Retry with confirmation
       } else {
@@ -1295,6 +1429,10 @@ function openDeclineModal(id) {
 
 function closeDeclineModal() {
   document.getElementById("declineModal").style.display = "none";
+}
+
+function closeSelectionModal() {
+  document.getElementById("popup-overlay").style.display = "none";
 }
 
 function submitDecline() {
@@ -1521,16 +1659,30 @@ function removeCard(id) {
       document.getElementById("viewMoreOverlay").style.display = "none";
     }
     function showSeatPopup() {
+
   authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -1542,6 +1694,24 @@ function removeCard(id) {
 
         tableBody.appendChild(row);
       });
+
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
 
       document.getElementById("seatPopup").style.display = "flex";
     })
