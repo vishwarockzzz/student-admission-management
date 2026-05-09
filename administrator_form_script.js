@@ -379,7 +379,11 @@ async function handleSubmit(event) {
 
   // Detect program type from degree
   const degreeKey = (degree || '').toLowerCase();
+  let finalDegree = degree;
   let program_type = 'lateral';
+  if (program_type === 'lateral') {
+    finalDegree = 'btech';
+  }
   
   const formData = {
     application_number: clean(document.getElementById("applicationNumber")?.value),
@@ -399,7 +403,7 @@ async function handleSubmit(event) {
     community: clean(document.getElementById("community")?.value),
     college: clean(selectedCollege),
     year_of_diploma_passing: clean(document.getElementById("yearOfDiplomaPassing")?.value),
-    degree: clean(degree),
+    degree: clean(finalDegree),
     program_type: program_type,
     lateral_cutoff: clean(document.getElementById("lateral-cutoff")?.value, "float"),
     branch_1: clean(document.getElementById("pref1")?.value),
