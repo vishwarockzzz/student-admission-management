@@ -437,7 +437,7 @@
   <div>
     <div id="tcaForm" style="display: none;">
       <main class="container">
-        <h2>Student Details (TCA) - <span id="tcaProgramTypeTitle"></span></h2>
+        <h2>Student Details (TCA)</h2>
         <div class="row">
           <!-- Left Section -->
           <div class="form-section">
@@ -552,10 +552,10 @@
             </div>
             <div class="form-group">
               <label>Remarks on Application:</label>
-              <select id="applicationStatus" disabled>
+              <select id="tcaApplicationStatus" disabled>
                 <option value="Applied">Applied</option>
                 <option value="To be given">To be given</option>
-                <option value="Pendin">Pending</option>
+                <option value="Pending">Pending</option>
               </select>
             </div>
 
@@ -609,30 +609,6 @@
         </div>
 
         <!-- Add more TCA-specific fields if needed -->
-
-        <div id="tcaPgSection" style="display: none; border: 1px solid #ccc; padding: 12px; margin: 10px 0;">
-          <h3>PG Required Info</h3>
-          <div class="form-group">
-            <label>UG Degree:<span style="color:red">*</span></label>
-            <input type="text" id="tcaUgDegree" />
-          </div>
-          <div class="form-group">
-            <label>UG Programme Name:<span style="color:red">*</span></label>
-            <input type="text" id="tcaUgCourseName" />
-          </div>
-          <div class="form-group">
-            <label>UG Institution:<span style="color:red">*</span></label>
-            <input type="text" id="tcaUgInstitution" />
-          </div>
-          <div class="form-group">
-            <label>UG Aggregated Percentage Score/CGPA:<span style="color:red">*</span></label>
-            <input type="number" id="tcaUgConsolidatedMark" min="0" step="0.01" />
-          </div>
-          <div class="form-group">
-            <label>Tancet/GATE Score:<span style="color:red">*</span></label>
-            <input type="text" id="tcaTancetGateScore" />
-          </div>
-        </div>
 
         <h2>Recommender Details</h2>
 
