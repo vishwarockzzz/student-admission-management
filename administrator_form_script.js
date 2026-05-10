@@ -83,18 +83,20 @@ function setCollege(college) {
   selectedCollege = college;
   selectedProgramType = '';
 
-  // Hide current forms until program type selected
+  // Hide both forms by default
   tceForm.style.display = 'none';
   tcaForm.style.display = 'none';
-
-  // Show instruction section and program type options
   instruction.style.display = 'none';
-  programTypeSection.style.display = 'block';
-  setDegreeOptions();
 
   if (college === 'TCE') {
+    // TCE still requires admission type selection first
+    programTypeSection.style.display = 'block';
+    setDegreeOptions();
     msg.textContent = "You have selected: Thiagarajar College of Engineering (TCE)";
   } else if (college === 'TCA') {
+    // TCA should immediately show the TCA form without admission type selection
+    programTypeSection.style.display = 'none';
+    tcaForm.style.display = 'block';
     msg.textContent = "You have selected: Thiagarajar College (TCA)";
   } else {
     programTypeSection.style.display = 'none';
@@ -784,22 +786,11 @@ async function handleSubmitTca(event) {
   }
 
   const degree = document.getElementById("tcaDegree")?.value;
-  let programType = selectedProgramType || '';
-  if (!programType) {
-    const degKey = (degree || '').toLowerCase();
-    if (['me_mtech', 'march', 'mca'].includes(degKey)) {
-      programType = 'pg';
-    } else if (['btech', 'msc', 'bdes', 'barch', 'be'].includes(degKey)) {
-      programType = 'ug';
-    } else {
-      programType = 'ug';
-    }
-  }
 
   const formData = {
     application_number: clean(document.getElementById("tcaAppNumber")?.value),
     name: clean(document.getElementById("tcaName")?.value),
-    date_of_birth: clean(document.getElementById("tcaDOB")?.value), // Added for DOB
+    date_of_birth: clean(document.getElementById("tcaDOB")?.value),
     gender: clean(document.getElementById("tcaSex")?.value),
     school: clean(document.getElementById("tcaSchool")?.value),
     address: clean(document.getElementById("tcaAddress")?.value),
@@ -810,16 +801,10 @@ async function handleSubmitTca(event) {
     college: clean(selectedCollege),
     board: clean(document.getElementById("tcaBoard")?.value),
     year: clean(document.getElementById("tcayear")?.value),
-    applicationstatus: clean(document.getElementById("tcaapplicationStatus")?.value),
+    applicationstatus: clean(document.getElementById("tcaApplicationStatus")?.value),
     degreeType: clean(document.getElementById("tcaDegreeType")?.value),
     course: clean(document.getElementById("tcaCourse")?.value),
     degree: clean(degree),
-    program_type: programType,
-    ug_degree: program_type === 'pg' ? clean(document.getElementById("tcaUgDregree")?.value, "float") : null,
-    ug_consolidated_mark: programType === 'pg' ? clean(document.getElementById("tcaUgConsolidatedMark")?.value, "float") : null,
-    ug_course_name: programType === 'pg' ? clean(document.getElementById("tcaUgCourseName")?.value) : null,
-    ug_institution: programType === 'pg' ? clean(document.getElementById("tcaUgInstitution")?.value) : null,
-    tancet_gate_score: programType === 'pg' ? clean(document.getElementById("tcaTancetGateScore")?.value) : null,
     subject1: clean(document.getElementById("sub1")?.value, "float"),
     subject2: clean(document.getElementById("sub2")?.value, "float"),
     subject3: clean(document.getElementById("sub3")?.value, "float"),
