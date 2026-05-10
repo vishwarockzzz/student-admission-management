@@ -1047,6 +1047,15 @@ header {
   background: #f0f0f0;
 }
 
+#seatTable .seat-total-row {
+  background: #e9f4ff;
+  font-weight: 700;
+}
+
+#seatTable .seat-total-row td {
+  border-top: 2px solid var(--maroon);
+}
+
 /* ===== MODERN POPUP OVERLAYS ===== */
 .modal {
   display: none;

@@ -50,6 +50,21 @@ let currentSeatData = [];
     "B.Sc. Computer Science in AI"
   ];
 
+  function getDegreeLevel(course) {
+    const normalized = (course || "").toString().trim().toLowerCase();
+    if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+      return "PG";
+    }
+    return "UG";
+  }
+
+  function normalizeCourseType(courseType) {
+    const normalized = (courseType || "").toString().trim().toLowerCase();
+    return normalized.includes("aided") ? "aided" : "selfFinance";
+  }
+
+window.getDegreeLevel = getDegreeLevel;
+window.normalizeCourseType = normalizeCourseType;
 
 function goHome() {
     window.location.href = 'index.html'; 
@@ -1048,10 +1063,23 @@ function showSeatPopup() {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -1063,6 +1091,24 @@ function showSeatPopup() {
 
         tableBody.appendChild(row);
       });
+
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
 
       document.getElementById("seatPopup").style.display = "flex";
     })
@@ -1084,7 +1130,7 @@ function closeChangeSeatPopup() {
 }
 
 function updateRemaining(index) {
-  const row = document.querySelector(`#changeSeatTable tbody tr:nth-child(${index + 1})`);
+  const row = document.querySelector(`#changeSeatTable tbody tr:not(.summary-row):nth-of-type(${index + 1})`);
   if (!row) return;
   const totalInput = row.querySelector(`#total-${index}`);
   const allocatedInput = row.querySelector(`#allocated-${index}`);
@@ -1092,26 +1138,46 @@ function updateRemaining(index) {
   if (!totalInput || !allocatedInput || !remainingInput) return;
   const total = parseInt(totalInput.value) || 0;
   const allocated = parseInt(allocatedInput.value) || 0;
-  remainingInput.value = Math.max(0, total - allocated);
+  remainingInput.value = total - allocated; // Allow negative values
   updateSummaryTotals();
 }
 
 function updateSummaryTotals() {
   const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
   const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
-  let sfTotal = 0, sfAllocated = 0, sfRemaining = 0;
+  const totals = {
+    aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+    selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+  };
+
   rows.forEach(row => {
-    if (row.dataset.courseType !== 'self finance') return;
-    sfTotal    += parseInt(row.querySelector("input[id^='total-']")?.value)     || 0;
-    sfAllocated+= parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
-    sfRemaining+= parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
+    const courseType = row.dataset.courseType || 'selfFinance';
+    const degreeLevel = (row.dataset.degreeLevel || 'UG').toUpperCase();
+    const total = parseInt(row.querySelector("input[id^='total-']")?.value) || 0;
+    const allocated = parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
+    const remaining = parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
+
+    if (!totals[courseType] || !totals[courseType][degreeLevel]) return;
+    totals[courseType][degreeLevel].totalSeats += total;
+    totals[courseType][degreeLevel].allocatedSeats += allocated;
+    totals[courseType][degreeLevel].remainingSeats += remaining;
   });
-  const ts = document.getElementById("sf-total-summary");
-  const as_ = document.getElementById("sf-allocated-summary");
-  const rs = document.getElementById("sf-remaining-summary");
-  if (ts) ts.value = sfTotal;
-  if (as_) as_.value = sfAllocated;
-  if (rs) rs.value = sfRemaining;
+
+  const setTotals = (prefix, level) => {
+    const levelLower = level.toLowerCase();
+    const totalEl = document.getElementById(`${prefix}-${levelLower}-total`);
+    const allocatedEl = document.getElementById(`${prefix}-${levelLower}-allocated`);
+    const remainingEl = document.getElementById(`${prefix}-${levelLower}-remaining`);
+    const typeKey = prefix === 'sf' ? 'selfFinance' : prefix;
+    if (totalEl) totalEl.value = totals[typeKey][level].totalSeats;
+    if (allocatedEl) allocatedEl.value = totals[typeKey][level].allocatedSeats;
+    if (remainingEl) remainingEl.value = totals[typeKey][level].remainingSeats;
+  };
+
+  ['UG', 'PG'].forEach(level => {
+    setTotals('aided', level);
+    setTotals('sf', level);
+  });
 }
 
 function showChangeSeatsPopup() {
@@ -1127,11 +1193,14 @@ function showChangeSeatsPopup() {
       tableBody.innerHTML = "";
 
       grouped.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
         const courseWithType = `${entry.course} (${entry.course_type})`;
         const row = document.createElement("tr");
-        row.dataset.courseType = entry.course_type.toLowerCase();
+        row.dataset.courseType = courseTypeKey;
+        row.dataset.degreeLevel = degreeLevel.toLowerCase();
         row.dataset.courseName = entry.course;
-        const remaining = Math.max(0, (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0));
+        const remaining = (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0);
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${courseWithType}</td>
@@ -1142,22 +1211,38 @@ function showChangeSeatsPopup() {
         tableBody.appendChild(row);
       });
 
-      // SF summary row
-      let summaryTotal = 0, summaryAllocated = 0, summaryRemaining = 0;
-      sf.forEach(e => {
-        summaryTotal     += parseInt(e.total_seats)     || 0;
-        summaryAllocated += parseInt(e.allocated_seats) || 0;
-        summaryRemaining += Math.max(0, (parseInt(e.total_seats)||0) - (parseInt(e.allocated_seats)||0));
+          const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
+      grouped.forEach(e => {
+        const typeKey = normalizeCourseType(e.course_type);
+        const level = getDegreeLevel(e.course);
+        const totalSeats = parseInt(e.total_seats) || 0;
+        const allocatedSeats = parseInt(e.allocated_seats) || 0;
+        const remainingSeats = totalSeats - allocatedSeats;
+        totals[typeKey][level].totalSeats += totalSeats;
+        totals[typeKey][level].allocatedSeats += allocatedSeats;
+        totals[typeKey][level].remainingSeats += remainingSeats;
       });
-      const summaryRow = document.createElement("tr");
-      summaryRow.classList.add("summary-row");
-      summaryRow.innerHTML = `
-        <td colspan="2"><strong>Self Finance (Total Count)</strong></td>
-        <td><input type="number" value="${summaryTotal}" id="sf-total-summary" readonly disabled></td>
-        <td><input type="number" value="${summaryAllocated}" id="sf-allocated-summary" readonly disabled></td>
-        <td><input type="number" value="${summaryRemaining}" id="sf-remaining-summary" readonly disabled></td>
-      `;
-      tableBody.appendChild(summaryRow);
+
+      const appendTotalRow = (label, totalsData, prefix, level) => {
+        const totalRow = document.createElement("tr");
+        totalRow.classList.add("summary-row");
+        totalRow.innerHTML = `
+          <td colspan="2"><strong>${label}</strong></td>
+          <td><input type="number" value="${totalsData.totalSeats}" id="${prefix}-${level}-total" readonly disabled></td>
+          <td><input type="number" value="${totalsData.allocatedSeats}" id="${prefix}-${level}-allocated" readonly disabled></td>
+          <td><input type="number" value="${totalsData.remainingSeats}" id="${prefix}-${level}-remaining" readonly disabled></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG, "aided", "ug");
+      appendTotalRow("Aided PG Total", totals.aided.PG, "aided", "pg");
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG, "sf", "ug");
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG, "sf", "pg");
 
       document.getElementById("changeSeatPopup").style.display = "block";
       updateSummaryTotals();
@@ -1187,24 +1272,24 @@ function saveChangeSeats() {
           course_type: grouped[index].course_type,
           total_seats: newTotal,
           allocated_seats: originalAllocated,
-          remaining_seats: Math.max(0, newTotal - originalAllocated)
+          remaining_seats: newTotal - originalAllocated
         });
       }
     }
   });
 
   // Fix 7: Frontend guard — no individual SF seat > allocated already
-  const invalidEntries = updatedData.filter(d => d.total_seats < d.allocated_seats);
+  const invalidEntries = updatedData.filter(d => d.total_seats < 0);
   if (invalidEntries.length > 0) {
-    alert(`Cannot set total seats less than allocated seats for: ${invalidEntries.map(d => d.course).join(", ")}`);
+    alert(`Total seats cannot be negative for: ${invalidEntries.map(d => d.course).join(", ")}`);
     return;
   }
 
   // Fix 7: Check that SF individual sum does not exceed the displayed SF total cap
-  const sfSummaryTotal = parseInt(document.getElementById("sf-total-summary")?.value) || 0;
+  const sfTotalSummary = (parseInt(document.getElementById("sf-ug-total")?.value) || 0) + (parseInt(document.getElementById("sf-pg-total")?.value) || 0);
   const newSFSum = updatedData.filter(d => d.course_type.toLowerCase() === 'self finance').reduce((s, d) => s + d.total_seats, 0);
-  if (newSFSum > sfSummaryTotal && sfSummaryTotal > 0) {
-    alert(`Individual Self Finance seat totals (${newSFSum}) exceed the SF Total cap (${sfSummaryTotal}). Please reduce individual course seats.`);
+  if (newSFSum > sfTotalSummary && sfTotalSummary > 0) {
+    alert(`Individual Self Finance seat totals (${newSFSum}) exceed the SF Total cap (${sfTotalSummary}). Please reduce individual course seats.`);
     return;
   }
 
