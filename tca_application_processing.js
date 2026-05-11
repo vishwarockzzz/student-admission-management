@@ -1,11 +1,54 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
 
 const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
 const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
+const EXPORTS_URL = `${window.env.BASE_URL}/exports`;
 let result = [];
 let seats = {};
 
-// Aided UG Courses
+function getDegreeLevel(course) {
+  const normalized = (course || "").toString().trim().toLowerCase();
+  if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+    return "PG";
+  }
+  return "UG";
+}
+
+function normalizeCourseType(courseType) {
+  const normalized = (courseType || "").toString().trim().toLowerCase();
+  return normalized.includes("aided") ? "aided" : "selfFinance";
+}
+
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
   const aidedUG = [
     "B.A. Tamil",
     "B.A. English",
@@ -52,47 +95,13 @@ const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   currentStatus="UNALLOCATED"
-  fetch(`${API_URL}?status=${currentStatus}`)
+  authFetch(`${API_URL}?status=${currentStatus}`)
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error loading students:", error));
 }
-fetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
-
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
    function goHome() {
     window.location.href = 'index.html';  // Change to your actual login route
@@ -104,7 +113,7 @@ fetch(SEATS_URL)
   }
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
-  panel.style.display = panel.style.display === "block" ? "none" : "block";
+  panel.style.display = panel.style.display === "flex";
 }
 
 // Optional: hide on outside click
@@ -133,7 +142,7 @@ function handleSearch(status) {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
+  authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
     .then(response => response.json())
     .then(data => renderStudents(data.students || []))
     .catch(error => console.error("Error during search:", error));
@@ -197,7 +206,7 @@ const filteredStudents = allStudents.filter(student => {
 
 
 function fetchAndRenderStudents(status) {
-  fetch(`${API_URL}?status=${status}`)
+  authFetch(`${API_URL}?status=${status}`)
     .then(response => response.json())
     .then(data => {
       allStudents = data.students || [];
@@ -342,7 +351,7 @@ let isFirstGroup = true;
         <p><strong>Course:</strong> ${key}</p>
         <p><strong>Total Mark:</strong> ${student.twelfth_mark}</p>
         <p><strong>Cut-Off:</strong> ${student.cutoff || "N/A"}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        <button class="view-more view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
       `;
 
       const recommender = student.recommenders?.[0] || {
@@ -484,7 +493,7 @@ function confirmSelection() {
   confirmButton.innerText = "Loading...";
 
   function sendApprovalRequest(isConfirm = false) {
-    fetch(UPDATE_URL, {
+    authFetch(UPDATE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -531,12 +540,13 @@ function confirmSelection() {
 
 
 
+
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -555,7 +565,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -594,7 +604,7 @@ function onHoldStudent(id) {
   }
   const student = allStudents.find(s => s.id === id);
   const studentName = student?.name || `ID ${id}`;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -627,7 +637,7 @@ function withdrawStudent(id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -656,7 +666,7 @@ function withdrawStudent(id) {
 function deleteStudent(id) {
   const confirmed = confirm("Are you sure you want to delete this student's application?");
   if (!confirmed) return;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -762,21 +772,49 @@ function showViewMore(student) {
     
     
 window.onload = () => {
+  // Pre-fetch seat data
+  authFetch(SEATS_URL)
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {
+      data.forEach(entry => {
+        const remaining_seats = entry.remaining_seats ?? 0;
+        result.push({ student_id: entry.student_id, student_name: entry.student_name,
+          course: entry.course, course_type: entry.course_type,
+          status: entry.status, remaining_seats });
+        seats[entry.course] = remaining_seats;
+      });
+      console.log("Seats pre-loaded:", seats);
+    })
+    .catch(err => console.error("Failed to pre-load seat data:", err));
+
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -789,7 +827,25 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
+
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);

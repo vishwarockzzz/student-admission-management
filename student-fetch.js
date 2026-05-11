@@ -1,12 +1,108 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
 
-const API_URL = `${window.env.BASE_URL}/students`;
-console.log(API_URL);
-const UPDATE_URL = `${window.env.BASE_URL}/updatestatus`;
+const BASE_URL = window.env.BASE_URL.replace(/\/$/, '');
+const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/students` : `${BASE_URL}/api/students`;
+console.log('API_URL', API_URL);
+const UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updatestatus` : `${BASE_URL}/api/updatestatus`;
 
-const SEATS_URL =`${window.env.BASE_URL}/statusdetails`;
+const SEATS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/statusdetails` : `${BASE_URL}/api/statusdetails`;
+
+const SEATS_UPDATE_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/updateseats` : `${BASE_URL}/api/updateseats`;
+
+const EXPORTS_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/exports` : `${BASE_URL}/api/exports`;
+const STATUS_QUERY_ALIASES = {
+  ONHOLD: ["ONHOLD", "OnHold", "onhold", "ON HOLD", "On Hold", "on hold"]
+};
+
+function getDegreeLevel(course) {
+  const normalized = (course || "").toString().trim().toLowerCase();
+  if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+    return "PG";
+  }
+  return "UG";
+}
+
+function normalizeCourseType(courseType) {
+  const normalized = (courseType || "").toString().trim().toLowerCase();
+  return normalized.includes("aided") ? "aided" : "selfFinance";
+}
+
+async function fetchStudentsByStatus(status) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
+
+async function fetchStudentsByStatusAndSearch(status, searchTerm) {
+  const queries = STATUS_QUERY_ALIASES[status] || [status];
+  const encodedQuery = encodeURIComponent(searchTerm);
+
+  for (let i = 0; i < queries.length; i++) {
+    const query = queries[i];
+    try {
+      const response = await authFetch(`${API_URL}?search=${encodedQuery}&status=${encodeURIComponent(query)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if ((data.students || []).length > 0 || i === queries.length - 1) {
+        return data.students || [];
+      }
+    } catch (err) {
+      console.warn(`Search status query fallback failed for ${query}:`, err);
+    }
+  }
+  return [];
+}
 
 let result = [];
 let seats = {};
+let allStudents = [];
+let currentStudentId = null;
+let currentStatus = "UNALLOCATED";
+
+// Fix 5: Download Excel report via authenticated fetch
+function downloadExcel() {
+  const btn = document.getElementById('downloadExcelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+  authFetch(EXPORTS_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Download failed: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    })
+    .catch(err => {
+      console.error('Excel download error:', err);
+      alert('Failed to download Excel: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '\u2193 Download Excel'; }
+    });
+}
+
+
+
 
 function closeSelectionModal() {
   document.getElementById("popup-overlay").style.display = "none";
@@ -14,57 +110,28 @@ function closeSelectionModal() {
 const isAdmin = localStorage.getItem("is_admin") === "true";
 function clearSearch() {
   document.getElementById("searchInput").value = "";
-  currentStatus="UNALLOCATED"
-  fetch(`${API_URL}?status=${currentStatus}`)
-    .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
+  document.getElementById("ugFilter").value = "";
+  document.getElementById("pgFilter").value = "";
+  document.getElementById("ugLateralFilter").value = "";
+  currentStatus = "UNALLOCATED"
+  fetchStudentsByStatus(currentStatus)
+    .then(students => {
+      renderStudents(students || []);
+      populateDegreeFilters();
+    })
     .catch(error => console.error("Error loading students:", error));
 }
-fetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch is done inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
+function goHome() {
+  window.location.href = 'index.html';  // Change to your actual login route
+}
 
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
-
-   function goHome() {
-    window.location.href = 'index.html';  // Change to your actual login route
-  }
-
-  function goBack() {
-    window.history.back(); 
-     // Goes to the previous page
-  }
+function goBack() {
+  window.history.back();
+  // Goes to the previous page
+}
 function toggleFilterSort() {
   const panel = document.getElementById("filterSortPanel");
   panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -80,14 +147,6 @@ document.addEventListener("click", function (event) {
   }
 });
 
-
-let currentStudentId = null;
-
-window.onload = () => {
-  loadStatus('UNALLOCATED');
-  populateFilters(); // default
-};
-
 function handleSearch(status) {
   const query = document.getElementById("searchInput").value.trim();
 
@@ -96,17 +155,108 @@ function handleSearch(status) {
     return;
   }
 
-  fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${status}`) 
-    .then(response => response.json())
-    .then(data => renderStudents(data.students || []))
+  fetchStudentsByStatusAndSearch(status, query)
+    .then(students => renderStudents(students || []))
     .catch(error => console.error("Error during search:", error));
 }
+
+function normalizeDegreeValue(degree) {
+  return (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function populateDegreeFilters() {
+  const degrees = {
+    ug: new Set(),
+    pg: new Set()
+  };
+
+  const knownPgKeys = new Set([
+    'me', 'm.e', 'mtech', 'm.tech', 'me_mtech', 'me mtech', 'me-mtech', 'memtech', 'mca', 'm.c.a', 'march', 'm.arch', 'mba', 'm.b.a'
+  ]);
+
+  allStudents.forEach(student => {
+    const rawDegree = student.degree || "";
+    const degreeKey = normalizeDegreeValue(rawDegree);
+
+    if (degreeKey === 'msc' || degreeKey === 'mscdata' || degreeKey === 'mscdatascience') {
+      degrees.ug.add(rawDegree);
+    } else if (knownPgKeys.has(degreeKey)) {
+      degrees.pg.add(rawDegree);
+    } else {
+      degrees.ug.add(rawDegree);
+    }
+  });
+
+  const ugFilter = document.getElementById("ugFilter");
+  if (ugFilter) {
+    ugFilter.innerHTML = '<option value="">All UG</option>';
+    Array.from(degrees.ug).sort().forEach(degree => {
+      const option = document.createElement("option");
+      option.value = degree;
+      option.textContent = degree.toUpperCase();
+      ugFilter.appendChild(option);
+    });
+  }
+
+  const pgFilter = document.getElementById("pgFilter");
+  if (pgFilter) {
+    pgFilter.innerHTML = '<option value="">All PG</option>';
+    Array.from(degrees.pg).sort().forEach(degree => {
+      const option = document.createElement("option");
+      option.value = degree;
+      option.textContent = degree.toUpperCase();
+      pgFilter.appendChild(option);
+    });
+  }
+
+  const ugLateralFilter = document.getElementById("ugLateralFilter");
+  if (ugLateralFilter) {
+    ugLateralFilter.innerHTML = '<option value="">All UG Lateral</option>';
+    Array.from(degrees.ug).sort().forEach(degree => {
+      const option = document.createElement("option");
+      option.value = degree;
+      option.textContent = degree.toUpperCase();
+      ugLateralFilter.appendChild(option);
+    });
+  }
+}
+
+function filterByDegree() {
+  const ugFilter = document.getElementById("ugFilter")?.value;
+  const pgFilter = document.getElementById("pgFilter")?.value;
+  const ugLateralFilter = document.getElementById("ugLateralFilter")?.value;
+  
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
+
+  let filtered = allStudents;
+
+  if (ugFilter) {
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugFilter.toLowerCase() && 
+      !isStudentLateral(s)
+    );
+  }
+
+  if (pgFilter) {
+    filtered = filtered.filter(s => (s.degree || "").toLowerCase() === pgFilter.toLowerCase());
+  }
+
+  if (ugLateralFilter) {
+    filtered = filtered.filter(s => 
+      (s.degree || "").toLowerCase() === ugLateralFilter.toLowerCase() && 
+      isStudentLateral(s)
+    );
+  }
+
+  renderStudents(filtered);
+}
+
 function populateFilters() {
   const filterElement = document.getElementById("combinedFilter");
 
   // Options for departments and degrees
   const options = [
-    "Any Branch","CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
+    "Any Branch", "CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil", "BE/BTECH", "M.E/M.TECH", "M.ARCH", "M.C.A", "M.SC DATA SCIENCE", "B.DES", "B.ARCH"
   ];
 
   // Populate the dropdown
@@ -120,46 +270,49 @@ function populateFilters() {
 
 function filterByCombined() {
   const selectedFilter = document.getElementById("combinedFilter").value;
-      document.getElementById("recommenderFilter").value = "all";
+  document.getElementById("recommenderFilter").value = "all";
 
   if (selectedFilter === "Clear" || selectedFilter === "all") {
     renderStudents(allStudents);
     return;
   }
-const filteredStudents = allStudents.filter(student => {
-  const departments = [student.branch_1, student.branch_2, student.branch_3];
-  const degree = student.degree;
+  const filteredStudents = allStudents.filter(student => {
+    const departments = [student.branch_1, student.branch_2, student.branch_3];
+    const degree = student.degree;
 
-  const degreeMatches = {
-    "BE/BTECH": ["btech"],
-    "M.SC DATA SCIENCE": ["msc"],
-    "B.DES": ["bdes"],
-    "B.ARCH": ["barch"]
-  };
+    const degreeMatches = {
+      "BE/BTECH": ["btech"],
+      "M.E/M.TECH": ["me_mtech", "me", "mtech"],
+      "M.ARCH": ["march"],
+      "M.C.A": ["mca"],
+      "M.SC DATA SCIENCE": ["msc"],
+      "B.DES": ["bdes"],
+      "B.ARCH": ["barch"]
+    };
 
- if (selectedFilter === "Any Branch") {
-  // Only allow students with degree exactly "BE/BTECH"
-  if (degree !== "btech") return false;
+    if (selectedFilter === "Any Branch") {
+      // Only allow students with degree exactly "BE/BTECH"
+      if (degree !== "btech") return false;
 
-  return (
-    departments.includes("Any Branch") ||
-    departments.every(branch => !branch || branch.trim() === "")
-  );
-}
-  // Match specific departments
-  if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil"].includes(selectedFilter)) {
-    return departments.includes(selectedFilter);
-  }
+      return (
+        departments.includes("Any Branch") ||
+        departments.every(branch => !branch || branch.trim() === "")
+      );
+    }
+    // Match specific departments
+    if (["CSE", "EEE", "ECE", "Mechanical", "Mechatronic", "IT", "AI&ML", "CSBS", "Civil"].includes(selectedFilter)) {
+      return departments.includes(selectedFilter);
+    }
 
-  // Match by degree type
-  if (Object.keys(degreeMatches).includes(selectedFilter)) {
-    return degreeMatches[selectedFilter].includes(degree?.toLowerCase());
-  }
+    // Match by degree type
+    if (Object.keys(degreeMatches).includes(selectedFilter)) {
+      return degreeMatches[selectedFilter].includes(degree?.toLowerCase());
+    }
 
-  return false;
-});
+    return false;
+  });
 
-renderStudents(filteredStudents);
+  renderStudents(filteredStudents);
 }
 
 
@@ -167,12 +320,12 @@ renderStudents(filteredStudents);
 
 
 function fetchAndRenderStudents(status) {
-  fetch(`${API_URL}?status=${status}`)
-    .then(response => response.json())
-    .then(data => {
-      allStudents = data.students || [];
+  fetchStudentsByStatus(status)
+    .then(students => {
+      allStudents = students || [];
       renderStudents(allStudents);
       populateRecommenderFilter(allStudents);
+      populateDegreeFilters();
     })
     .catch(error => console.error("Error fetching students:", error));
 }// Populate recommender dropdown
@@ -209,7 +362,7 @@ function populateRecommenderFilter(students) {
     dropdown.appendChild(option);
   });
 
-  
+
 }
 
 
@@ -228,7 +381,7 @@ function filterByRecommender() {
   const filtered = allStudents.filter(student => {
     const rec = student.recommenders?.[0];
     const designation = rec?.designation || "-";
-     const affiliation = rec?.affiliation || "-";
+    const affiliation = rec?.affiliation || "-";
     const label = `${rec?.name} - ${designation} - ${affiliation}`;
     return label === selected;
   });
@@ -247,116 +400,199 @@ function renderStudents(students) {
     "b.e": "B.E. / B.Tech.",
     "btech": "B.E. / B.Tech.",
     "engineering": "B.E. / B.Tech.",
-    "msc": "M.Sc. DS ",
+    "me_mtech": "M.E. / M.Tech.",
+    "march": "M.Arch.",
+    "mca": "M.C.A.",
+    "msc": "M.Sc. Data Science",
     "bdes": "B.Des",
     "barch": "B.Arch."
   };
 
-  const orderedDegreeKeys = ["b.e", "btech", "engineering", "msc", "bdes", "barch"];
+  const degreeConfig = [
+    { key: "btech", displayName: "BE / B.Tech", keys: ["b.e", "btech", "engineering"], isPG: false, isLateral: false },
+    { key: "msc", displayName: "M.Sc. Data Science", keys: ["msc", "mscdata", "mscdatascience"], isPG: false, isLateral: false },
+    { key: "bdes", displayName: "B.Des", keys: ["bdes", "b.des"], isPG: false, isLateral: false },
+    { key: "barch", displayName: "B.Arch", keys: ["barch", "b.arch"], isPG: false, isLateral: false },
+    { key: "btech_lateral", displayName: "BE / B.Tech", keys: ["b.e", "btech", "engineering"], isPG: false, isLateral: true },
+    { key: "bdes_lateral", displayName: "B.Des", keys: ["bdes", "b.des"], isPG: false, isLateral: true },
+    { key: "barch_lateral", displayName: "B.Arch", keys: ["barch", "b.arch"], isPG: false, isLateral: true },
+    { key: "me_mtech", displayName: "ME / M.Tech", keys: ["me_mtech"], isPG: true, isLateral: false },
+    { key: "march", displayName: "M.Arch", keys: ["march"], isPG: true, isLateral: false },
+    { key: "mca", displayName: "MCA", keys: ["mca"], isPG: true, isLateral: false }
+  ];
 
-  // Group students by normalized degree key
-  const grouped = {};
-  students.forEach(student => {
-    const degreeKey = student.degree?.toLowerCase();
-    if (!grouped[degreeKey]) grouped[degreeKey] = [];
-    grouped[degreeKey].push(student);
-  });
+  const normalizeDegreeValue = degree => (degree || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const isStudentLateral = student => ((student.program_type || "").toLowerCase().includes("lateral"));
+  
+  const allKnownDegreeKeys = new Set(degreeConfig.flatMap(item => item.keys.map(normalizeDegreeValue)));
 
-  let isFirstGroup = true;
+  // Create main container
+  const mainContainer = document.createElement("div");
+  mainContainer.className = "degree-sections-container";
 
-  for (const key of orderedDegreeKeys) {
-    const studentsList = grouped[key];
-    if (!studentsList || studentsList.length === 0) continue;
+  let ugGroup = null;
+  let ugLateralGroup = null;
+  let pgGroup = null;
 
-    if (!isFirstGroup) {
-  const divider = document.createElement("hr");
-  divider.className = "degree-divider"; // ✅ Add this line
-  container.appendChild(divider);
-}
+  degreeConfig.forEach(degreeItem => {
+    const { key, displayName, isPG, isLateral, keys } = degreeItem;
+    const normalizedKeys = keys.map(normalizeDegreeValue);
+    const studentsList = normalizedKeys.length
+      ? students.filter(student => {
+          const studentDegree = normalizeDegreeValue(student.degree);
+          const lateral = isStudentLateral(student);
+          if (isLateral) {
+            return lateral && normalizedKeys.includes(studentDegree);
+          }
+          return !lateral && normalizedKeys.includes(studentDegree);
+        })
+      : students.filter(student => !allKnownDegreeKeys.has(normalizeDegreeValue(student.degree)));
+    const count = studentsList.length;
 
-const title = document.createElement("h2");
-title.className = "degree-section-header";
-title.textContent = degreeMap[key] || key.toUpperCase();
-container.appendChild(title);
+    // Create degree group separator if needed
+    if (isPG && !pgGroup) {
+      pgGroup = document.createElement("div");
+      pgGroup.className = "degree-group";
 
+      const pgLabel = document.createElement("div");
+      pgLabel.className = "degree-group-title";
+      pgLabel.textContent = "POST GRADUATE (PG) DEGREES";
+      pgGroup.appendChild(pgLabel);
+      mainContainer.appendChild(pgGroup);
+    } else if (isLateral && !ugLateralGroup) {
+      ugLateralGroup = document.createElement("div");
+      ugLateralGroup.className = "degree-group";
+
+      const lateralLabel = document.createElement("div");
+      lateralLabel.className = "degree-group-title";
+      lateralLabel.textContent = "UG LATERAL ENTRY DEGREES";
+      ugLateralGroup.appendChild(lateralLabel);
+      mainContainer.appendChild(ugLateralGroup);
+    } else if (!isPG && !isLateral && !ugGroup) {
+      ugGroup = document.createElement("div");
+      ugGroup.className = "degree-group";
+
+      const ugLabel = document.createElement("div");
+      ugLabel.className = "degree-group-title";
+      ugLabel.textContent = "UNDER GRADUATE (UG) DEGREES";
+      ugGroup.appendChild(ugLabel);
+      mainContainer.appendChild(ugGroup);
+    }
+
+    const targetGroup = isPG ? pgGroup : isLateral ? ugLateralGroup : ugGroup;
+
+    // Create dropdown
+    const dropdown = document.createElement("div");
+    dropdown.className = "degree-dropdown";
+    dropdown.id = `degree-${key}`;
+
+    // Create header
+    const header = document.createElement("div");
+    header.className = "degree-dropdown-header";
+    header.onclick = () => toggleDegreeDropdown(key);
+
+    header.innerHTML = `
+      <div class="degree-header-left">
+        <span class="degree-name">${displayName}</span>
+        <span class="degree-count">${count} Student${count !== 1 ? 's' : ''}</span>
+      </div>
+      <span class="toggle-icon">▼</span>
+    `;
+
+    // Create content area
+    const content = document.createElement("div");
+    content.className = "degree-content";
+
+    // Create grid
+    const grid = document.createElement("div");
+    grid.className = "student-grid";
 
     studentsList.forEach(student => {
       const row = document.createElement("div");
       row.className = "student-row";
       row.id = `student-${student.id}`;
 
-      const card = document.createElement("div");
-      card.className = "student-card";
-
       let cutoff = "";
-      let deg = "";
-      switch (student.degree.toLowerCase()) {
-        case "b.e":
-        case "btech":
-        case "engineering":
-          cutoff = student.engineering_cutoff;
-          deg = degreeMap["b.e"];
-          break;
-        case "msc":
-          cutoff = student.msc_cutoff;
-          deg = degreeMap["msc"];
-          break;
-        case "bdes":
-          cutoff = student.bdes_cutoff;
-          deg = degreeMap["bdes"];
-          break;
-        case "barch":
-          cutoff = student.barch_cutoff;
-          deg = degreeMap["barch"];
-          break;
-        default:
-          cutoff = "N/A";
+
+      // Determine cutoff based on key
+      if (["b.e", "btech", "engineering"].includes(key)) cutoff = student.engineering_cutoff;
+      else if (key === "msc") cutoff = student.msc_cutoff;
+      else if (key === "bdes") cutoff = student.bdes_cutoff;
+      else if (key === "barch") cutoff = student.barch_cutoff;
+
+      const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
+
+      let scoreDisplay = '';
+
+      if (!isPG) {
+        scoreDisplay = `<p><strong>Cut-Off:</strong> ${cutoff}</p>`;
+      } else {
+        const tancetGateScore = student.tancet_gate_score ? `${student.tancet_gate_score}` : '-';
+        scoreDisplay = `<p><strong>TANCET/GATE Score:</strong> ${tancetGateScore}</p>`;
       }
 
-      card.innerHTML = `
-        <p><strong>Name:</strong> ${student.name}</p>
-        <p><strong>Application No:</strong> ${student.application_number}</p>
-        <p><strong>DOA:</strong> ${student.date_of_application}</p>
-        <p><strong>Degree:</strong> ${deg}</p>
-        <p><strong>Cut-Off:</strong> ${cutoff}</p>
-        <button class="view-more" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+      const recommender = student.recommenders?.[0] || { name: "-", affiliation: "-", designation: "-" };
+      let deleteBtn = !isAdmin ? `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>` : "";
+
+      const preferredBranches = [
+        student.branch_1 || student.branch1,
+        student.branch_2,
+        student.branch_3
+      ]
+        .filter(branch => branch && branch.trim())
+        .map(branch => branch.trim());
+      const preferredBranch = preferredBranches.length ? preferredBranches.join('/') : '-';
+      row.innerHTML = `
+        <div class="student-info">
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Name:</strong> ${student.name}</p></div>
+            <div class="card-cell"><p><strong>App No:</strong> ${student.application_number}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell"><p><strong>Recommender:</strong> ${recommender.name}</p></div>
+            <div class="card-cell"><p><strong>Designation:</strong> ${recommender.designation}</p></div>
+          </div>
+          <div class="card-row">
+            <div class="card-cell">${scoreDisplay}</div>
+            <div class="card-cell"><p><strong>Preferred Branch:</strong> ${preferredBranch}</p></div>
+          </div>
+          <button class="view-more-btn" onclick='showViewMore(${JSON.stringify(student)})'>View More</button>
+        </div>
+        <div class="action-buttons">
+          <button class="accept allot" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
+          <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
+          <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
+          ${deleteBtn}
+        </div>
       `;
 
-      const recommender = student.recommenders?.[0] || {
-        name: "-",
-        affiliation: "-",
-        designation: "-"
-      };
-
-      const recommenderBox = document.createElement("div");
-      recommenderBox.className = "recommender-box";
-      recommenderBox.innerHTML = `
-        <p><strong>Recommender:</strong> ${recommender.name}</p>
-        <p><strong>Designation:</strong> ${recommender.designation}</p>
-        <p><strong>Company:</strong> ${recommender.affiliation}</p>
-      `;
-
-      const actions = document.createElement("div");
-      actions.className = "action-buttons";
-      let withdrawOrDeleteBtn = "";
-      if (!isAdmin) {
-        withdrawOrDeleteBtn = `<button class="delete" onclick="deleteStudent(${student.id})">Delete</button>`;
-      }
-
-      actions.innerHTML = `
-        <button class="accept" onclick="acceptStudent(${student.id}, '${student.branch_1}')">Allot</button>
-        <button class="decline" onclick="openDeclineModal(${student.id})">Decline</button>
-        <button class="onhold" onclick="onHoldStudent(${student.id})">On Hold</button>
-        ${withdrawOrDeleteBtn}
-      `;
-
-      row.appendChild(card);
-      row.appendChild(recommenderBox);
-      row.appendChild(actions);
-      container.appendChild(row);
+      grid.appendChild(row);
     });
 
-    isFirstGroup = false;
+    // Add empty state if no students
+    if (studentsList.length === 0) {
+      const emptyMsg = document.createElement("div");
+      emptyMsg.style.padding = "30px 20px";
+      emptyMsg.style.textAlign = "center";
+      emptyMsg.style.color = "#999";
+      emptyMsg.style.fontSize = "14px";
+      emptyMsg.innerHTML = "<p>No students in this category</p>";
+      grid.appendChild(emptyMsg);
+    }
+
+    content.appendChild(grid);
+    dropdown.appendChild(header);
+    dropdown.appendChild(content);
+    targetGroup.appendChild(dropdown);
+  });
+
+  container.appendChild(mainContainer);
+}
+
+function toggleDegreeDropdown(degreeKey) {
+  const dropdown = document.getElementById(`degree-${degreeKey}`);
+  if (dropdown) {
+    dropdown.classList.toggle("active");
   }
 }
 
@@ -374,7 +610,14 @@ const courseMap = {
   "CIVIL": "B.E. Civil Engineering",
   "MSC DATA SCIENCE": "Msc. Data Science",
   "B.DES": "B.Des. Interior Design",
-  "B.ARCH": "B.Arch. Architecture"
+  "B.ARCH": "B.Arch. Architecture",
+  "M.E. STRUCTURAL ENGINEERING": "M.E. Structural Engineering",
+  "M.E. ENVIRONMENTAL ENGINEERING": "M.E. Environmental Engineering",
+  "M.E. CONSTRUCTION ENGINEERING AND MANAGEMENT": "M.E. Construction Engineering and Management",
+  "M.E. ENGINEERING DESIGN": "M.E. Engineering Design",
+  "M.E. POWER SYSTEM ENGINEERING": "M.E. Power System Engineering",
+  "M.E. COMMUNICATION SYSTEMS": "M.E. Communication Systems",
+  "M.E. COMPUTER SCIENCE AND ENGINEERING": "M.E. Computer Science and Engineering"
 };
 function acceptStudent(id, branch) {
   currentStudentId = id;
@@ -441,6 +684,36 @@ function acceptStudent(id, branch) {
     modeSelect.disabled = false;
   }
 
+  // M.E/M.Tech degree
+  else if (degree === "ME_MTECH") {
+    const meCourses = [
+      "M.E. Structural Engineering",
+      "M.E. Environmental Engineering",
+      "M.E. Construction Engineering and Management",
+      "M.E. Engineering Design",
+      "M.E. Power System Engineering",
+      "M.E. Communication Systems",
+      "M.E. Computer Science and Engineering"
+    ];
+
+    // Add a default option
+    const defaultOption = document.createElement("option");
+    defaultOption.textContent = "Select Branch";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    branchSelect.appendChild(defaultOption);
+
+    meCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchSelect.appendChild(option);
+    });
+
+    modeSelect.innerHTML = `<option value="self-finance" selected>Self-Finance</option>`;
+    modeSelect.disabled = true;
+  }
+
   // General case: BE courses
   else {
     const branchesToShow = beCourses
@@ -467,13 +740,13 @@ function acceptStudent(id, branch) {
         modeSelect.value = "self-finance";
         modeSelect.disabled = false;
       } else if (["it", "mechatronic"].includes(selected)) {
-    // These branches don't support Aided
-    modeSelect.innerHTML = `
+        // These branches don't support Aided
+        modeSelect.innerHTML = `
       <option value="">-- Select Mode --</option>
       <option value="self-finance">Self-Finance</option>
     `;
-    modeSelect.disabled = false;
-  } else {
+        modeSelect.disabled = false;
+      } else {
         modeSelect.innerHTML = `
           <option value="">-- Select Mode --</option>
           <option value="aided">Aided</option>
@@ -504,8 +777,8 @@ function confirmSelection() {
   }
   const fullCourseName = courseMap[branch.toUpperCase()];
   const modeFormatted = !selectedMode ? "" :
-  selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
- const confirmButton = document.querySelector("#popup-overlay button.accept");
+    selectedMode.toLowerCase() === "aided" ? "Aided" : "Self Finance";
+  const confirmButton = document.querySelector("#popup-overlay button.accept");
   if (confirmButton) {
     confirmButton.disabled = true;
     confirmButton.innerText = "Loading...";
@@ -517,55 +790,55 @@ function confirmSelection() {
   }
 
   function sendApprovalRequest(isConfirm = false) {
-  fetch(UPDATE_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      student_id: currentStudentId,
-      status: "APPROVED",
-      course: fullCourseName,
-      course_type: modeFormatted,
-      is_confirm: isConfirm
+    authFetch(UPDATE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_id: currentStudentId,
+        status: "APPROVED",
+        course: fullCourseName,
+        course_type: modeFormatted,
+        is_confirm: isConfirm
+      })
     })
-  })
-  .then(async (res) => {
-    const data = await res.json().catch(() => ({})); // protect against invalid JSON
-    if (res.status === 409) {
-      console.log("hello")
-      const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
-      if (proceed) {
-        return sendApprovalRequest(true); // Retry with confirmation
-      } else {
-        throw new Error("Operation cancelled by user.");
-      }
-    } else if (!res.ok) {
-      throw new Error(data.error || "An unknown error occurred.");
-    }
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({})); // protect against invalid JSON
+        if (res.status === 409) {
+          console.log("hello")
+          const proceed = confirm(`${data.error || "Conflict detected."}\n\nDo you want to proceed anyway?`);
+          if (proceed) {
+            return sendApprovalRequest(true); // Retry with confirmation
+          } else {
+            throw new Error("Operation cancelled by user.");
+          }
+        } else if (!res.ok) {
+          throw new Error(data.error || "An unknown error occurred.");
+        }
 
-    return data;
-  })
-  .then((data) => {
-    if (data && data.message) {
-      alert(data.message);
-      document.getElementById("popup-overlay").style.display = "none";
-      removeCard(currentStudentId);
-      location.reload();
-    }
-  })
-  .catch((err) => {
-    console.error("Error approving student:", err);
-    alert(`Failed to approve student: ${err.message}`);
-  })
-  .finally(() => {
-    if (confirmButton) {
-      confirmButton.disabled = false;
-      confirmButton.innerText = "Allot";
-    }
-  });
-}
+        return data;
+      })
+      .then((data) => {
+        if (data && data.message) {
+          alert(data.message);
+          document.getElementById("popup-overlay").style.display = "none";
+          removeCard(currentStudentId);
+          location.reload();
+        }
+      })
+      .catch((err) => {
+        console.error("Error approving student:", err);
+        alert(`Failed to approve student: ${err.message}`);
+      })
+      .finally(() => {
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.innerText = "Allot";
+        }
+      });
+  }
 
-// Call it initially
-sendApprovalRequest();
+  // Call it initially
+  sendApprovalRequest();
 
 }
 
@@ -576,7 +849,7 @@ let currentDeclineId = null;
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -595,7 +868,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -617,10 +890,10 @@ function submitDecline() {
       console.error("Error declining student:", err);
       alert("Failed to decline student");
     });
-     if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit";
-      }
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Submit";
+  }
 }
 
 
@@ -634,7 +907,7 @@ function onHoldStudent(id) {
   }
   const student = allStudents.find(s => s.id === id);
   const studentName = student?.name || `ID ${id}`;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -642,19 +915,19 @@ function onHoldStudent(id) {
       status: "ONHOLD",
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    alert(`Student ${studentName} is on hold.`);
-    removeCard(id);
-  })
-  .catch(err => {
-    console.error("Error putting student on hold:", err);
-    alert("Failed to put student on hold");
+    .then(res => res.json())
+    .then(data => {
+      alert(`Student ${studentName} is on hold.`);
+      removeCard(id);
+    })
+    .catch(err => {
+      console.error("Error putting student on hold:", err);
+      alert("Failed to put student on hold");
       if (btn) {
-      btn.disabled = false;
-      btn.innerText = "Put On Hold";
-    }
-  });
+        btn.disabled = false;
+        btn.innerText = "Put On Hold";
+      }
+    });
 }
 function withdrawStudent(id) {
   // Show confirmation dialog before proceeding
@@ -667,7 +940,7 @@ function withdrawStudent(id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -675,28 +948,28 @@ function withdrawStudent(id) {
       status: "WITHDRAWN"
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
-  })
-  .catch(err => {
-    console.error("Error withdrawing student:", err);
-    alert("Failed to withdraw student");
-  })
-  .finally(() => {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerText = "Withdraw";
-    }
-  });
+    .then(res => res.json())
+    .then(data => {
+      const card = document.getElementById(`student-${id}`);
+      card.classList.add("decline-shadow");
+      setTimeout(() => removeCard(id), 500);
+    })
+    .catch(err => {
+      console.error("Error withdrawing student:", err);
+      alert("Failed to withdraw student");
+    })
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "Withdraw";
+      }
+    });
 }
 
 function deleteStudent(id) {
   const confirmed = confirm("Are you sure you want to delete this student's application?");
   if (!confirmed) return;
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -704,122 +977,200 @@ function deleteStudent(id) {
       status: "DELETE"
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    const card = document.getElementById(`student-${id}`);
-    card.classList.add("decline-shadow");
-    setTimeout(() => removeCard(id), 500);
-  })
-  .catch(err => {
-    console.error("Error Deleting student:", err);
-    alert("Failed to delete student");
-  });
+    .then(res => res.json())
+    .then(data => {
+      const card = document.getElementById(`student-${id}`);
+      card.classList.add("decline-shadow");
+      setTimeout(() => removeCard(id), 500);
+    })
+    .catch(err => {
+      console.error("Error Deleting student:", err);
+      alert("Failed to delete student");
+    });
 }
 function removeCard(id) {
   const row = document.getElementById(`student-${id}`);
   if (row) row.remove();
 }
+
 function showViewMore(student) {
-      const container = document.getElementById("viewMoreContent");
-      container.innerHTML = "";
+  const container = document.getElementById("viewMoreContent");
+  container.innerHTML = "";
 
-      const r = student.recommender || student.recommenders?.[0] || {};
+  const r = student.recommender || student.recommenders?.[0] || {};
+  
+  console.log("Student Data:", student);
 
-      const studentFields = [
-        ["Application Number", student.application_number],
-        ["Name", student.name],
-        ["DOA", student.date_of_application],
-        ["School", student.school],
-        ["City", student.district],
-        ["Std Code", student.stdcode],
-        ["Phone", student.phone_number],
-        ["Email", student.email],
-        ["Address", student.address],
-        ["Aadhar Number", student.aadhar_number],
-        ["Parent Annual Income", student.parent_annual_income],
-        ["Community", student.community],
-        ["Board", student.board],
-        ["Year of Passing", student.year_of_passing],
-        ["College", student.college],
-        ["Degree", student.degree],
-        ["Branch 1", student.branch_1],
-        ["Branch 2", student.branch_2],
-        ["Branch 3", student.branch_3],
-        ["Maths", student.maths],
-        ["Physics", student.physics],
-        ["Chemistry", student.chemistry],
-        ["Total Marks", student.twelfth_mark],
-        ["Mark %", student.markpercentage],
-        ["Engineering Cutoff", student.engineering_cutoff, true],
-        ["MSC Cutoff", student.msc_cutoff, true],
-        ["BArch Cutoff", student.barch_cutoff, true],
-        ["BDes Cutoff", student.bdes_cutoff, true]
-      ];
+  const makeSection = (title, fields) => {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+    // Bold Section Heading
+    section.innerHTML = `
+      <h3>${title.toUpperCase()}</h3>
+      <table class="detail-table"></table>
+    `;
+    const table = section.querySelector("table");
 
-      const recommenderFields = [
-        ["Name", r.name],
-        ["Designation", r.designation],
-        ["Affiliation", r.affiliation],
-        ["Office Address", r.office_address],
-        ["Offcode", r.offcode],
-        ["Office Phone", r.office_phone_number],
-        ["Personal Phone", r.personal_phone_number],
-        ["Email", r.email]
-      ];
+    fields.forEach(([label, value]) => {
+      if (value) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${label}:</td>
+          <td>${value}</td>
+        `;
+        table.appendChild(row);
+      }
+    });
+    return section;
+  };
 
-      const makeSection = (title, fields) => {
-        const section = document.createElement("div");
-        section.className = "detail-section";
-        section.innerHTML = `<h3>${title}</h3><table class="detail-table"></table>`;
-        const table = section.querySelector("table");
+  const studentProgramType = student.program_type ? student.program_type.toUpperCase() : 'UG';
+  console.log("Program Type:", studentProgramType);
+  const degreeDisplayMap = { 'me_mtech': 'M.E/M.TECH', 'march': 'M.Arch', 'mca': 'M.C.A', 'msc': 'M.Sc. DS', 'bdes': 'B.Des', 'barch': 'B.Arch', 'btech': 'B.E/B.Tech' };
+  const degreeDisplay = degreeDisplayMap[(student.degree || '').toLowerCase()] || student.degree;
 
-        let hasData = false;
-        fields.forEach(([label, value, highlight]) => {
-          if (value !== null && value !== undefined && value !== "") {
-            hasData = true;
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${label}:</td>
-              <td class="${highlight ? "highlight" : ""}">${value}</td>
-            `;
-            table.appendChild(row);
-          }
-        });
+  let studentFields = [
+    ["Application Number", student.application_number],
+    ["Name", student.name],
+    ["Program Type", studentProgramType],
+    ["Degree", degreeDisplay],
+    ["DOA", student.date_of_application],
+    ["School", student.school],
+    ["City", student.district],
+    ["Std Code", student.stdcode],
+    ["Phone", student.phone_number],
+    ["Email", student.email],
+    ["Address", student.address],
+    ["Aadhar Number", student.aadhar_number],
+    ["Parent Annual Income", student.parent_annual_income],
+    ["Community", student.community],
+    ["Board", student.board],
+    ["Year of Passing", student.year_of_passing],
+    ["College", student.college],
+    ["Branch 1", student.branch_1],
+    ["Branch 2", student.branch_2],
+    ["Branch 3", student.branch_3]
+  ];
 
-        return hasData ? section : null;
-      };
+  if (studentProgramType === 'PG') {
+    studentFields.push(
+      ["UG Degree", student.ug_degree || "-"],
+      ["UG Programme Name", student.ug_course_name || "-"],
+      ["UG Institution", student.ug_institution || "-"],
+      ["UG Aggregated Percentage Score/CGPA", student.ug_consolidated_mark || "-"],
+      ["Tancet/GATE Score", student.tancet_gate_score || "-"]
+    );
+  } 
+  else if(studentProgramType == 'LATERAL') {
+    studentFields.push(
+      ["Diploma College", student.diploma_college_name],
+      ["Diploma Course", student.diploma_course],
+      ["Diploma University", student.diploma_university],
+      ["Diploma Percentage/CGPA", student.diploma_cgpa],
+      ["Lateral Cutoff", student.lateral_cutoff]
+    );
+  }
+  else {
+    studentFields.push(
+      ["Maths", student.maths],
+      ["Physics", student.physics],
+      ["Chemistry", student.chemistry],
+      ["Total Marks", student.twelfth_mark],
+      ["Mark %", student.markpercentage],
+      ["Engineering Cutoff", student.engineering_cutoff],
+      ["MSC Cutoff", student.msc_cutoff],
+      ["BArch Cutoff", student.barch_cutoff],
+      ["BDes Cutoff", student.bdes_cutoff]
+    );
+  }
 
-      const studentSection = makeSection("STUDENT DETAILS", studentFields);
-      const recommenderSection = makeSection("RECOMMENDER DETAILS", recommenderFields);
+  container.appendChild(makeSection("Student Details", studentFields));
 
-      if (studentSection) container.appendChild(studentSection);
-      if (recommenderSection) container.appendChild(recommenderSection);
+  container.appendChild(makeSection("Recommender Details", [
+    ["Name", r.name],
+    ["Designation", r.designation],
+    ["Affiliation", r.affiliation],
+    ["Office Address", r.office_address],
+    ["Offcode", r.offcode],
+    ["Office Phone", r.office_phone_number],
+    ["Personal Phone", r.personal_phone_number],
+    ["Email", r.email]
+  ]));
 
-      document.getElementById("viewMoreOverlay").style.display = "flex";
+  // Opens in center using flex
+  document.getElementById("viewMoreOverlay").style.display = "flex";
+}
 
-    }
+function closeViewMore() {
+  document.getElementById("viewMoreOverlay").style.display = "none";
+}
 
-    function closeViewMore() {
-      document.getElementById("viewMoreOverlay").style.display = "none";
-    }
-    
-    
+
+function getDegreeLevel(course) {
+  const normalized = (course || "").toString().trim().toLowerCase();
+  if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+    return "PG";
+  }
+  return "UG";
+}
+
+function normalizeCourseType(courseType) {
+  const normalized = (courseType || "").toString().trim().toLowerCase();
+  return normalized.includes("aided") ? "aided" : "selfFinance";
+}
+
 window.onload = () => {
+  // Pre-fetch seat data for use by acceptStudent / confirmSelection
+  authFetch(SEATS_URL)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      data.forEach(entry => {
+        const remaining_seats = entry.remaining_seats ?? 0;
+        result.push({
+          student_id: entry.student_id,
+          student_name: entry.student_name,
+          course: entry.course,
+          course_type: entry.course_type,
+          status: entry.status,
+          remaining_seats: remaining_seats
+        });
+        seats[entry.course] = remaining_seats;
+      });
+      console.log("Seats pre-loaded:", seats);
+    })
+    .catch(error => console.error("Failed to pre-load seat data:", error));
+
   fetchAndRenderStudents("UNALLOCATED");
   populateFilters();
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -828,11 +1179,28 @@ function showSeatPopup() {
           <td>${entry.allocated_seats}</td>
           <td>${entry.remaining_seats}</td>
         `;
-
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
+
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
@@ -845,6 +1213,216 @@ function showSeatPopup() {
 function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
+
+function closeChangeSeatPopup() {
+  document.getElementById("changeSeatPopup").style.display = "none";
+}
+
+let currentSeatData = [];
+
+function updateRemaining(index) {
+  const row = document.querySelector(`#changeSeatTable tbody tr:not(.summary-row):nth-of-type(${index + 1})`);
+  if (!row) return;
+
+  const totalInput = row.querySelector(`#total-${index}`);
+  const allocatedInput = row.querySelector(`#allocated-${index}`);
+  const remainingInput = row.querySelector(`#remaining-${index}`);
+  if (!totalInput || !allocatedInput || !remainingInput) return;
+
+  const total = parseInt(totalInput.value) || 0;
+  const allocated = parseInt(allocatedInput.value) || 0;
+  const remaining = total - allocated; // Allow negative values
+  remainingInput.value = remaining;
+
+  updateSummaryTotals();
+}
+
+function updateSummaryTotals() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  const totals = {
+    aided: {
+      UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 },
+      PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }
+    },
+    selfFinance: {
+      UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 },
+      PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }
+    }
+  };
+
+  rows.forEach(row => {
+    const courseType = row.dataset.courseType || 'selfFinance';
+    const degreeLevel = (row.dataset.degreeLevel || 'UG').toUpperCase();
+    const total = parseInt(row.querySelector("input[id^='total-']")?.value) || 0;
+    const allocated = parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
+    const remaining = parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
+
+    if (!totals[courseType]) return;
+    if (!totals[courseType][degreeLevel]) return;
+
+    totals[courseType][degreeLevel].totalSeats += total;
+    totals[courseType][degreeLevel].allocatedSeats += allocated;
+    totals[courseType][degreeLevel].remainingSeats += remaining;
+  });
+
+  const setTotals = (prefix, level) => {
+    const levelLower = level.toLowerCase();
+    const totalEl = document.getElementById(`${prefix}-${levelLower}-total`);
+    const allocatedEl = document.getElementById(`${prefix}-${levelLower}-allocated`);
+    const remainingEl = document.getElementById(`${prefix}-${levelLower}-remaining`);
+    const typeKey = prefix === 'sf' ? 'selfFinance' : prefix;
+    if (totalEl) totalEl.textContent = totals[typeKey][level].totalSeats;
+    if (allocatedEl) allocatedEl.textContent = totals[typeKey][level].allocatedSeats;
+    if (remainingEl) remainingEl.textContent = totals[typeKey][level].remainingSeats;
+  };
+
+  ['UG', 'PG'].forEach(level => {
+    setTotals('aided', level);
+    setTotals('sf', level);
+  });
+}
+
+function showChangeSeatsPopup() {
+  authFetch(SEATS_URL)
+    .then(response => response.json())
+    .then(result => {
+      currentSeatData = result;
+      const aided = result.filter(entry => entry.course_type.toLowerCase() === 'aided');
+      const sf = result.filter(entry => entry.course_type.toLowerCase() === 'self finance');
+      const grouped = [...aided, ...sf];
+
+      const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      grouped.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const courseWithType = `${entry.course} (${entry.course_type})`;
+        const row = document.createElement("tr");
+        row.dataset.courseType = courseTypeKey;
+        row.dataset.degreeLevel = degreeLevel.toLowerCase();
+        row.dataset.courseName = entry.course;
+        const remainingSeats = (parseInt(entry.total_seats) || 0) - (parseInt(entry.allocated_seats) || 0);
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${courseWithType}</td>
+          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0" onchange="updateRemaining(${index})"></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly disabled></td>
+          <td><input type="number" value="${remainingSeats}" id="remaining-${index}" min="0" readonly disabled></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      const appendTotalRow = (label, totalsData, prefix, level) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row summary-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong id="${prefix}-${level}-total">${totalsData.totalSeats}</strong></td>
+          <td><strong id="${prefix}-${level}-allocated">${totalsData.allocatedSeats}</strong></td>
+          <td><strong id="${prefix}-${level}-remaining">${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
+      grouped.forEach(entry => {
+        const typeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = totalSeats - allocatedSeats;
+        totals[typeKey][degreeLevel].totalSeats += totalSeats;
+        totals[typeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[typeKey][degreeLevel].remainingSeats += remainingSeats;
+      });
+
+      appendTotalRow("Aided UG Total", totals.aided.UG, "aided", "ug");
+      appendTotalRow("Aided PG Total", totals.aided.PG, "aided", "pg");
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG, "sf", "ug");
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG, "sf", "pg");
+
+      document.getElementById("changeSeatPopup").style.display = "flex";
+      updateSummaryTotals();
+    })
+    .catch(err => {
+      console.error("Error fetching seat data:", err);
+      alert("Failed to load seat status.");
+    });
+}
+
+function saveChangeSeats() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  const updatedData = [];
+  const aided = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'aided');
+  const sf = currentSeatData.filter(entry => entry.course_type.toLowerCase() === 'self finance');
+  const grouped = [...aided, ...sf];
+
+  rows.forEach((row, index) => {
+    if (index < grouped.length) {
+      const totalInput = row.querySelector(`#total-${index}`);
+      const originalAllocated = grouped[index].allocated_seats || 0;
+      if (totalInput) {
+        const newTotal = parseInt(totalInput.value) || 0;
+        const newRemaining = newTotal - originalAllocated; // Allow negative values
+
+        updatedData.push({
+          course: grouped[index].course,
+          course_type: grouped[index].course_type,
+          total_seats: newTotal,
+          allocated_seats: originalAllocated,
+          remaining_seats: newRemaining
+        });
+      }
+    }
+  });
+
+  const invalidEntries = updatedData.filter(d => d.total_seats < 0);
+  if (invalidEntries.length > 0) {
+    const courses = invalidEntries.map(d => d.course).join(", ");
+    alert(`Total seats cannot be negative for: ${courses}`);
+    return;
+  }
+
+  function doSeatUpdate(url) {
+    return authFetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData)
+    });
+  }
+
+  const fallbackUrl = `${window.env.BASE_URL.replace(/\/api\/?$/, '')}/updateseats`; // supports missing prefix
+
+  doSeatUpdate(SEATS_UPDATE_URL)
+    .then(res => {
+      if (res.status === 404) {
+        console.warn('Primary update URL returned 404, retrying with fallback URL', fallbackUrl);
+        return doSeatUpdate(fallbackUrl);
+      }
+      return res;
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+      alert("Seats updated successfully");
+      location.reload();
+    })
+    .catch(err => {
+      console.error("Error updating seats:", err);
+      alert("Failed to update seats: " + err.message);
+    });
+}
+
 window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
     window.location.reload(); // Reload if user returns via back/forward

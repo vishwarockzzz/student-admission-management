@@ -1,7 +1,15 @@
+// Guard: redirect to login if no tokens are present at all
+requireAuth();
+
 const API_URL = `${window.env.BASE_URL}/tcarts/students`;
 const UPDATE_URL = `${window.env.BASE_URL}/tcarts/updatestatus`;
-const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
+const SEATS_URL = `${window.env.BASE_URL}/tcarts/statusdetails`;
+const SEATS_UPDATE_URL = `${window.env.BASE_URL}/tcarts/updateseats`;
+const EXPORTS_URL = `${window.env.BASE_URL}/exports`;
 
+let allStudents = [];
+let currentStatus = 'APPROVED';
+let currentSeatData = [];
 
 // Aided UG Courses
   const aidedUG = [
@@ -42,6 +50,21 @@ const SEATS_URL =`${window.env.BASE_URL}/tcarts/statusdetails`;
     "B.Sc. Computer Science in AI"
   ];
 
+  function getDegreeLevel(course) {
+    const normalized = (course || "").toString().trim().toLowerCase();
+    if (/\b(m\.?e|mtech|m\.?tech|m\.?arch|mca|m\.?c\.?a|m\.?sc|msc|mba|mcom)\b/.test(normalized)) {
+      return "PG";
+    }
+    return "UG";
+  }
+
+  function normalizeCourseType(courseType) {
+    const normalized = (courseType || "").toString().trim().toLowerCase();
+    return normalized.includes("aided") ? "aided" : "selfFinance";
+  }
+
+window.getDegreeLevel = getDegreeLevel;
+window.normalizeCourseType = normalizeCourseType;
 
 function goHome() {
     window.location.href = 'index.html'; 
@@ -60,7 +83,7 @@ function goHome() {
    if (currentStatus === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
     );
 
     Promise.all(fetches)
@@ -74,7 +97,7 @@ function goHome() {
       })
       .catch(error => console.error("Error restoring all statuses:", error));
   } else {
-    fetch(`${API_URL}?status=${currentStatus}`)
+    authFetch(`${API_URL}?status=${currentStatus}`)
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -85,11 +108,27 @@ function goHome() {
 
 }
     window.onload = () => {
-    loadStatus('APPROVED'); 
+    // Pre-fetch seat data
+    authFetch(SEATS_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        data.forEach(entry => {
+          const remaining_seats = entry.remaining_seats ?? 0;
+          result.push({ student_id: entry.student_id, student_name: entry.student_name,
+            course: entry.course, course_type: entry.course_type,
+            status: entry.status, remaining_seats });
+          seats[entry.course] = remaining_seats;
+        });
+        console.log("Seats pre-loaded:", seats);
+      })
+      .catch(err => console.error("Failed to pre-load seat data:", err));
+
+    loadStatus('APPROVED');
     };
 
+
 let outcomeCache = [];
-let currentStatus = 'APPROVED'; // Default status on initial load
+// currentStatus already declared at top
   function printSeatsTable() {
     const tableHtml = document.getElementById("seatsTableContainer").innerHTML;
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -111,7 +150,7 @@ function loadSeatTable() {
   const seatTbody = document.querySelectorAll("#seatTable tbody");
   seatTbody.forEach(tbody => tbody.innerHTML = "");
 
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       seatTbody.forEach(tbody => {
@@ -135,42 +174,9 @@ function loadSeatTable() {
       alert("Failed to load seat status.");
     });
 }
-fetch(SEATS_URL)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const student_id = entry.student_id;
-      const student_name = entry.student_name;
-      const course_name = entry.course;
-      const course_type = entry.course_type;
-      const status = entry.status;
-      const remaining_seats = entry.remaining_seats ?? 0;
+// NOTE: seats pre-fetch moved inside window.onload to avoid
+// module-level async calls that can race with auth setup.
 
-      // Build result array
-      result.push({
-        student_id: student_id,
-        student_name: student_name,
-        course: course_name,
-        course_type: course_type,
-        status: status,
-        remaining_seats: remaining_seats
-      });
-
-      // Build SEATS object (course name → remaining seats)
-      seats[course_name] = remaining_seats;
-    });
-
-    console.log("Result array:", result);
-    console.log("SEATS object:", seats);
-  })
-  .catch(error => {
-    console.error("Failed to fetch data:", error);
-  });
 let allStudentsData = []; // global variable
   // global variable
 
@@ -202,7 +208,7 @@ function loadStatus(status, buttonElement) {
   if (status === "ALL") {
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?status=${s}`).then(res => res.json())
+      authFetch(`${API_URL}?status=${s}`).then(res => res.json())
     );
 
     Promise.all(fetches)
@@ -217,7 +223,7 @@ function loadStatus(status, buttonElement) {
       })
       .catch(err => console.error("Error fetching all statuses:", err));
   } else {
-    fetch(`${API_URL}?status=${status}`)
+    authFetch(`${API_URL}?status=${status}`)
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -243,7 +249,7 @@ function handleSearch() {
     // Fetch search results across all statuses
     const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD"];
     const fetches = statuses.map(s =>
-      fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${s}`)
+      authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${s}`)
         .then(res => res.json())
     );
 
@@ -259,7 +265,7 @@ function handleSearch() {
       .catch(error => console.error("Error during multi-status search:", error));
   } else {
     // Single-status search
-    fetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${currentStatus}`) 
+    authFetch(`${API_URL}?search=${encodeURIComponent(query)}&status=${currentStatus}`) 
       .then(response => response.json())
       .then(data => {
         const students = data.students || [];
@@ -294,6 +300,25 @@ function generateAllStudentTableView(allStudents) {
     theadRow.appendChild(th);
   });
 
+  // Fix 3: Populate branch filter for Print All view
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueCourses = new Set();
+    allStudents.forEach(student => {
+      const outcome = student.outcomes?.[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueCourses.add(courseName);
+    });
+    uniqueCourses.forEach(course => {
+      const option = document.createElement("option");
+      option.value = course;
+      option.textContent = course;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
+
   allStudents.forEach((student, index) => {
     const outcome = student.outcomes?.[0] || {};
     const cutoff = student.engineering_cutoff || student.msc_cutoff || student.barch_cutoff || student.bdes_cutoff || "N/A";
@@ -310,6 +335,7 @@ function generateAllStudentTableView(allStudents) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -323,10 +349,10 @@ function generateAllStudentTableView(allStudents) {
 function printAllWithUnallocated() {
   const statuses = ["APPROVED", "DECLINED", "WITHDRAWN", "ONHOLD", "UNALLOCATED"];
   const fetchStatus = statuses.map(status =>
-    fetch(`${API_URL}?status=${status}`).then(res => res.json())
+    authFetch(`${API_URL}?status=${status}`).then(res => res.json())
   );
 
-  const fetchAll = fetch(`${API_URL}?status=ALL`).then(res => res.json());
+  const fetchAll = authFetch(`${API_URL}?status=ALL`).then(res => res.json());
 
   Promise.all([...fetchStatus, fetchAll])
     .then(results => {
@@ -353,7 +379,7 @@ function printAllWithUnallocated() {
 
 function openStudentPopup() {
   const popup = document.getElementById("studentPopup");
-  if (popup) popup.style.display = "block";
+  if (popup) popup.style.display = "flex";
 }
 
 function closeStudentPopup() {
@@ -530,9 +556,27 @@ function generateTableView(status) {
   } // Toggle button visibility
   updateButtonVisibility(status);
   // Show popup
-  document.getElementById("studentPopup").style.display = "block";
+  document.getElementById("studentPopup").style.display = "flex";
   document.getElementById("popupTitle").textContent =
     status === "APPROVED" ? "Allotted Students" : "Declined Students";
+
+  const branchFilter = document.getElementById("branchPrintFilter");
+  if (branchFilter) {
+    branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+    const uniqueBranches = new Set();
+    students.forEach(student => {
+      const outcome = student.outcomes[0] || {};
+      const courseName = outcome.course_name || "-";
+      if (courseName !== "-") uniqueBranches.add(courseName);
+    });
+    uniqueBranches.forEach(branch => {
+      const option = document.createElement("option");
+      option.value = branch;
+      option.textContent = branch;
+      branchFilter.appendChild(option);
+    });
+    branchFilter.value = "ALL";
+  }
 
   const tableHead = document.getElementById("studentTableHead");
   const tableBody = document.getElementById("studentTableBody");
@@ -578,6 +622,7 @@ function generateTableView(status) {
     ];
 
     const tr = document.createElement("tr");
+    tr.dataset.course = outcome.course_name || "-";
     rowData.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell;
@@ -586,6 +631,22 @@ function generateTableView(status) {
     tableBody.appendChild(tr);
   });
   loadSeatTable();
+}
+
+function applyPrintFilter() {
+  const filterVal = document.getElementById("branchPrintFilter").value;
+  const tbody = document.getElementById("studentTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+  let displayIndex = 1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (filterVal === "ALL" || row.dataset.course === filterVal) {
+      row.style.display = "";
+      row.cells[0].textContent = displayIndex++;
+    } else {
+      row.style.display = "none";
+    }
+  }
 }
 
 function closeStudentPopup() {
@@ -725,7 +786,7 @@ function confirmSelection() {
   confirmButton.innerText = "Loading...";
 
   function sendApprovalRequest(isConfirm = false) {
-    fetch(UPDATE_URL, {
+    authFetch(UPDATE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -769,15 +830,12 @@ function confirmSelection() {
   sendApprovalRequest();
 }
 
-
-
-
 let currentDeclineId = null;
 
 function openDeclineModal(id) {
   currentDeclineId = id;
   document.getElementById("declineComment").value = "";
-  document.getElementById("declineModal").style.display = "block";
+  document.getElementById("declineModal").style.display = "flex";
 }
 
 function closeDeclineModal() {
@@ -796,7 +854,7 @@ function submitDecline() {
     submitBtn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -834,7 +892,7 @@ function onHoldStudent(onhold_id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -874,7 +932,7 @@ function withdrawStudent(withdraw_id) {
     btn.innerText = "Loading...";
   }
 
-  fetch(UPDATE_URL, {
+  authFetch(UPDATE_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -999,16 +1057,29 @@ window.onload = () => {
 };
 
 function showSeatPopup() {
-  fetch(SEATS_URL)
+  authFetch(SEATS_URL)
     .then(response => response.json())
     .then(result => {
       const tableBody = document.getElementById("seatTable").querySelector("tbody");
       tableBody.innerHTML = "";
 
+      const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
       result.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const totalSeats = Number(entry.total_seats) || 0;
+        const allocatedSeats = Number(entry.allocated_seats) || 0;
+        const remainingSeats = Number(entry.remaining_seats) || 0;
+
+        totals[courseTypeKey][degreeLevel].totalSeats += totalSeats;
+        totals[courseTypeKey][degreeLevel].allocatedSeats += allocatedSeats;
+        totals[courseTypeKey][degreeLevel].remainingSeats += remainingSeats;
 
         const courseWithType = `${entry.course} (${entry.course_type})`;
-
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -1021,7 +1092,25 @@ function showSeatPopup() {
         tableBody.appendChild(row);
       });
 
-      document.getElementById("seatPopup").style.display = "block";
+      const appendTotalRow = (label, totalsData) => {
+        const totalRow = document.createElement("tr");
+        totalRow.className = "seat-total-row";
+        totalRow.innerHTML = `
+          <td></td>
+          <td><strong>${label}</strong></td>
+          <td><strong>${totalsData.totalSeats}</strong></td>
+          <td><strong>${totalsData.allocatedSeats}</strong></td>
+          <td><strong>${totalsData.remainingSeats}</strong></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG);
+      appendTotalRow("Aided PG Total", totals.aided.PG);
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG);
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG);
+
+      document.getElementById("seatPopup").style.display = "flex";
     })
     .catch(err => {
       console.error("Error fetching seat data:", err);
@@ -1036,8 +1125,199 @@ function closeSeatPopup() {
   document.getElementById("seatPopup").style.display = "none";
 }
 
+function closeChangeSeatPopup() {
+  document.getElementById("changeSeatPopup").style.display = "none";
+}
+
+function updateRemaining(index) {
+  const row = document.querySelector(`#changeSeatTable tbody tr:not(.summary-row):nth-of-type(${index + 1})`);
+  if (!row) return;
+  const totalInput = row.querySelector(`#total-${index}`);
+  const allocatedInput = row.querySelector(`#allocated-${index}`);
+  const remainingInput = row.querySelector(`#remaining-${index}`);
+  if (!totalInput || !allocatedInput || !remainingInput) return;
+  const total = parseInt(totalInput.value) || 0;
+  const allocated = parseInt(allocatedInput.value) || 0;
+  remainingInput.value = total - allocated; // Allow negative values
+  updateSummaryTotals();
+}
+
+function updateSummaryTotals() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  const totals = {
+    aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+    selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+  };
+
+  rows.forEach(row => {
+    const courseType = row.dataset.courseType || 'selfFinance';
+    const degreeLevel = (row.dataset.degreeLevel || 'UG').toUpperCase();
+    const total = parseInt(row.querySelector("input[id^='total-']")?.value) || 0;
+    const allocated = parseInt(row.querySelector("input[id^='allocated-']")?.value) || 0;
+    const remaining = parseInt(row.querySelector("input[id^='remaining-']")?.value) || 0;
+
+    if (!totals[courseType] || !totals[courseType][degreeLevel]) return;
+    totals[courseType][degreeLevel].totalSeats += total;
+    totals[courseType][degreeLevel].allocatedSeats += allocated;
+    totals[courseType][degreeLevel].remainingSeats += remaining;
+  });
+
+  const setTotals = (prefix, level) => {
+    const levelLower = level.toLowerCase();
+    const totalEl = document.getElementById(`${prefix}-${levelLower}-total`);
+    const allocatedEl = document.getElementById(`${prefix}-${levelLower}-allocated`);
+    const remainingEl = document.getElementById(`${prefix}-${levelLower}-remaining`);
+    const typeKey = prefix === 'sf' ? 'selfFinance' : prefix;
+    if (totalEl) totalEl.value = totals[typeKey][level].totalSeats;
+    if (allocatedEl) allocatedEl.value = totals[typeKey][level].allocatedSeats;
+    if (remainingEl) remainingEl.value = totals[typeKey][level].remainingSeats;
+  };
+
+  ['UG', 'PG'].forEach(level => {
+    setTotals('aided', level);
+    setTotals('sf', level);
+  });
+}
+
+function showChangeSeatsPopup() {
+  authFetch(SEATS_URL)
+    .then(r => r.json())
+    .then(result => {
+      currentSeatData = result;
+      const aided = result.filter(e => e.course_type.toLowerCase() === 'aided');
+      const sf    = result.filter(e => e.course_type.toLowerCase() === 'self finance');
+      const grouped = [...aided, ...sf];
+
+      const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      grouped.forEach((entry, index) => {
+        const courseTypeKey = normalizeCourseType(entry.course_type);
+        const degreeLevel = getDegreeLevel(entry.course);
+        const courseWithType = `${entry.course} (${entry.course_type})`;
+        const row = document.createElement("tr");
+        row.dataset.courseType = courseTypeKey;
+        row.dataset.degreeLevel = degreeLevel.toLowerCase();
+        row.dataset.courseName = entry.course;
+        const remaining = (parseInt(entry.total_seats)||0) - (parseInt(entry.allocated_seats)||0);
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${courseWithType}</td>
+          <td><input type="number" value="${entry.total_seats}" id="total-${index}" min="0" onchange="updateRemaining(${index})"></td>
+          <td><input type="number" value="${entry.allocated_seats}" id="allocated-${index}" min="0" readonly disabled></td>
+          <td><input type="number" value="${remaining}" id="remaining-${index}" min="0" readonly disabled></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+          const totals = {
+        aided: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } },
+        selfFinance: { UG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 }, PG: { totalSeats: 0, allocatedSeats: 0, remainingSeats: 0 } }
+      };
+
+      grouped.forEach(e => {
+        const typeKey = normalizeCourseType(e.course_type);
+        const level = getDegreeLevel(e.course);
+        const totalSeats = parseInt(e.total_seats) || 0;
+        const allocatedSeats = parseInt(e.allocated_seats) || 0;
+        const remainingSeats = totalSeats - allocatedSeats;
+        totals[typeKey][level].totalSeats += totalSeats;
+        totals[typeKey][level].allocatedSeats += allocatedSeats;
+        totals[typeKey][level].remainingSeats += remainingSeats;
+      });
+
+      const appendTotalRow = (label, totalsData, prefix, level) => {
+        const totalRow = document.createElement("tr");
+        totalRow.classList.add("summary-row");
+        totalRow.innerHTML = `
+          <td colspan="2"><strong>${label}</strong></td>
+          <td><input type="number" value="${totalsData.totalSeats}" id="${prefix}-${level}-total" readonly disabled></td>
+          <td><input type="number" value="${totalsData.allocatedSeats}" id="${prefix}-${level}-allocated" readonly disabled></td>
+          <td><input type="number" value="${totalsData.remainingSeats}" id="${prefix}-${level}-remaining" readonly disabled></td>
+        `;
+        tableBody.appendChild(totalRow);
+      };
+
+      appendTotalRow("Aided UG Total", totals.aided.UG, "aided", "ug");
+      appendTotalRow("Aided PG Total", totals.aided.PG, "aided", "pg");
+      appendTotalRow("Self Finance UG Total", totals.selfFinance.UG, "sf", "ug");
+      appendTotalRow("Self Finance PG Total", totals.selfFinance.PG, "sf", "pg");
+
+      document.getElementById("changeSeatPopup").style.display = "block";
+      updateSummaryTotals();
+    })
+    .catch(err => {
+      console.error("Error loading seat data:", err);
+      alert("Failed to load seat data.");
+    });
+}
+
+function saveChangeSeats() {
+  const tableBody = document.getElementById("changeSeatTable").querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr:not(.summary-row)");
+  const aided = currentSeatData.filter(e => e.course_type.toLowerCase() === 'aided');
+  const sf    = currentSeatData.filter(e => e.course_type.toLowerCase() === 'self finance');
+  const grouped = [...aided, ...sf];
+
+  const updatedData = [];
+  rows.forEach((row, index) => {
+    if (index < grouped.length) {
+      const totalInput = row.querySelector(`#total-${index}`);
+      if (totalInput) {
+        const newTotal = parseInt(totalInput.value) || 0;
+        const originalAllocated = grouped[index].allocated_seats || 0;
+        updatedData.push({
+          course: grouped[index].course,
+          course_type: grouped[index].course_type,
+          total_seats: newTotal,
+          allocated_seats: originalAllocated,
+          remaining_seats: newTotal - originalAllocated
+        });
+      }
+    }
+  });
+
+  // Fix 7: Frontend guard — no individual SF seat > allocated already
+  const invalidEntries = updatedData.filter(d => d.total_seats < 0);
+  if (invalidEntries.length > 0) {
+    alert(`Total seats cannot be negative for: ${invalidEntries.map(d => d.course).join(", ")}`);
+    return;
+  }
+
+  // Fix 7: Check that SF individual sum does not exceed the displayed SF total cap
+  const sfTotalSummary = (parseInt(document.getElementById("sf-ug-total")?.value) || 0) + (parseInt(document.getElementById("sf-pg-total")?.value) || 0);
+  const newSFSum = updatedData.filter(d => d.course_type.toLowerCase() === 'self finance').reduce((s, d) => s + d.total_seats, 0);
+  if (newSFSum > sfTotalSummary && sfTotalSummary > 0) {
+    alert(`Individual Self Finance seat totals (${newSFSum}) exceed the SF Total cap (${sfTotalSummary}). Please reduce individual course seats.`);
+    return;
+  }
+
+  authFetch(SEATS_UPDATE_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.error) throw new Error(data.error);
+      alert("TCA seats updated successfully");
+      location.reload();
+    })
+    .catch(err => {
+      console.error("Error updating seats:", err);
+      alert("Failed to update seats: " + err.message);
+    });
+}
+
 
 window.onload = function() {
   const defaultButton = document.querySelector(".status-buttons button.active");
   loadStatus('APPROVED', defaultButton);
 };
+
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+    window.location.reload();
+  }
+});
